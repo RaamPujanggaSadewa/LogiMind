@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RFQ-0194 · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .title-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-head h1, .page-head .caption, .page-head .visibility { white-space: nowrap; }
+  .rfq { max-width: 1200px; margin: 0 auto; padding: 24px 32px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Facts strip */
+  .facts { display: grid; grid-template-columns: repeat(6, auto); justify-content: space-between; gap: 16px; padding: 14px 16px; }
+  .fact .k { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+  .fact .v { font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .fact .org-avatar { width: 20px; height: 20px; font-size: 9px; border-radius: var(--r-xs); }
+  .bar { width: 64px; height: 4px; border-radius: 99px; background: var(--nav-active); overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--success); border-radius: 99px; }
+
+  /* Banner (expired) */
+  .banner { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-lg); background: var(--warning-soft); }
+  .banner > svg.lucide { color: var(--warning); width: 18px; height: 18px; }
+  .banner .text { flex: 1; }
+  .banner .text b { font-weight: 600; }
+  .banner .text div { font-size: 13px; color: var(--text-secondary); }
+
+  /* AI recommendation */
+  .reco { background: var(--primary-soft); border-color: transparent; }
+  .reco .card-head h2 { font-size: 15px; }
+  .reco-lines { display: flex; flex-direction: column; background: var(--surface); border-radius: var(--r-md); border: 1px solid rgba(91,61,224,.14); }
+  .reco-line { display: grid; grid-template-columns: 22px 140px minmax(0, 1fr) 110px; gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--divider); }
+  .reco-line:first-child { border-top: 0; }
+  .reco-line .svc { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .reco-line .svc svg.lucide { width: 14px; height: 14px; }
+  .reco-line .who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .reco-line .who b { font-weight: 500; white-space: nowrap; }
+  .reco-line .who span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .reco-line .amt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .reco-line.none .who b { color: var(--warning); }
+  .reco-total { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 12px 14px 0; flex-wrap: wrap; }
+  .reco-total p { margin: 0; font-size: 13px; color: var(--text-secondary); flex: 1; min-width: 280px; }
+  .reco-total .sum { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .reco-total .sum small { font-size: 12px; font-weight: 400; color: var(--muted); margin-right: 6px; }
+  .leg-n { width: 22px; height: 22px; border-radius: var(--r-xs); background: var(--surface); border: 1px solid var(--border); font-size: 12px; font-weight: 600; display: grid; place-items: center; font-variant-numeric: tabular-nums; flex: none; }
+
+  /* Legs */
+  .leg { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+  .leg-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--row-hover); border-bottom: 1px solid var(--divider); }
+  .leg-head .svc { font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .leg-head .svc svg.lucide { color: var(--muted); }
+  .leg-head .route { color: var(--text-secondary); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .leg-head .right { margin-left: auto; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .leg-why { display: flex; align-items: flex-start; gap: 6px; padding: 10px 16px 0; font-size: 13px; color: var(--text-secondary); }
+  .leg-why svg.lucide { width: 13px; height: 13px; color: var(--info); margin-top: 3px; }
+  .offers { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding: 12px 16px 16px; }
+
+  /* Proposed: offer-card */
+  .offer { border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); transition: border-color .12s, box-shadow .12s; }
+  .offer.selected { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+  .offer.pending { background: var(--row-hover); border-style: dashed; }
+  .offer-top { display: flex; align-items: flex-start; gap: 10px; }
+  .offer-top .who { flex: 1; min-width: 0; }
+  .offer-top .who b { font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .offer-top .who .caption { display: flex; align-items: center; gap: 6px; margin-top: 2px; flex-wrap: wrap; }
+  .price { font-variant-numeric: tabular-nums; }
+  .price b { font-size: 18px; font-weight: 600; }
+  .price span { font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .price .total { display: block; font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+  .price .norm { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--warning); margin: 2px 0 0; }
+  .price .norm svg.lucide { width: 12px; height: 12px; }
+  .offer dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 13px; padding-top: 10px; border-top: 1px solid var(--divider); }
+  .offer dt { color: var(--muted); white-space: nowrap; }
+  .offer dd { margin: 0; text-align: right; }
+  .offer .note { font-size: 12px; color: var(--muted); }
+  .flags { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .flags li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; font-size: 12px; color: var(--text-secondary); padding: 6px 8px; border-radius: var(--r-sm); background: var(--warning-soft); }
+  .flags svg.lucide { width: 13px; height: 13px; color: var(--warning); margin-top: 1px; }
+  .offer-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--divider); }
+  .select-btn { height: var(--control-sm); padding: 0 10px; border-radius: var(--r-sm); border: 1px solid var(--border); font-size: 13px; font-weight: 500; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; background: var(--surface); }
+  .select-btn:hover { background: var(--nav-hover); }
+  .select-btn .radio { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--disabled); }
+  .offer.selected .select-btn { border-color: transparent; background: var(--primary-soft); color: var(--primary); }
+  .offer.selected .select-btn .radio { border: 4.5px solid var(--primary); }
+  .pending-body { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); flex: 1; justify-content: center; }
+  .single-note { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 0 16px 14px; margin-top: -4px; }
+  .single-note svg.lucide { width: 13px; height: 13px; }
+
+  .foot { flex: none; padding: 0 24px 16px; }
+  .foot-inner { max-width: 1136px; margin: 0 auto; }
+
+  .award-row { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--divider); font-size: 13px; }
+  .award-row:last-of-type { border-bottom: 0; }
+  .award-row b { font-weight: 600; }
+  .muted-list { font-size: 13px; color: var(--text-secondary); margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+  .notice { display: grid; grid-template-columns: 16px 1fr; gap: 8px; padding: 10px 12px; border-radius: var(--r-md); font-size: 13px; }
+  .notice svg.lucide { width: 15px; height: 15px; margin-top: 1px; }
+  .notice.info { background: var(--info-soft); color: var(--text-secondary); }
+  .notice.info svg { color: var(--info); }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="rfqs" data-row="rfq-0194">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <div class="title-wrap">
+          <h1 class="num">RFQ-0194</h1>
+          <span class="caption" id="subtitle"></span>
+          <span class="tag" id="statusTag"></span>
+        </div>
+        <span class="visibility" title="Vendors see only their own leg and reply"><i data-lucide="lock"></i>Internal</span>
+        <div class="right"><nav class="stepper" id="stepper" aria-label="Progress"></nav></div>
+      </header>
+
+      <div class="content"><div class="rfq" id="rfq"></div></div>
+      <div class="foot"><div class="foot-inner" id="actionBar"></div></div>
+    </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" id="modal"></div></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+LM.mount();
+
+const Q = structuredClone(D.rfq);
+const expired = new URLSearchParams(location.search).get('state') === 'expired';
+if (expired) {
+  Q.timeLeft = D.rfqExpired.timeLeft;
+  Q.legs.find(l => l.id === 'ocean').offers = D.rfqExpired.ocean;
+  Q.legs.find(l => l.id === 'truck').offers[2] = { org: 'angkut', status: 'none', seen: 'Opened the WhatsApp link · no reply' };
+}
+
+const FX = { USD: ['US$', 1], IDR: ['Rp', 16300] };
+const state = { currency: 'USD', mode: 'recommended', awarded: false, notify: true, pick: {} };
+const money = (usd) => FX[state.currency][0] + Math.round(usd * FX[state.currency][1]).toLocaleString('en-US');
+
+const replied = (o) => o.status === 'replied';
+const unitCost = (o) => o.price + (o.extra || 0);             // normalized per unit
+const legCost = (l, o) => unitCost(o) * l.qty;
+
+function recommendedPick(l) { const o = l.offers.find(x => x.rec && replied(x)); return o ? o.org : null; }
+function cheapestPick(l) {
+  const r = l.offers.filter(replied);
+  return r.length ? r.reduce((a, b) => (unitCost(a) <= unitCost(b) ? a : b)).org : null;
+}
+function applyMode(mode) {
+  state.mode = mode;
+  Q.legs.forEach(l => { state.pick[l.id] = mode === 'cheapest' ? cheapestPick(l) : recommendedPick(l); });
+}
+applyMode('recommended');
+
+function total(pickFn) {
+  return Q.legs.reduce((sum, l) => {
+    const org = pickFn(l); const o = l.offers.find(x => x.org === org);
+    return sum + (o ? legCost(l, o) : 0);
+  }, 0);
+}
+const stats = () => {
+  const all = Q.legs.flatMap(l => l.offers);
+  return { invited: all.length, replied: all.filter(replied).length };
+};
+
+/* ---------------- head ---------------- */
+function renderHead() {
+  $('#subtitle').textContent = Q.title;
+  const t = $('#statusTag');
+  const s = stats();
+  if (state.awarded) { t.className = 'tag success'; t.textContent = 'Awarded'; }
+  else if (expired) { t.className = 'tag warning'; t.textContent = 'Deadline passed'; }
+  else { t.className = 'tag info'; t.textContent = `${s.replied} of ${s.invited} replied`; }
+  $('#stepper').innerHTML = LM.stepperHTML(state.awarded ? 4 : 3);
+}
+
+/* ---------------- sections ---------------- */
+function factsHTML() {
+  const s = stats();
+  const c = D.orgs[Q.customer];
+  return `<section class="card facts">
+    <div class="fact"><div class="k">Customer</div><div class="v">${orgAvatar(Q.customer)}${c.name}</div></div>
+    <div class="fact"><div class="k">Request</div><div class="v"><a class="link-btn num" href="chat.html">${Q.request}<i data-lucide="arrow-up-right"></i></a></div></div>
+    <div class="fact"><div class="k">Sent</div><div class="v">${Q.sent}</div></div>
+    <div class="fact"><div class="k">Reply by</div><div class="v">${Q.replyBy} ${tag(Q.timeLeft, expired ? 'warning' : 'neutral')}</div></div>
+    <div class="fact"><div class="k">Replies</div><div class="v num">${s.replied} of ${s.invited} <span class="bar"><span style="width:${s.replied / s.invited * 100}%"></span></span></div></div>
+    <div class="fact"><div class="k">Target ETD</div><div class="v">${Q.etd}</div></div>
+  </section>`;
+}
+
+function bannerHTML() {
+  if (!expired || state.awarded) return '';
+  return `<div class="banner">
+    <i data-lucide="timer-off"></i>
+    <div class="text"><b>The reply deadline passed ${Q.replyBy}.</b>
+      <div>Ocean freight has no usable offer: Samudra Lines didn’t reply and Pacific Bridge declined. You can award the other 3 legs now.</div></div>
+    <button class="btn-secondary" data-act="extend"><i data-lucide="calendar-plus"></i>Extend 24h</button>
+    <button class="btn-secondary" data-soon="Invite more vendors"><i data-lucide="user-plus"></i>Ask more vendors</button>
+  </div>`;
+}
+
+function recoHTML() {
+  const cur = total(l => state.pick[l.id]);
+  const low = total(cheapestPick);
+  const rec = total(recommendedPick);
+  const diff = rec - low;
+  const custom = Q.legs.some(l => state.pick[l.id] !== (state.mode === 'cheapest' ? cheapestPick(l) : recommendedPick(l)));
+  const summary = expired
+    ? 'Best available for the 3 legs with offers. Ocean freight still needs a carrier before the shipment can be booked.'
+    : state.mode === 'cheapest' && !custom
+      ? `Saves ${money(diff)}, but the Pacific Bridge rate expires the day before its ETD and transit is 5 days longer.`
+      : `${money(diff)} more than the lowest-cost combination (${money(low)}), with 5 days’ shorter transit, a sailing on the target date and no rate-expiry risk.`;
+  return `<section class="card reco">
+    <div class="card-head">
+      <span class="ai-label"><i data-lucide="sparkles"></i>AI recommendation</span>
+      <h2>${state.awarded ? 'Awarded combination' : custom ? 'Your selection' : state.mode === 'cheapest' ? 'Lowest-cost combination' : 'Best combination'}</h2>
+      <div class="right">
+        ${state.awarded ? '' : `<div class="segmented">
+          <button class="pill${state.mode === 'recommended' && !custom ? ' selected' : ''}" data-mode="recommended"><i data-lucide="sparkles"></i>Recommended</button>
+          <button class="pill${state.mode === 'cheapest' && !custom ? ' selected' : ''}" data-mode="cheapest"><i data-lucide="piggy-bank"></i>Lowest cost</button>
+          ${custom ? '<span class="pill selected"><i data-lucide="pencil"></i>Custom</span>' : ''}
+        </div>`}
+      </div>
+    </div>
+    <div class="reco-lines">
+      ${Q.legs.map(l => {
+        const o = l.offers.find(x => x.org === state.pick[l.id]);
+        return `<div class="reco-line${o ? '' : ' none'}">
+          <span class="leg-n">${l.n}</span>
+          <span class="svc"><i data-lucide="${l.icon}"></i>${l.service}</span>
+          <span class="who">${o ? `${orgAvatar(o.org)}<b>${D.orgs[o.org].name}</b><span title="${esc(l.why)}">${o.rec ? l.why : ''}</span>` : '<b>No offer yet</b>'}</span>
+          <span class="amt">${o ? money(legCost(l, o)) : '—'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="reco-total">
+      <p>${summary}</p>
+      <span class="sum"><small>Total vendor cost · estimate</small>${money(cur)}</span>
+    </div>
+  </section>`;
+}
+
+const STATUS = {
+  replied: (o) => tag(`Replied in ${o.replied}`, 'success', 'check'),
+  opened: () => tag('Opened · no reply yet', 'neutral', 'eye'),
+  none: () => tag('No reply', 'warning', 'clock'),
+  declined: () => tag('Declined', 'danger', 'x'),
+};
+
+function offerHTML(l, o) {
+  const org = D.orgs[o.org];
+  const selected = state.pick[l.id] === o.org;
+  const head = `<div class="offer-top">${orgAvatar(o.org)}
+    <div class="who"><b>${org.name}</b><div class="caption">${STATUS[o.status](o)}${org.linkOnly ? tag('Link only', 'neutral', 'link') : ''}${o.rec && replied(o) ? tag('AI pick', 'brand', 'sparkles') : ''}</div></div></div>`;
+
+  if (!replied(o)) {
+    const canNudge = o.status === 'opened' && !state.awarded;
+    return `<article class="offer pending">${head}
+      <div class="pending-body"><span>${o.seen}</span>
+        ${canNudge ? `<button class="btn-secondary" style="align-self:flex-start" data-nudge="${o.org}"><i data-lucide="${org.linkOnly ? 'message-circle' : 'bell-ring'}"></i>${org.linkOnly ? 'Nudge on WhatsApp' : 'Send reminder'}</button>` : ''}
+      </div>
+      <div>${visibility(`You, ${org.name}`)}</div>
+    </article>`;
+  }
+
+  const extra = o.extra ? `<span class="norm"><i data-lucide="sigma"></i>Normalized ${money(legCost(l, o))} incl. est. ${money(o.extra * l.qty)}</span>` : '';
+  const foot = state.awarded
+    ? (selected ? tag('Awarded', 'success', 'award') : `<span class="caption">${state.notify ? 'Notified: not selected' : 'Not selected'}</span>`)
+    : `<button class="select-btn" data-pick="${l.id}:${o.org}"><span class="radio"></span>${selected ? 'Selected' : 'Select'}</button>`;
+  return `<article class="offer${selected ? ' selected' : ''}">${head}
+    <div class="price"><b>${money(o.price)}</b><span>/ ${l.unit}</span>
+      <span class="total">${money(o.price * l.qty)} for ${l.qty} ${l.unit}${l.qty > 1 ? 's' : ''} as quoted</span>${extra}</div>
+    <dl>${o.rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}<dt>On-time</dt><dd class="num">${o.onTime}% · last 12 months</dd></dl>
+    ${o.note ? `<div class="note">${o.note}</div>` : ''}
+    ${o.flags ? `<ul class="flags">${o.flags.map(f => `<li><i data-lucide="triangle-alert"></i><span>${f}</span></li>`).join('')}</ul>` : ''}
+    <div class="offer-foot">${foot}<span class="visibility" title="Visible to: You, ${org.name}"><i data-lucide="eye"></i>You, ${org.name.replace(/^(PT|CV) /, '')}</span></div>
+  </article>`;
+}
+
+function legHTML(l) {
+  const r = l.offers.filter(replied).length;
+  const pick = l.offers.find(o => o.org === state.pick[l.id]);
+  return `<section class="leg" data-leg="${l.id}">
+    <header class="leg-head">
+      <span class="leg-n">${l.n}</span>
+      <span class="svc"><i data-lucide="${l.icon}"></i>${l.service}</span>
+      <span class="route">${l.route}</span>
+      <div class="right">
+        <span class="caption num">${r} of ${l.offers.length} replied</span>
+        ${pick ? `<span class="caption">${state.awarded ? 'Awarded' : 'Selected'}: <b style="font-weight:500;color:var(--ink)">${D.orgs[pick.org].name}</b> · <span class="num">${money(legCost(l, pick))}</span></span>` : tag('Nothing to award', 'warning')}
+      </div>
+    </header>
+    ${r && l.offers.find(o => o.rec && replied(o)) ? `<div class="leg-why"><i data-lucide="sparkles"></i><span>${l.why}</span></div>` : ''}
+    <div class="offers">${l.offers.map(o => offerHTML(l, o)).join('')}${l.single && !state.awarded ? `
+      <div class="offer pending add-more">
+        <div class="pending-body" style="align-items:flex-start">
+          <span class="empty-tile" style="width:36px;height:36px;margin:0;border-radius:8px"><i data-lucide="users"></i></span>
+          <b style="font-weight:600;color:var(--ink)">Only one offer to compare</b>
+          <span>Ask another ${l.service.toLowerCase()} vendor to check this price. Replies go into this RFQ.</span>
+          <button class="btn-secondary" data-soon="Invite more vendors"><i data-lucide="user-plus"></i>Add vendors</button>
+        </div>
+      </div>` : ''}</div>
+  </section>`;
+}
+
+function renderActionBar() {
+  const picked = Q.legs.filter(l => state.pick[l.id]);
+  const cur = total(l => state.pick[l.id]);
+  const bar = $('#actionBar');
+  if (state.awarded) {
+    bar.innerHTML = `<div class="action-bar fade-in">
+      <span class="ai-mark" style="background:var(--success-soft);color:var(--success)"><i data-lucide="award"></i></span>
+      <div class="summary"><b>Awarded ${picked.length} legs · booking requests sent</b>
+        <div class="caption">Vendor cost ${money(cur)}. ${picked.length < Q.legs.length ? `${Q.legs.filter(l => !state.pick[l.id]).map(l => l.service).join(', ')} is still open. ` : ''}Next, add your margin and send PT Kopi Nusantara a quote.</div></div>
+      <a class="btn-primary" href="quote.html"><i data-lucide="receipt"></i>Build customer quote</a>
+    </div>`;
+  } else {
+    bar.innerHTML = `<div class="action-bar">
+      <div class="summary"><b>Award ${picked.length} of ${Q.legs.length} legs · ${money(cur)}</b> <span class="muted">vendor cost, estimate</span>
+        <div class="caption"><i data-lucide="shield-check"></i>Nothing is sent until you confirm. Customer pricing is set in the next step.</div></div>
+      <select class="select" id="currency" aria-label="Currency">${Object.keys(FX).map(k => `<option${k === state.currency ? ' selected' : ''}>${k}</option>`).join('')}</select>
+      ${expired ? '' : '<button class="btn-secondary" data-soon="Message vendors"><i data-lucide="message-circle"></i>Ask a vendor</button>'}
+      <button class="btn-primary" id="award" ${picked.length ? '' : 'disabled'}><i data-lucide="award"></i>Award ${picked.length} leg${picked.length === 1 ? '' : 's'}</button>
+    </div>`;
+  }
+  icons();
+}
+
+function render() {
+  renderHead();
+  $('#rfq').innerHTML = factsHTML() + bannerHTML() + recoHTML() + Q.legs.map(legHTML).join('')
+    + `<div class="proto-note">Sample data · prototype state:
+        <span class="proto-switch" style="display:inline-flex;gap:4px">
+          <a href="rfq.html" style="padding:2px 6px;border-radius:4px;${expired ? '' : 'background:var(--nav-active);color:var(--text-secondary)'}">Replies in (partial)</a>
+          <a href="rfq.html?state=expired" style="padding:2px 6px;border-radius:4px;${expired ? 'background:var(--nav-active);color:var(--text-secondary)' : ''}">Deadline passed</a>
+        </span></div>`;
+  renderActionBar();
+  icons();
+}
+
+/* ---------------- award modal ---------------- */
+function openModal(html) { $('#modal').innerHTML = html; $('#scrim').classList.add('open'); icons(); }
+function closeModal() { $('#scrim').classList.remove('open'); $('#modal').innerHTML = ''; }
+$('#scrim').addEventListener('click', e => { if (e.target.id === 'scrim' || e.target.closest('[data-close]')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function awardModal() {
+  const picked = Q.legs.filter(l => state.pick[l.id]);
+  // only legs being awarded close out their other vendors; open legs keep waiting
+  const losers = picked.flatMap(l => l.offers.filter(o => replied(o) && o.org !== state.pick[l.id]).map(o => D.orgs[o.org].name));
+  const closed = picked.flatMap(l => l.offers.filter(o => !replied(o) && o.status !== 'declined').map(o => D.orgs[o.org].name));
+  const cur = total(l => state.pick[l.id]);
+  openModal(`
+    <div class="modal-head"><i data-lucide="award"></i><h2>Award ${picked.length} leg${picked.length === 1 ? '' : 's'} for ${money(cur)}?</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
+    <div class="modal-body">
+      <div>${picked.map(l => { const o = l.offers.find(x => x.org === state.pick[l.id]); return `
+        <div class="award-row"><span class="leg-n">${l.n}</span><span><b>${D.orgs[o.org].name}</b> <span class="muted">· ${l.service}</span></span><span class="num">${money(legCost(l, o))}</span></div>`; }).join('')}</div>
+      ${picked.length < Q.legs.length ? `<div class="notice info"><i data-lucide="info"></i><span>${Q.legs.filter(l => !state.pick[l.id]).map(l => l.service).join(', ')} stays open. You can award it once an offer arrives.</span></div>` : ''}
+      ${losers.length ? `<div><div class="caption" style="margin-bottom:6px;font-weight:500;color:var(--text-secondary)">Not selected</div><ul class="muted-list">${losers.map(n => `<li>${n}</li>`).join('')}</ul></div>` : ''}
+      ${closed.length ? `<div><div class="caption" style="margin-bottom:6px;font-weight:500;color:var(--text-secondary)">RFQ closed, no reply received</div><ul class="muted-list">${closed.map(n => `<li>${n}</li>`).join('')}</ul></div>` : ''}
+      <label class="check-row"><input type="checkbox" class="check" id="notify" ${state.notify ? 'checked' : ''}>Tell vendors who weren’t selected, without sharing any prices</label>
+      ${visibility('Each awarded vendor sees only their own booking request')}
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" data-close>Back</button>
+      <button class="btn-primary" id="confirmAward"><i data-lucide="award"></i>Award & request bookings</button>
+    </div>`);
+  $('#notify').addEventListener('change', e => { state.notify = e.target.checked; });
+  $('#confirmAward').addEventListener('click', () => {
+    closeModal();
+    state.awarded = true;
+    render();
+    toast(`Booking requests sent to ${Q.legs.filter(l => state.pick[l.id]).length} vendors`);
+  });
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', e => {
+  const m = e.target.closest('[data-mode]');
+  if (m) { applyMode(m.dataset.mode); render(); return; }
+  const p = e.target.closest('[data-pick]');
+  if (p) { const [leg, org] = p.dataset.pick.split(':'); state.pick[leg] = org; render(); return; }
+  const n = e.target.closest('[data-nudge]');
+  if (n) { n.disabled = true; n.innerHTML = '<i data-lucide="check"></i>Nudged'; icons(); toast(`Reminder sent to ${D.orgs[n.dataset.nudge].name}`); return; }
+  if (e.target.closest('#award')) { awardModal(); return; }
+  if (e.target.closest('[data-act="extend"]')) { toast('Deadline extended to Thu 12 Nov, 12:00 for vendors without a reply'); }
+});
+document.addEventListener('change', e => { if (e.target.id === 'currency') { state.currency = e.target.value; render(); } });
+
+render();
+</script>
+</body>
+</html>

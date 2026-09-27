@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .home { max-width: 1200px; margin: 0 auto; padding: 28px 32px 24px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Prompt hero */
+  .hero { display: flex; flex-direction: column; gap: 12px; }
+  .hero-title { font-size: 18px; font-weight: 600; line-height: 1.3; letter-spacing: -0.1px; margin: 0; }
+  .hero-body { color: var(--muted); margin: -6px 0 0; }
+  .hero .composer { min-height: 88px; }
+  .hero-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  /* Proposed: pipeline-strip */
+  .pipeline { display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+  .stage {
+    position: relative;
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 12px 16px;
+    text-align: left;
+    border-right: 1px solid var(--divider);
+  }
+  .stage:last-child { border-right: 0; }
+  .stage:hover { background: var(--row-hover); }
+  .stage .label { font-size: 12.5px; font-weight: 500; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .stage .label svg.lucide { width: 14px; height: 14px; }
+  .stage .count { font-size: 18px; font-weight: 600; line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .stage .note { font-size: 12px; color: var(--muted-soft); }
+  .stage .note.warning { color: var(--warning); }
+  .stage .note.danger { color: var(--danger); }
+  .stage:not(:last-child)::after {
+    content: ""; position: absolute; right: -5px; top: 50%;
+    width: 8px; height: 8px; margin-top: -4px;
+    background: var(--surface);
+    border-top: 1px solid var(--divider); border-right: 1px solid var(--divider);
+    transform: rotate(45deg);
+    z-index: 1;
+  }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .table-wrap { overflow-x: auto; margin-top: 8px; }
+  @media (max-width: 1320px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .grid > .col:last-child { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
+  }
+
+  /* Needs attention */
+  .attn { list-style: none; margin: 0; padding: 0; }
+  .attn li {
+    display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: start;
+    padding: 12px 16px;
+    border-top: 1px solid var(--divider);
+  }
+  .attn li:hover { background: var(--row-hover); }
+  .attn .ico { width: 28px; height: 28px; border-radius: var(--r-sm); display: grid; place-items: center; }
+  .attn .ico svg.lucide { width: 15px; height: 15px; }
+  .attn .title { font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .attn .meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .attn .vis { margin-top: 6px; }
+  .attn .act { align-self: center; }
+  .tone-info    { background: var(--info-soft); color: var(--info); }
+  .tone-warning { background: var(--warning-soft); color: var(--warning); }
+  .tone-danger  { background: var(--danger-soft); color: var(--danger); }
+  .tone-success { background: var(--success-soft); color: var(--success); }
+
+  /* Active shipments */
+  .lane { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .lane svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+  .lane .arrow { color: var(--muted-soft); }
+  .card-foot { padding: 10px 16px; border-top: 1px solid var(--divider); }
+
+  /* Side column */
+  .side-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .day { display: grid; grid-template-columns: 36px 1fr; gap: 10px; }
+  .day .date { text-align: center; line-height: 1.15; padding-top: 1px; }
+  .day .date small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+  .day .date b { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .day ul { list-style: none; margin: 0; padding: 0 0 0 10px; border-left: 1px solid var(--divider); display: flex; flex-direction: column; gap: 6px; }
+  .day li .t { font-size: 13px; font-weight: 500; }
+  .day li .s { font-size: 12px; color: var(--muted); }
+
+  .activity li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+  .activity b { font-weight: 500; color: var(--ink); }
+  .activity .time { font-size: 12px; color: var(--muted-soft); }
+
+  .updates li { display: flex; flex-direction: column; gap: 4px; }
+  .updates .t { font-size: 13px; font-weight: 500; }
+  .updates .s { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+
+  /* New-tenant empty state */
+  .onboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .step { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .step .n {
+    width: 24px; height: 24px; border-radius: var(--r-full);
+    background: var(--nav-active); color: var(--text-secondary);
+    font-size: 12px; font-weight: 600; display: grid; place-items: center;
+  }
+  .step h3 { margin: 0; font-size: 14px; font-weight: 600; }
+  .step p { margin: 0; color: var(--muted); font-size: 13px; flex: 1; }
+  .step.done .n { background: var(--success-soft); color: var(--success); }
+
+  /* Prototype state switcher */
+  .proto-switch { display: inline-flex; gap: 4px; }
+  .proto-switch a { font-size: 12px; color: var(--muted-soft); padding: 2px 6px; border-radius: var(--r-xs); }
+  .proto-switch a:hover { color: var(--ink); background: var(--nav-hover); }
+  .proto-switch a.on { color: var(--text-secondary); background: var(--nav-active); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="home" data-row="overview">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <h1>Overview</h1>
+        <span class="caption" id="today"></span>
+        <span class="visibility" title="Who can see this page"><i data-lucide="lock"></i>Internal: <b>Nusantara Cargo staff only</b></span>
+        <div class="right">
+          <button class="pill selected" data-scope="mine"><i data-lucide="user"></i>My work</button>
+          <button class="pill" data-scope="team"><i data-lucide="users"></i>Team</button>
+          <button class="icon-btn" title="Customize overview" data-soon="Customize overview"><i data-lucide="settings-2"></i></button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="home" id="home"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+LM.mount();
+
+const state = new URLSearchParams(location.search).get('state') || 'active';
+$('#today').textContent = D.today;
+
+/* ---------------- sections ---------------- */
+const CHIPS = [
+  ['truck', 'Trucking job', '3 trucks Cikarang to Tanjung Priok Friday, 40ft'],
+  ['ship', 'Export FCL', '2x40ft coffee beans Surabaya to Shanghai mid-November, FOB'],
+  ['boxes', 'Export LCL', 'LCL 12 CBM furniture Semarang to Rotterdam, cargo ready 1 December'],
+  ['stamp', 'Customs only', 'Import customs clearance for 1x20ft machine parts arriving Tanjung Priok from Nagoya'],
+];
+
+function heroHTML(title, body) {
+  return `
+  <section class="hero" id="prompt">
+    <h2 class="hero-title">${title}</h2>
+    <p class="hero-body">${body}</p>
+    <form class="composer" data-composer>
+      <textarea rows="2" placeholder="e.g. 2x40ft coffee beans Surabaya to Shanghai mid-November, FOB" aria-label="Describe a customer request"></textarea>
+      <div class="composer-actions">
+        <div class="left">
+          <button type="button" class="attach-btn" title="Attach a customer email, PO or packing list"><i data-lucide="paperclip"></i>Attach</button>
+          <button type="button" class="attach-btn" title="Create the request for a customer" data-soon="Choose customer"><i data-lucide="building-2"></i>For customer…</button>
+        </div>
+        <button type="submit" class="btn-primary send-btn" title="Send" disabled><i data-lucide="arrow-up"></i></button>
+      </div>
+    </form>
+    <div class="hero-foot">
+      <div class="chips">${CHIPS.map(([i, l, f]) => `<button class="pill" data-fill="${esc(f)}"><i data-lucide="${i}"></i>${l}</button>`).join('')}</div>
+      <span class="composer-hint"><i data-lucide="shield-check"></i>AI drafts only. You confirm before any RFQ, quote or booking is sent.</span>
+    </div>
+  </section>`;
+}
+
+function pipelineHTML() {
+  const icon = { requests: 'inbox', rfqs: 'file-stack', quoting: 'receipt', booked: 'calendar-check', transit: 'ship', cleared: 'badge-check' };
+  return `
+  <nav class="pipeline" aria-label="Pipeline">
+    ${D.pipeline.map(s => `
+      <button class="stage" data-soon="${s.label} list">
+        <span class="label"><i data-lucide="${icon[s.id]}"></i>${s.label}</span>
+        <span class="count">${s.count}</span>
+        <span class="note ${s.tone}">${s.note}</span>
+      </button>`).join('')}
+  </nav>`;
+}
+
+function attentionHTML() {
+  return `
+  <section class="card flush">
+    <div class="card-head"><i data-lucide="flag"></i><h2>Needs attention</h2>
+      <span class="caption">${D.attention.length} items · sorted by deadline</span>
+      <div class="right"><a class="link-btn" href="inbox.html">Open inbox<i data-lucide="arrow-right"></i></a></div>
+    </div>
+    <ul class="attn" style="margin-top:12px">
+      ${D.attention.map(a => `
+        <li>
+          <span class="ico tone-${a.tone}"><i data-lucide="${a.icon}"></i></span>
+          <div>
+            <div class="title">${a.title}${tag(a.due[0], a.due[1])}</div>
+            <div class="meta">${a.meta}</div>
+            <div class="vis">${visibility(a.visible)}</div>
+          </div>
+          ${a.href ? `<a class="btn-secondary act" href="${a.href}"><i data-lucide="${a.action[1]}"></i>${a.action[0]}</a>` : `<button class="btn-secondary act" data-soon="${a.action[0]}"><i data-lucide="${a.action[1]}"></i>${a.action[0]}</button>`}
+        </li>`).join('')}
+    </ul>
+  </section>`;
+}
+
+function shipmentsHTML() {
+  return `
+  <section class="card flush">
+    <div class="card-head"><i data-lucide="container"></i><h2>Active shipments</h2>
+      <span class="caption">${D.shipments.length} of 21</span>
+      <div class="right"><button class="pill" data-soon="Filter"><i data-lucide="list-filter"></i>Filter</button></div>
+    </div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Shipment</th><th>Lane</th><th>Next milestone</th><th>Status</th></tr></thead>
+      <tbody>
+        ${D.shipments.map(s => `
+          <tr ${s.href ? `data-href="${s.href}"` : 'data-soon="Shipment workspace"'}>
+            <td style="white-space:nowrap"><div class="primary-cell num" style="display:flex;align-items:center;gap:8px">${s.id}${tag(s.stage[0], s.stage[1])}</div><div class="sub">${s.customer}</div></td>
+            <td><span class="lane"><i data-lucide="${s.mode}"></i>${s.lane[0]} <span class="arrow">→</span> ${s.lane[1]}</span><div class="sub">${s.cargo}</div></td>
+            <td style="white-space:nowrap"><div>${s.next}</div><div class="sub num">${s.when}</div></td>
+            <td>${tag(s.risk[0], s.risk[1])}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table></div>
+    <div class="card-foot"><button class="link-btn" data-soon="Shipments">View all shipments<i data-lucide="arrow-right"></i></button></div>
+  </section>`;
+}
+
+function upcomingHTML() {
+  return `
+  <section class="card">
+    <div class="card-head"><i data-lucide="calendar-days"></i><h3>Next 7 days</h3>
+      <div class="right"><button class="link-btn" data-soon="Planner">Planner</button></div>
+    </div>
+    <ul class="side-list">
+      ${D.upcoming.map(d => `
+        <li class="day">
+          <div class="date"><small>${d.day}</small><b>${d.date}</b></div>
+          <ul>${d.items.map(([t, s]) => `<li><div class="t">${t}</div><div class="s">${s}</div></li>`).join('')}</ul>
+        </li>`).join('')}
+    </ul>
+  </section>`;
+}
+
+function networkHTML() {
+  return `
+  <section class="card">
+    <div class="card-head"><i data-lucide="network"></i><h3>Network activity</h3></div>
+    <ul class="side-list activity">
+      ${D.networkActivity.map(n => `<li>${orgAvatar(n.org)}<div>${n.text}<div class="time">${n.time} ago</div></div></li>`).join('')}
+    </ul>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--divider)">
+      <span class="caption">${D.pendingInvites} invitations pending</span>
+      <button class="btn-secondary" data-soon="Invite partner"><i data-lucide="user-plus"></i>Invite partner</button>
+    </div>
+  </section>`;
+}
+
+function updatesHTML() {
+  return `
+  <section class="card">
+    <div class="card-head"><i data-lucide="landmark"></i><h3>Lane updates</h3><div class="right">${tag('AI summary', 'info', 'sparkles')}</div></div>
+    <ul class="side-list updates">
+      ${D.laneUpdates.map(u => `
+        <li>
+          <div class="t">${u.title}</div>
+          <div class="s"><span class="tag neutral">${u.lane}</span><a class="source-link" href="#" onclick="return false"><i data-lucide="external-link"></i>${u.source}</a><span>${u.date}</span></div>
+        </li>`).join('')}
+    </ul>
+  </section>`;
+}
+
+function onboardingHTML() {
+  const steps = [
+    ['Invite your first vendor', 'Add a trucker, customs broker or carrier agent. They can reply by magic link, no account needed.', 'Invite partner', 'user-plus'],
+    ['Add a customer', 'Connect a shipper so requests, quotes and documents flow to them in your branded portal.', 'Add customer', 'building-2'],
+    ['Try a prompt', 'Describe a real job above. I’ll structure it and draft RFQs for your network.', 'Show example', 'sparkles'],
+  ];
+  return `
+  <section class="card">
+    <div class="card-head"><i data-lucide="rocket"></i><h2>No connections yet. Set up your ecosystem</h2><span class="caption">0 of 3 done</span></div>
+    <p class="muted" style="margin:-4px 0 14px">Your pipeline, shipments and deadlines appear here once your first vendor or customer joins.</p>
+    <div class="onboard">
+      ${steps.map(([t, p, a, i], n) => `
+        <div class="card step">
+          <span class="n">${n + 1}</span>
+          <h3>${t}</h3>
+          <p>${p}</p>
+          <button class="btn-secondary" ${n === 2 ? 'data-example' : `data-soon="${a}"`}><i data-lucide="${i}"></i>${a}</button>
+        </div>`).join('')}
+    </div>
+  </section>`;
+}
+
+function skeletonHTML() {
+  const bar = (w, h = 12) => `<div class="skeleton" style="width:${w};height:${h}px"></div>`;
+  return `
+  <div class="pipeline">${Array.from({ length: 6 }, () => `<div class="stage" style="gap:8px">${bar('60%')}${bar('30%', 20)}${bar('50%')}</div>`).join('')}</div>
+  <div class="grid">
+    <div class="col"><div class="card" style="display:flex;flex-direction:column;gap:18px">${bar('30%', 14)}${Array.from({ length: 5 }, () => `<div style="display:flex;gap:12px"><div class="skeleton" style="width:28px;height:28px;border-radius:6px"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px">${bar('55%')}${bar('80%')}</div></div>`).join('')}</div></div>
+    <div class="col"><div class="card" style="display:flex;flex-direction:column;gap:12px">${bar('40%', 14)}${bar('90%')}${bar('70%')}${bar('80%')}</div></div>
+  </div>`;
+}
+
+function protoSwitchHTML() {
+  const s = [['active', 'Active tenant'], ['new', 'New tenant (empty)'], ['loading', 'Loading']];
+  return `<div class="proto-note">Sample data · prototype state:
+    <span class="proto-switch">${s.map(([k, l]) => `<a href="?state=${k}" class="${k === state ? 'on' : ''}">${l}</a>`).join('')}</span></div>`;
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  const home = $('#home');
+  if (state === 'new') {
+    home.innerHTML = heroHTML('Welcome to LogiMind. What are you moving first?', 'Describe a customer request in plain language. I’ll turn it into a structured request, a document checklist and draft RFQs.')
+      + onboardingHTML() + protoSwitchHTML();
+  } else if (state === 'loading') {
+    home.innerHTML = heroHTML('Good morning, Dewi. What are we moving today?', 'Paste a customer message or describe the job. I’ll structure it and draft RFQs to your vendors.')
+      + skeletonHTML() + protoSwitchHTML();
+  } else {
+    home.innerHTML = heroHTML('Good morning, Dewi. What are we moving today?', 'Paste a customer message or describe the job. I’ll structure it and draft RFQs to your vendors.')
+      + pipelineHTML()
+      + `<div class="grid">
+          <div class="col">${attentionHTML()}${shipmentsHTML()}</div>
+          <div class="col">${upcomingHTML()}${networkHTML()}${updatesHTML()}</div>
+        </div>`
+      + protoSwitchHTML();
+  }
+  icons();
+
+  const composer = LM.bindComposer($('[data-composer]'), text => {
+    try { sessionStorage.setItem('lm.prompt', text); } catch (e) {}
+    location.href = 'chat.html?new=1';
+  });
+  $$('[data-fill]').forEach(c => c.addEventListener('click', () => composer.fill(c.dataset.fill)));
+  const ex = $('[data-example]');
+  if (ex) ex.addEventListener('click', () => composer.fill(CHIPS[1][2]));
+  if (location.hash === '#prompt') composer.focus();
+}
+render();
+
+document.addEventListener('click', e => { const r = e.target.closest('[data-href]'); if (r) location.href = r.dataset.href; });
+
+$$('[data-scope]').forEach(b => b.addEventListener('click', () => {
+  $$('[data-scope]').forEach(x => x.classList.toggle('selected', x === b));
+  toast(b.dataset.scope === 'team' ? 'Showing the whole team’s work' : 'Showing items assigned to you');
+}));
+</script>
+</body>
+</html>

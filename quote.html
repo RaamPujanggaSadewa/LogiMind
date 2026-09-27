@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QT-0891 · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .title-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-head h1, .page-head .caption, .page-head .visibility { white-space: nowrap; }
+
+  .qb { max-width: 1240px; margin: 0 auto; padding: 24px 32px; display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .sticky { position: sticky; top: 0; }
+
+  /* Proposed: internal-badge — marks data that never leaves the tenant */
+  .internal { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: var(--r-xs); background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+  .internal svg.lucide { width: 11px; height: 11px; }
+
+  /* Pricing table */
+  .price-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .price-table th { text-align: right; font-size: 12px; font-weight: 500; color: var(--muted); padding: 0 8px 8px; border-bottom: 1px solid var(--divider); white-space: nowrap; }
+  .price-table th:first-child { text-align: left; padding-left: 0; }
+  .price-table td { padding: 10px 8px; border-bottom: 1px solid var(--divider); text-align: right; vertical-align: top; white-space: nowrap; }
+  .price-table td:first-child { text-align: left; padding-left: 0; white-space: normal; width: 100%; }
+  .price-table tr.off td:not(:first-child), .price-table tr.off .line-label { opacity: .4; }
+  .line-label { display: block; resize: none; overflow: hidden; line-height: 1.4; width: 100%; border: 1px solid transparent; border-radius: var(--r-xs); padding: 2px 6px; margin-left: -6px; font-weight: 500; background: transparent; }
+  .line-label:hover { border-color: var(--border); }
+  .line-label:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .line-sub { display: flex; align-items: center; gap: 8px; margin-top: 3px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .line-sub .opt { color: var(--warning); display: inline-flex; align-items: center; gap: 4px; }
+  .line-sub .opt svg.lucide { width: 12px; height: 12px; }
+  .num-input { width: 64px; height: 28px; border: 1px solid var(--border); border-radius: var(--r-sm); text-align: right; padding: 0 6px; font-variant-numeric: tabular-nums; background: var(--surface); }
+  .num-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .num-input.wide { width: 84px; }
+  .pct { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); }
+  .sell { font-weight: 600; }
+  .price-table tfoot td { border-bottom: 0; padding-top: 12px; font-weight: 500; }
+  .price-table tfoot tr.grand td { font-size: 15px; font-weight: 600; padding-top: 4px; }
+
+  .margin-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 10px 12px; border-radius: var(--r-md); background: var(--row-hover); border: 1px solid var(--divider); flex-wrap: wrap; }
+  .margin-row .gauge { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  /* Proposed: margin-gauge — margin vs floor and lane range */
+  .gauge-track { position: relative; width: 160px; height: 6px; border-radius: 99px; background: var(--nav-active); }
+  .gauge-track .range { position: absolute; top: 0; bottom: 0; background: var(--success-soft); border: 1px solid rgba(31,157,99,.35); border-radius: 99px; }
+  .gauge-track .floor { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--danger); border-radius: 1px; }
+  .gauge-track .mark { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--ink); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--ink); }
+
+  .ai-hint { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); background: var(--info-soft); font-size: 13px; color: var(--text-secondary); }
+  .ai-hint > svg.lucide { color: var(--info); }
+  .ai-hint .text { flex: 1; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-field.full { grid-column: 1 / -1; }
+  .form-field > span { font-size: 12px; font-weight: 500; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
+  .text-input, .textarea { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 10px; height: 32px; background: var(--surface); }
+  .textarea { padding: 8px 10px; height: auto; resize: vertical; min-height: 64px; line-height: 1.45; }
+  .text-input:focus, .textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .form-field .hint { font-size: 12px; color: var(--muted); }
+  .form-field .hint.warn { color: var(--danger); display: flex; align-items: center; gap: 4px; }
+  .form-field .hint.warn svg.lucide { width: 12px; height: 12px; }
+  .select.full { height: 32px; width: 100%; }
+
+  /* Customer preview (tenant-branded) */
+  .preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .preview-head h3 { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 6px; }
+  .preview-head h3 svg.lucide { color: var(--muted); }
+  /* Proposed: branded-document — customer-facing surface in the tenant's brand color */
+  .doc { --brand: #0E6E5C; border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); box-shadow: var(--shadow-lift); font-size: 13px; }
+  .doc-top { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-top: 4px solid var(--brand); border-bottom: 1px solid var(--divider); }
+  .doc-logo { width: 32px; height: 32px; border-radius: var(--r-sm); background: var(--brand); color: #fff; font-weight: 700; display: grid; place-items: center; }
+  .doc-top .name { font-weight: 600; font-size: 14px; }
+  .doc-top .url { font-size: 11.5px; color: var(--muted); }
+  .doc-top .qno { margin-left: auto; text-align: right; font-size: 12px; color: var(--muted); }
+  .doc-top .qno b { display: block; color: var(--ink); font-size: 13px; font-weight: 600; }
+  .doc-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .doc-route { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .doc-route svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+  .doc-meta { font-size: 12px; color: var(--muted); margin-top: -8px; }
+  .doc-lines { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .doc-lines td { padding: 7px 0; border-bottom: 1px solid var(--divider); vertical-align: top; }
+  .doc-lines td:last-child { text-align: right; white-space: nowrap; padding-left: 12px; }
+  .doc-lines tr.total td { border-bottom: 0; border-top: 1px solid var(--ink); font-weight: 600; font-size: 14px; padding-top: 10px; }
+  .doc h4 { margin: 0 0 4px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .doc ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 2px; color: var(--text-secondary); font-size: 12.5px; }
+  .doc .terms { font-size: 12px; color: var(--muted); }
+  .doc-actions { display: flex; gap: 8px; }
+  .brand-btn { height: 34px; padding: 0 14px; border-radius: var(--r-sm); background: var(--brand); color: #fff; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: default; }
+  .brand-btn.ghost { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+  .doc-foot { padding: 8px 16px; border-top: 1px solid var(--divider); font-size: 11px; color: var(--muted-soft); text-align: center; background: var(--row-hover); }
+  .scrubbed { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--success); margin-top: 10px; }
+  .scrubbed svg.lucide { width: 13px; height: 13px; }
+
+  .foot { flex: none; padding: 0 24px 16px; }
+  .foot-inner { max-width: 1176px; margin: 0 auto; }
+
+  .notice { display: grid; grid-template-columns: 16px 1fr; gap: 8px; padding: 10px 12px; border-radius: var(--r-md); font-size: 13px; }
+  .notice svg.lucide { width: 15px; height: 15px; margin-top: 1px; }
+  .notice.warning { background: var(--warning-soft); color: var(--text-secondary); }
+  .notice.warning svg { color: var(--warning); }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+  .recipient { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); }
+  .recipient .user-avatar { width: 28px; height: 28px; font-size: 12px; }
+
+  @media (max-width: 1280px) { .qb { grid-template-columns: minmax(0, 1fr); } .sticky { position: static; } }
+</style>
+</head>
+<body>
+<div class="app" data-rail="rfqs" data-row="q-drafts">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <div class="title-wrap">
+          <h1 class="num">QT-0891</h1>
+          <span class="caption">2 × 40ft coffee · SUB → SHA · for PT Kopi Nusantara</span>
+          <span class="tag neutral" id="statusTag">Draft</span>
+        </div>
+        <div class="right"><nav class="stepper" id="stepper" aria-label="Progress"></nav></div>
+      </header>
+
+      <div class="content" id="scroll"><div class="qb" id="qb"></div></div>
+      <div class="foot"><div class="foot-inner" id="actionBar"></div></div>
+    </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" id="modal"></div></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+LM.mount();
+
+const QD = D.quote;
+const T = D.tenant;
+const FX = { USD: ['US$', 1], IDR: ['Rp', 16300] };
+const state = {
+  sent: false,
+  lines: QD.lines.map(l => ({ ...l, on: l.on !== false })),
+  display: 'itemized',
+  currency: 'USD',
+  validity: QD.validity,
+  payment: '30 days after B/L date',
+  note: QD.note,
+  attachPdf: true,
+};
+const usd = (n) => 'US$' + Math.round(n).toLocaleString('en-US');
+const cust = (n) => FX[state.currency][0] + Math.round(n * FX[state.currency][1]).toLocaleString('en-US');
+const sellOf = (l) => l.own ? l.sell : l.cost * (1 + l.margin / 100);
+const active = () => state.lines.filter(l => l.on);
+function totals() {
+  const cost = active().reduce((s, l) => s + l.cost, 0);
+  const sell = active().reduce((s, l) => s + sellOf(l), 0);
+  return { cost, sell, margin: sell - cost, pct: sell ? (sell - cost) / sell * 100 : 0 };
+}
+
+// Vendor names the customer must never see (full names and short forms)
+const VENDOR_NAMES = Object.values(D.orgs).filter(o => o.role === 'vendor')
+  .flatMap(o => [o.name, o.name.replace(/^(PT|CV|PPJK) /, '')]);
+const vendorMentions = (text) => VENDOR_NAMES.filter(n => text.toLowerCase().includes(n.toLowerCase()));
+
+/* ---------------- builder ---------------- */
+function pricingHTML() {
+  const t = totals();
+  const [lo, hi] = QD.laneRange;
+  const pos = (v) => Math.max(0, Math.min(100, v / 25 * 100));   // 0–25% scale
+  const health = t.pct < QD.floor ? ['Below your ' + QD.floor + '% floor', 'danger']
+    : t.pct < lo ? ['Below lane average', 'warning'] : t.pct > hi ? ['Above lane average', 'info'] : ['Within lane average', 'success'];
+  return `<section class="card">
+    <div class="card-head"><i data-lucide="calculator"></i><h3>Costs and margin</h3>
+      <div class="right"><span class="internal" title="Never shown to customers or vendors"><i data-lucide="lock"></i>Internal only</span></div>
+    </div>
+    <table class="price-table">
+      <thead><tr><th>Customer line</th><th>Vendor cost</th><th>Margin</th><th>Sell</th></tr></thead>
+      <tbody>
+        ${state.lines.map((l, i) => {
+          const v = l.vendor && D.orgs[l.vendor];
+          return `<tr class="${l.on ? '' : 'off'}">
+          <td>
+            <textarea class="line-label" rows="1" data-label="${i}" aria-label="Line label shown to customer" ${state.sent ? 'disabled' : ''}>${esc(l.label)}</textarea>
+            <div class="line-sub">
+              ${v ? `${orgAvatar(l.vendor).replace('org-avatar', 'org-avatar" style="width:16px;height:16px;font-size:7px;border-radius:3px')}<span>${v.name}</span>` : `<span>${l.id === 'docs' ? 'Your own fee' : 'Your add-on'}</span>`}
+              ${l.optional ? `<label class="switch" style="font-size:12px"><input type="checkbox" data-on="${i}" ${l.on ? 'checked' : ''} ${state.sent ? 'disabled' : ''}>Include</label><span class="opt">${l.id === 'ocean' ? '<i data-lucide="triangle-alert"></i>' : ''}${l.optional}</span>` : ''}
+            </div>
+          </td>
+          <td>${l.cost ? usd(l.cost) : '<span class="muted">—</span>'}</td>
+          <td>${l.own
+            ? `<span class="muted" style="font-size:12px">Fixed</span>`
+            : `<span class="pct"><input class="num-input" type="number" min="0" max="80" step="0.5" value="${l.margin}" data-margin="${i}" aria-label="Margin %" ${state.sent || !l.on ? 'disabled' : ''}>%</span>`}</td>
+          <td>${l.own
+            ? `<input class="num-input wide" type="number" min="0" step="5" value="${l.sell}" data-sell="${i}" aria-label="Sell price USD" ${state.sent || !l.on ? 'disabled' : ''}>`
+            : `<span class="sell">${usd(sellOf(l))}</span>`}</td>
+        </tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot>
+        <tr><td>Total vendor cost</td><td>${usd(t.cost)}</td><td></td><td></td></tr>
+        <tr class="grand"><td>Customer price</td><td></td><td class="muted" style="font-size:13px;font-weight:500">${usd(t.margin)}</td><td>${usd(t.sell)}</td></tr>
+      </tfoot>
+    </table>
+    <div class="margin-row">
+      <div class="gauge">
+        <b class="num" style="font-weight:600">${t.pct.toFixed(1)}% margin</b>
+        <span class="gauge-track" title="Red line: your ${QD.floor}% floor · green band: ID → CN average ${lo}–${hi}%">
+          <span class="range" style="left:${pos(lo)}%;width:${pos(hi) - pos(lo)}%"></span>
+          <span class="floor" style="left:${pos(QD.floor)}%"></span>
+          <span class="mark" style="left:${pos(t.pct)}%"></span>
+        </span>
+        ${tag(health[0], health[1])}
+      </div>
+      <span class="caption">Floor ${QD.floor}% · ID → CN average ${lo}–${hi}%</span>
+    </div>
+    ${state.sent ? '' : `<div class="ai-hint" style="margin-top:12px">
+      <i data-lucide="sparkles"></i>
+      <span class="text"><b style="font-weight:500">Suggested: 20% on local services, 10% on ocean freight.</b> ${QD.history}</span>
+      <button class="btn-secondary" id="applySuggest"><i data-lucide="wand-sparkles"></i>Apply</button>
+    </div>`}
+  </section>`;
+}
+
+function termsHTML() {
+  const mentions = vendorMentions(state.note);
+  const dis = state.sent ? 'disabled' : '';
+  return `<section class="card">
+    <div class="card-head"><i data-lucide="file-text"></i><h3>What the customer gets</h3>
+      <div class="right"><span class="caption">Shown in the preview →</span></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><span>Show prices as</span>
+        <div class="segmented">
+          <button class="pill${state.display === 'itemized' ? ' selected' : ''}" data-display="itemized" ${dis}><i data-lucide="list"></i>Itemized</button>
+          <button class="pill${state.display === 'allin' ? ' selected' : ''}" data-display="allin" ${dis}><i data-lucide="package"></i>All-in price</button>
+        </div>
+      </div>
+      <div class="form-field"><span>Customer currency</span>
+        <select class="select full" id="currency" ${dis}>${Object.keys(FX).map(k => `<option${k === state.currency ? ' selected' : ''}>${k}</option>`).join('')}</select>
+      </div>
+      <div class="form-field"><span>Valid until <span class="prov ai"><i data-lucide="sparkles"></i>AI set</span></span>
+        <input class="text-input" id="validity" value="${esc(state.validity)}" ${dis}>
+        <span class="hint">${QD.validityWhy}</span>
+      </div>
+      <div class="form-field"><span>Payment terms</span>
+        <select class="select full" id="payment" ${dis}>${['30 days after B/L date', '14 days after invoice', 'Before loading'].map(p => `<option${p === state.payment ? ' selected' : ''}>${p}</option>`).join('')}</select>
+      </div>
+      <div class="form-field full"><span>Note to customer</span>
+        <textarea class="textarea" id="note" rows="2" ${dis}>${esc(state.note)}</textarea>
+        ${mentions.length ? `<span class="hint warn"><i data-lucide="shield-alert"></i>Mentions ${esc(mentions[0])}. Vendor names are hidden from customers, so it will be removed when sent.</span>` : ''}
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ---------------- customer preview ---------------- */
+function previewHTML() {
+  const t = totals();
+  const oceanOn = state.lines.find(l => l.id === 'ocean').on;
+  const includes = QD.includes.filter(x => oceanOn || !/sailing/i.test(x));
+  const excludes = oceanOn ? QD.excludes : ['Ocean freight (booked by your buyer under FOB)', ...QD.excludes];
+  const insOn = state.lines.find(l => l.id === 'ins').on;
+  const note = vendorMentions(state.note).reduce((txt, n) => txt.replace(new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '[partner]'), state.note);
+  const lines = state.display === 'allin'
+    ? `<tr><td>Export package, Surabaya ${oceanOn ? '→ Shanghai' : 'to FOB Tanjung Perak'} (2 × 40ft)${insOn ? '<br><span class="muted" style="font-size:12px">incl. cargo insurance</span>' : ''}</td><td>${cust(t.sell)}</td></tr>`
+    : active().map(l => `<tr><td>${esc(l.label)}</td><td>${cust(sellOf(l))}</td></tr>`).join('');
+  return `<div class="sticky">
+    <div class="preview-head">
+      <h3><i data-lucide="eye"></i>What PT Kopi Nusantara sees</h3>
+      <span class="caption">Customer portal</span>
+    </div>
+    <div class="doc" style="--brand:${T.brand}">
+      <div class="doc-top">
+        <span class="doc-logo">${T.initial}</span>
+        <div><div class="name">${T.name}</div><div class="url">${T.portal}</div></div>
+        <div class="qno"><b class="num">Quotation ${QD.id}</b>10 Nov 2026</div>
+      </div>
+      <div class="doc-body">
+        <div class="doc-route"><i data-lucide="ship"></i>Surabaya <i data-lucide="arrow-right"></i> ${oceanOn ? 'Shanghai' : 'Tanjung Perak (FOB)'}</div>
+        <div class="doc-meta">2 × 40ft dry · green coffee beans · ~38.4 t · FOB Tanjung Perak</div>
+        <table class="doc-lines">
+          ${lines}
+          <tr class="total"><td>Total</td><td>${cust(t.sell)}</td></tr>
+        </table>
+        <div><h4>Included</h4><ul>${includes.map(x => `<li>${x}</li>`).join('')}</ul></div>
+        <div><h4>Not included</h4><ul>${excludes.map(x => `<li>${x}</li>`).join('')}</ul></div>
+        ${note ? `<div class="terms">${esc(note)}</div>` : ''}
+        <div class="terms">Valid until ${esc(state.validity)} · Payment: ${state.payment}</div>
+        <div class="doc-actions"><span class="brand-btn"><i data-lucide="check"></i>Accept quote</span><span class="brand-btn ghost"><i data-lucide="message-circle"></i>Ask a question</span></div>
+      </div>
+      <div class="doc-foot">Powered by LogiMind</div>
+    </div>
+    <div class="scrubbed"><i data-lucide="shield-check"></i>Vendor names, costs and your margin are never shown.</div>
+    <div style="margin-top:6px">${visibility('You, PT Kopi Nusantara')}</div>
+  </div>`;
+}
+
+/* ---------------- action bar ---------------- */
+function renderActionBar() {
+  const t = totals();
+  const bar = $('#actionBar');
+  if (state.sent) {
+    bar.innerHTML = `<div class="action-bar fade-in">
+      <span class="ai-mark" style="background:var(--success-soft);color:var(--success)"><i data-lucide="send"></i></span>
+      <div class="summary"><b>Sent to ${QD.contact}, PT Kopi Nusantara</b>
+        <div class="caption">${usd(t.sell)} · valid until ${esc(state.validity)}. I’ll tell you when they open it, accept it or ask a question.</div></div>
+      <button class="btn-secondary" data-soon="Customer portal (Phase 2)"><i data-lucide="external-link"></i>View in customer portal</button>
+    </div>`;
+  } else {
+    const low = t.pct < QD.floor;
+    bar.innerHTML = `<div class="action-bar">
+      <div class="summary"><b>Customer price ${usd(t.sell)}</b> <span class="muted">· margin ${usd(t.margin)} (${t.pct.toFixed(1)}%)</span>
+        <div class="caption"><i data-lucide="shield-check"></i>${low ? `Margin is below your ${QD.floor}% floor. A manager has to approve before sending.` : 'Nothing is sent until you confirm. The customer sees only the preview on the right.'}</div></div>
+      <button class="btn-secondary" id="saveDraft"><i data-lucide="save"></i>Save draft</button>
+      <button class="btn-secondary" data-soon="PDF download"><i data-lucide="file-down"></i>PDF</button>
+      <button class="btn-primary" id="send">${low ? '<i data-lucide="user-check"></i>Request approval' : '<i data-lucide="send"></i>Send to customer'}</button>
+    </div>`;
+  }
+  icons();
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  $('#statusTag').className = state.sent ? 'tag info' : 'tag neutral';
+  $('#statusTag').textContent = state.sent ? 'Sent · awaiting customer' : 'Draft';
+  $('#stepper').innerHTML = LM.stepperHTML(state.sent ? 5 : 4);
+  const oceanOn = state.lines.find(l => l.id === 'ocean').on;
+  $('#qb').innerHTML = `
+    <div class="col">
+      ${oceanOn && !state.sent ? `<div class="notice warning"><i data-lucide="triangle-alert"></i><span>Ocean freight is included, but the Incoterm is <b>FOB</b>. Keep it only if PT Kopi Nusantara asked you to book the sea leg. Otherwise switch it off, and the quote becomes FOB Tanjung Perak.</span></div>` : ''}
+      ${pricingHTML()}
+      ${termsHTML()}
+    </div>
+    <div class="col">${previewHTML()}</div>`;
+  renderActionBar();
+  icons();
+  autosize();
+}
+function autosize() { $$('.line-label').forEach(t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }); }
+// Re-render only the parts that depend on numbers, so typing keeps focus
+function refresh() {
+  const t = totals();
+  $$('[data-margin]').forEach(inp => { const l = state.lines[+inp.dataset.margin]; inp.closest('tr').querySelector('.sell').textContent = usd(sellOf(l)); });
+  const foot = $('.price-table tfoot');
+  foot.innerHTML = `<tr><td>Total vendor cost</td><td>${usd(t.cost)}</td><td></td><td></td></tr>
+    <tr class="grand"><td>Customer price</td><td></td><td class="muted" style="font-size:13px;font-weight:500">${usd(t.margin)}</td><td>${usd(t.sell)}</td></tr>`;
+  const tmp = document.createElement('div'); tmp.innerHTML = pricingHTML();
+  $('.margin-row').replaceWith(tmp.querySelector('.margin-row'));
+  $('.col:last-child').innerHTML = previewHTML();
+  renderActionBar();
+  icons();
+}
+
+/* ---------------- send modal ---------------- */
+function openModal(html) { $('#modal').innerHTML = html; $('#scrim').classList.add('open'); icons(); }
+function closeModal() { $('#scrim').classList.remove('open'); $('#modal').innerHTML = ''; }
+$('#scrim').addEventListener('click', e => { if (e.target.id === 'scrim' || e.target.closest('[data-close]')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function sendModal() {
+  const t = totals();
+  const mentions = vendorMentions(state.note);
+  openModal(`
+    <div class="modal-head"><i data-lucide="send"></i><h2>Send ${QD.id} to PT Kopi Nusantara?</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
+    <div class="modal-body">
+      <div class="recipient"><span class="user-avatar" style="background:var(--avatar-teal)">S</span>
+        <div style="flex:1"><b style="font-weight:500">${QD.contact}</b><div class="caption">PT Kopi Nusantara · customer portal + email notification</div></div></div>
+      <div class="form-field"><span>Message</span>
+        <textarea class="textarea" id="msg" rows="3">Hi ${QD.contact.split(' ')[0]}, here is our quote for the 2 × 40ft coffee shipment to Shanghai on the 14 Nov sailing. It is valid until ${state.validity}.</textarea></div>
+      <label class="check-row"><input type="checkbox" class="check" id="pdf" ${state.attachPdf ? 'checked' : ''}>Attach a PDF copy</label>
+      ${mentions.length ? `<div class="notice warning"><i data-lucide="shield-alert"></i><span>Your note mentions ${esc(mentions.join(', '))}. It will be replaced with “[partner]” in what the customer sees.</span></div>` : ''}
+      <div class="notice warning" style="background:var(--row-hover)"><i data-lucide="lock" style="color:var(--muted)"></i><span>Only the customer price (${cust(t.sell)}) and the lines on the right are shared. Vendor names, costs and margin stay internal.</span></div>
+      ${visibility('You, PT Kopi Nusantara')}
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" data-close>Back</button>
+      <button class="btn-primary" id="confirmSend"><i data-lucide="send"></i>Send quote</button>
+    </div>`);
+  $('#confirmSend').addEventListener('click', () => {
+    state.attachPdf = $('#pdf').checked;
+    closeModal();
+    state.sent = true;
+    render();
+    toast(`${QD.id} sent to ${QD.contact}`);
+  });
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('input', e => {
+  const m = e.target.closest('[data-margin]');
+  if (m) { state.lines[+m.dataset.margin].margin = Math.max(0, +m.value || 0); refresh(); return; }
+  const s = e.target.closest('[data-sell]');
+  if (s) { state.lines[+s.dataset.sell].sell = Math.max(0, +s.value || 0); refresh(); return; }
+  const lb = e.target.closest('[data-label]');
+  if (lb) { state.lines[+lb.dataset.label].label = lb.value; autosize(); $('.col:last-child').innerHTML = previewHTML(); icons(); return; }
+  if (e.target.id === 'validity') { state.validity = e.target.value; $('.col:last-child').innerHTML = previewHTML(); icons(); return; }
+  if (e.target.id === 'note') {
+    state.note = e.target.value;
+    $('.col:last-child').innerHTML = previewHTML();
+    const field = e.target.closest('.form-field');
+    field.querySelector('.hint.warn')?.remove();
+    const mentions = vendorMentions(state.note);
+    if (mentions.length) field.insertAdjacentHTML('beforeend', `<span class="hint warn"><i data-lucide="shield-alert"></i>Mentions ${esc(mentions[0])}. Vendor names are hidden from customers, so it will be removed when sent.</span>`);
+    icons();
+  }
+});
+document.addEventListener('change', e => {
+  const o = e.target.closest('[data-on]');
+  if (o) { state.lines[+o.dataset.on].on = o.checked; render(); return; }
+  if (e.target.id === 'currency') { state.currency = e.target.value; refresh(); }
+  if (e.target.id === 'payment') { state.payment = e.target.value; refresh(); }
+});
+document.addEventListener('click', e => {
+  const d = e.target.closest('[data-display]');
+  if (d) { state.display = d.dataset.display; render(); return; }
+  if (e.target.closest('#applySuggest')) {
+    state.lines.forEach(l => { if (QD.suggest[l.id] != null) l.margin = QD.suggest[l.id]; });
+    render(); toast('Suggested margins applied'); return;
+  }
+  if (e.target.closest('#saveDraft')) { toast('Draft saved'); return; }
+  if (e.target.closest('#send')) {
+    if (totals().pct < QD.floor) { toast('Approval request sent to your ops manager'); return; }
+    sendModal();
+  }
+});
+
+render();
+// Re-measure label heights once web fonts load and on resize
+document.fonts?.ready.then(autosize);
+addEventListener('resize', autosize);
+</script>
+</body>
+</html>

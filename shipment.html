@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHP-2411 · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .title-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-head h1, .page-head .caption { white-space: nowrap; }
+  .view-as { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+
+  .ws { max-width: 1240px; margin: 0 auto; padding: 20px 32px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  @media (max-width: 1280px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+  /* Proposed: preview-banner — "viewing as another party" */
+  .preview-banner { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--r-lg); background: var(--ink); color: #fff; }
+  .preview-banner svg.lucide { width: 16px; height: 16px; }
+  .preview-banner .text { flex: 1; font-size: 13px; }
+  .preview-banner .text b { font-weight: 600; }
+  .preview-banner .text span { color: #C9C9CF; }
+  .preview-banner button { height: 28px; padding: 0 10px; border-radius: var(--r-sm); background: rgba(255,255,255,.12); color: #fff; font-size: 13px; font-weight: 500; }
+  .preview-banner button:hover { background: rgba(255,255,255,.2); }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 14px 16px; }
+  .fact .k { font-size: 12px; color: var(--muted); margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+  .fact .k svg.lucide { width: 11px; height: 11px; }
+  .fact .v { font-weight: 500; white-space: nowrap; }
+  .fact.internal .v { color: var(--text-secondary); }
+
+  /* Proposed: milestone-timeline */
+  .timeline { display: grid; gap: 0; }
+  .ms { position: relative; padding: 0 10px 0 0; min-width: 0; }
+  .ms .track { position: relative; height: 22px; display: flex; align-items: center; margin-bottom: 8px; }
+  .ms .track::before { content: ""; position: absolute; left: 22px; right: -10px; top: 50%; height: 2px; margin-top: -1px; background: var(--divider); }
+  .ms:last-child .track::before { display: none; }
+  .ms.done .track::before { background: var(--success); }
+  .ms .dot { position: relative; z-index: 1; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 2px solid var(--border); }
+  .ms .dot svg.lucide { width: 12px; height: 12px; stroke-width: 2.6; }
+  .ms.done .dot { background: var(--success); border-color: var(--success); color: #fff; }
+  .ms.next .dot { border-color: var(--ink); box-shadow: 0 0 0 4px var(--nav-active); }
+  .ms.next .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
+  .ms.risk .dot { border-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
+  .ms .t { font-size: 13px; font-weight: 500; line-height: 1.3; }
+  .ms.todo .t { color: var(--text-secondary); }
+  .ms .w { font-size: 12px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .ms .by { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); margin-top: 6px; min-width: 0; }
+  .ms .by .org-avatar { width: 16px; height: 16px; font-size: 7px; border-radius: 3px; }
+  .ms .by span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ms .note { font-size: 12px; color: var(--warning); margin-top: 4px; }
+
+  /* Documents */
+  .doc-row { display: grid; grid-template-columns: minmax(0, 1fr) 160px 104px 116px; gap: 12px; align-items: start; padding: 12px 16px; border-top: 1px solid var(--divider); }
+  .doc-row:hover { background: var(--row-hover); }
+  .doc-row .name { font-weight: 500; }
+  .doc-row .ai { display: flex; align-items: flex-start; gap: 6px; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .doc-row .ai svg.lucide { width: 13px; height: 13px; margin-top: 2px; }
+  .doc-row .ai.ready svg { color: var(--success); }
+  .doc-row .ai.fix { color: var(--danger); }
+  .doc-row .ai.missing svg { color: var(--warning); }
+  .doc-row .ai.progress svg { color: var(--info); }
+  .doc-row .owner { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); min-width: 0; padding-top: 1px; }
+  .doc-row .owner .org-avatar { width: 18px; height: 18px; font-size: 8px; border-radius: var(--r-xs); }
+  .doc-row .owner span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .doc-row .acts { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+  .eye { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r-sm); color: var(--muted-soft); position: relative; }
+  .eye:hover { background: var(--nav-hover); color: var(--ink); }
+  .eye .n { position: absolute; right: 1px; bottom: 1px; font-size: 9px; font-weight: 600; color: var(--muted); }
+  .doc-head { display: grid; grid-template-columns: minmax(0, 1fr) 160px 104px 116px; gap: 12px; padding: 0 16px 8px; font-size: 12px; font-weight: 500; color: var(--muted); }
+
+  /* Chat */
+  .threads { display: flex; gap: 4px; padding: 0 16px; border-bottom: 1px solid var(--divider); overflow-x: auto; }
+  .thread-tab { height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; font-size: 13px; font-weight: 500; color: var(--text-secondary); position: relative; white-space: nowrap; }
+  .thread-tab .org-avatar { width: 18px; height: 18px; font-size: 8px; border-radius: var(--r-xs); }
+  .thread-tab svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+  .thread-tab.active { color: var(--ink); }
+  .thread-tab.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink); }
+  .thread-vis { padding: 8px 16px; background: var(--row-hover); border-bottom: 1px solid var(--divider); }
+  .msgs { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; max-height: 340px; overflow-y: auto; }
+  .msg { display: grid; grid-template-columns: 28px 1fr; gap: 10px; }
+  .msg .user-avatar, .msg .org-avatar, .msg .ai-mark { width: 28px; height: 28px; font-size: 11px; }
+  .msg .who { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .msg .who .org { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .msg .who time { font-weight: 400; color: var(--muted-soft); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .msg .body { font-size: 13.5px; color: var(--text-secondary); margin-top: 2px; }
+  .msg.ai .body { color: var(--danger); }
+  .chat-compose { padding: 0 16px 16px; }
+  .chat-compose .composer { min-height: 56px; padding: 10px 10px 8px 14px; border-radius: var(--r-lg); }
+
+  /* Next up */
+  .next-up { display: flex; flex-direction: column; gap: 10px; }
+  .next-up .item { display: grid; grid-template-columns: 28px 1fr; gap: 10px; }
+  .next-up .ico { width: 28px; height: 28px; border-radius: var(--r-sm); display: grid; place-items: center; }
+  .next-up .ico svg.lucide { width: 15px; height: 15px; }
+  .next-up .t { font-weight: 600; }
+  .next-up .d { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .tone-danger { background: var(--danger-soft); color: var(--danger); }
+  .tone-warning { background: var(--warning-soft); color: var(--warning); }
+  .tone-success { background: var(--success-soft); color: var(--success); }
+
+  /* Parties */
+  .party { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--divider); }
+  .party:first-of-type { border-top: 0; padding-top: 0; }
+  .party .n { font-weight: 500; font-size: 13.5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .party .r { font-size: 12px; color: var(--muted); }
+  .party .can { font-size: 12px; color: var(--text-secondary); margin-top: 6px; display: grid; grid-template-columns: 14px 1fr; gap: 4px 6px; }
+  .party .can svg.lucide { width: 12px; height: 12px; margin-top: 2px; }
+  .party .can .y { color: var(--success); }
+  .party .can .x { color: var(--muted-soft); }
+
+  .restricted { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 1px dashed var(--border); border-radius: var(--r-lg); color: var(--muted); font-size: 13px; background: var(--row-hover); }
+  .restricted svg.lucide { color: var(--muted-soft); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="shipments" data-row="shp-2411">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <div class="title-wrap">
+          <h1 class="num">SHP-2411</h1>
+          <span class="caption" id="subtitle"></span>
+          <span class="tag neutral">Booked</span>
+          <span class="tag warning" id="riskTag"><i data-lucide="triangle-alert"></i>Docs at risk</span>
+        </div>
+        <div class="right">
+          <label class="view-as"><i data-lucide="eye"></i>View as
+            <select class="select" id="viewAs"></select>
+          </label>
+        </div>
+      </header>
+      <div class="content" id="scroll"><div class="ws" id="ws"></div></div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+LM.mount();
+
+const S = structuredClone(D.shipment);
+const VIEWERS = ['you', 'kopi', 'truk', 'fumi', 'bea', 'samudra'];
+const asParam = new URLSearchParams(location.search).get('as');
+const state = { viewer: VIEWERS.includes(asParam) ? asParam : 'you', thread: 'internal', fixSent: false };
+
+const ROLE = { truk: 'Trucking partner', fumi: 'Fumigation partner', bea: 'Customs partner', samudra: 'Ocean carrier' };
+const isVendor = (k) => D.orgs[k]?.role === 'vendor';
+const hiddenIdentity = (k) => k !== state.viewer && isVendor(k) && (state.viewer === 'kopi' || isVendor(state.viewer));
+
+/* Party name as the current viewer is allowed to see it */
+function partyName(k) {
+  const v = state.viewer;
+  if (k === v) return 'You';
+  if (k === 'you') return v === 'you' ? 'You' : D.tenant.name;
+  if (k === 'consignee') return S.consignee.name;
+  if (v === 'you') return D.orgs[k].name;
+  if (hiddenIdentity(k)) return ROLE[k];   // customers never see vendor identities; vendors don't see each other
+  return D.orgs[k].name;
+}
+function partyAvatar(k) {
+  if (k === 'you') return `<span class="org-avatar" style="background:var(--primary);color:#fff">N</span>`;
+  if (k === 'consignee') return `<span class="org-avatar">${S.consignee.initials}</span>`;
+  if (hiddenIdentity(k)) return `<span class="org-avatar"><i data-lucide="building-2" style="width:12px;height:12px"></i></span>`;
+  return orgAvatar(k);
+}
+function whoLabel(visible) {
+  const names = [...new Set(['you', ...visible].map(partyName))];
+  // put "You" first, collapse repeated partner labels
+  names.sort((a, b) => (a === 'You' ? -1 : b === 'You' ? 1 : 0));
+  return names.join(', ');
+}
+const can = (item) => item.visible.includes(state.viewer);
+
+/* ---------------- sections ---------------- */
+function bannerHTML() {
+  if (state.viewer === 'you') return '';
+  const all = [...S.facts, ...S.milestones, ...S.docs, ...S.threads];
+  const hidden = all.filter(i => !can(i)).length;
+  return `<div class="preview-banner">
+    <i data-lucide="eye"></i>
+    <div class="text"><b>Previewing as ${D.orgs[state.viewer].name}.</b> <span>This is exactly what they see. ${hidden} items and all costs are hidden from them.</span></div>
+    <button data-viewer="you">Exit preview</button>
+  </div>`;
+}
+
+function factsHTML() {
+  return `<section class="card facts">${S.facts.filter(can).map(f => `
+    <div class="fact${f.visible.length === 1 ? ' internal' : ''}">
+      <div class="k">${f.k}${f.visible.length === 1 ? ' <i data-lucide="lock" title="Internal only"></i>' : ''}</div>
+      <div class="v">${(f.alt && f.alt[state.viewer]) || f.v}</div>
+    </div>`).join('')}</section>`;
+}
+
+function timelineHTML() {
+  const ms = S.milestones.filter(can);
+  return `<section class="card">
+    <div class="card-head"><i data-lucide="route"></i><h3>Milestones</h3><span class="caption">${ms.filter(m => m.state === 'done').length} of ${ms.length} done</span>
+      <div class="right">${state.viewer === 'you' ? `<span class="caption">Each party sees only their own milestones</span>` : ''}</div></div>
+    <div class="timeline" style="grid-template-columns:repeat(${ms.length}, minmax(0, 1fr))">
+      ${ms.map(m => `<div class="ms ${m.state}">
+        <div class="track"><span class="dot">${m.state === 'done' ? '<i data-lucide="check"></i>' : m.state === 'risk' ? '<i data-lucide="triangle-alert"></i>' : ''}</span></div>
+        <div class="t">${m.t}</div>
+        <div class="w">${m.when}</div>
+        <div class="by">${partyAvatar(m.by)}<span>${partyName(m.by)}</span></div>
+        ${m.state === 'next' ? `<div style="margin-top:6px">${tag('Next', 'neutral')}</div>` : ''}
+        ${m.note ? `<div class="note">${m.note}</div>` : ''}
+      </div>`).join('')}
+    </div>
+  </section>`;
+}
+
+const DOC = {
+  ready: ['Ready', 'success', 'circle-check'],
+  fix: ['Needs fix', 'danger', 'circle-x'],
+  fixsent: ['Fix requested', 'warning', 'rotate-cw'],
+  missing: ['Missing', 'warning', 'circle-alert'],
+  progress: ['In progress', 'info', 'loader'],
+  todo: ['To do', 'neutral', 'circle-dashed'],
+  later: ['After loading', 'neutral', 'clock'],
+};
+
+function docsHTML() {
+  const docs = S.docs.filter(can);
+  const counts = { ready: docs.filter(d => d.status === 'ready').length };
+  return `<section class="card flush" id="docs">
+    <div class="card-head"><i data-lucide="files"></i><h3>Documents</h3><span class="caption">${counts.ready} of ${docs.length} ready</span>
+      <div class="right"><span class="ai-label"><i data-lucide="sparkles"></i>AI checks every upload</span>
+        ${state.viewer === 'you' ? '<button class="btn-secondary" data-soon="Upload document"><i data-lucide="upload"></i>Upload</button>' : ''}</div></div>
+    <div class="doc-head" style="margin-top:12px"><span>Document</span><span>Owner</span><span>Status</span><span></span></div>
+    ${docs.map(d => {
+      const st = d.fix && state.fixSent ? 'fixsent' : d.status;
+      const [label, tone, icon] = DOC[st];
+      const mine = d.by === state.viewer;
+      const act = state.viewer === 'you'
+        ? (d.status === 'missing' ? `<button class="btn-secondary" data-soon="Reminder"><i data-lucide="bell-ring"></i>Remind</button>`
+          : d.status === 'ready' || d.fix ? `<button class="btn-secondary" data-soon="Document viewer"><i data-lucide="file-search"></i>View</button>` : '')
+        : mine && (d.status === 'missing' || d.fix) ? `<button class="btn-secondary" data-soon="Upload"><i data-lucide="upload"></i>Upload</button>` : '';
+      return `<div class="doc-row">
+        <div><div class="name">${d.name}</div>
+          <div class="ai ${st === 'fixsent' ? 'missing' : d.status}"><i data-lucide="${d.status === 'ready' ? 'sparkles' : icon}"></i><span>${st === 'fixsent' ? 'Sent back to CV Fumigasi Prima: add TGHU 872104-1 and reissue.' : d.ai}</span></div></div>
+        <div class="owner">${partyAvatar(d.by)}<span>${partyName(d.by)}</span></div>
+        <div>${tag(label, tone)}</div>
+        <div class="acts">${act}<span class="eye" title="Visible to: ${esc(whoLabel(d.visible))}"><i data-lucide="eye"></i><span class="n">${d.visible.length}</span></span></div>
+      </div>`;
+    }).join('')}
+  </section>`;
+}
+
+function chatHTML() {
+  const threads = S.threads.filter(can);
+  if (!threads.length) return `<div class="restricted"><i data-lucide="eye-off"></i>No conversations are shared with this party yet.</div>`;
+  if (!threads.find(t => t.id === state.thread)) state.thread = threads[0].id;
+  const t = threads.find(x => x.id === state.thread);
+  const preview = state.viewer !== 'you';
+  return `<section class="card flush">
+    <div class="card-head" style="margin-bottom:8px"><i data-lucide="messages-square"></i><h3>Conversations</h3>
+      <div class="right"><span class="caption">One thread per party, so nobody sees another party’s messages</span></div></div>
+    <div class="threads">${threads.map(x => `<button class="thread-tab${x.id === t.id ? ' active' : ''}" data-thread="${x.id}">
+      ${x.org ? partyAvatar(x.org) : `<i data-lucide="${x.icon}"></i>`}${x.id === 'internal' ? 'Team' : x.org === state.viewer ? 'Nusantara Cargo' : partyName(x.org)}</button>`).join('')}</div>
+    <div class="thread-vis">${visibility(whoLabel(t.visible))}</div>
+    <div class="msgs" id="msgs">
+      ${t.messages.map(m => m.ai ? `<div class="msg ai"><span class="ai-mark"><i data-lucide="sparkles"></i></span>
+          <div><div class="who">LogiMind AI <time>${m.time}</time></div><div class="body">${m.text}</div></div></div>`
+        : `<div class="msg">${m.org ? partyAvatar(m.org) : `<span class="user-avatar" style="background:${['var(--avatar-teal)', 'var(--avatar-indigo)', 'var(--avatar-violet)'][m.color]}">${m.who[0]}</span>`}
+          <div><div class="who">${m.who}${m.org ? `<span class="org">${partyName(m.org) === 'You' ? '' : partyName(m.org)}</span>` : `<span class="org">${preview ? 'Nusantara Cargo' : ''}</span>`}<time>${m.time}</time></div><div class="body">${esc(m.text)}</div></div></div>`).join('')}
+    </div>
+    <div class="chat-compose">
+      <form class="composer" data-composer>
+        <textarea rows="1" placeholder="${preview ? 'Preview only' : `Message ${t.id === 'internal' ? 'your team' : partyName(t.org)}…`}" ${preview ? 'disabled' : ''} aria-label="Message"></textarea>
+        <div class="composer-actions">
+          <div class="left">${visibility(whoLabel(t.visible))}</div>
+          <button type="submit" class="btn-primary send-btn neutral" title="Send" disabled><i data-lucide="arrow-up"></i></button>
+        </div>
+      </form>
+    </div>
+  </section>`;
+}
+
+function nextUpHTML() {
+  if (state.viewer !== 'you') return '';
+  const item = state.fixSent
+    ? `<div class="item"><span class="ico tone-warning"><i data-lucide="clock"></i></span>
+        <div><div class="t">Phytosanitary certificate due Thu 10:00</div>
+        <div class="d">The inspection is booked for Wed 13:00. I’ll remind PT Kopi Nusantara on Thu at 08:00 if it isn’t uploaded.</div></div></div>
+       <button class="btn-secondary" style="align-self:flex-start" data-soon="Reminder settings"><i data-lucide="bell"></i>Change reminder</button>`
+    : `<div class="item"><span class="ico tone-danger"><i data-lucide="file-x-2"></i></span>
+        <div><div class="t">Send the fumigation draft back</div>
+        <div class="d">It lists only one of the two containers. A reissue before fumigation tomorrow at 14:00 avoids a PEB rejection on Thursday.</div></div></div>
+       <button class="btn-primary" id="sendBack" style="align-self:flex-start"><i data-lucide="send"></i>Send back with reason</button>`;
+  return `<section class="card next-up">
+    <div class="card-head" style="margin-bottom:2px"><span class="ai-label"><i data-lucide="sparkles"></i>Next up</span><div class="right">${tag('Internal', 'neutral', 'lock')}</div></div>
+    ${item}
+  </section>`;
+}
+
+function partiesHTML() {
+  if (state.viewer !== 'you') {
+    return `<section class="card">
+      <div class="card-head"><i data-lucide="users"></i><h3>${state.viewer === 'kopi' ? 'Your forwarder' : 'Working for'}</h3></div>
+      <div class="party"><span class="org-avatar" style="background:var(--primary);color:#fff">N</span>
+        <div><div class="n">${D.tenant.name}</div><div class="r">Dewi Lestari · Operations</div></div></div>
+      <div class="restricted" style="margin-top:12px"><i data-lucide="eye-off"></i>Other parties on this shipment are hidden.</div>
+    </section>`;
+  }
+  return `<section class="card">
+    <div class="card-head"><i data-lucide="users"></i><h3>Parties</h3><span class="caption">${S.parties.length}</span>
+      <div class="right"><button class="link-btn" data-soon="Manage access">Manage access</button></div></div>
+    ${S.parties.map(p => `<div class="party">${partyAvatar(p.key)}
+      <div>
+        <div class="n">${partyName(p.key)}${p.linkOnly ? tag('Link only', 'neutral', 'link') : ''}</div>
+        <div class="r">${p.role} · ${p.contact}</div>
+        <div class="can"><i data-lucide="eye" class="y"></i><span>${p.sees}</span><i data-lucide="eye-off" class="x"></i><span class="muted">${p.hides}</span></div>
+      </div>
+    </div>`).join('')}
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--divider)"><button class="link-btn" data-viewer-pick><i data-lucide="eye"></i>Preview what a party sees</button></div>
+  </section>`;
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  $('#subtitle').textContent = S.title;
+  $('#riskTag').style.display = ['you', 'kopi'].includes(state.viewer) ? '' : 'none';
+  $('#ws').innerHTML = bannerHTML() + factsHTML() + timelineHTML()
+    + `<div class="grid"><div class="col">${docsHTML()}${chatHTML()}</div><div class="col">${nextUpHTML()}${partiesHTML()}</div></div>`;
+  icons();
+  bindChat();
+  const m = $('#msgs'); if (m) m.scrollTop = m.scrollHeight;
+}
+
+function bindChat() {
+  const form = $('[data-composer]');
+  if (!form || state.viewer !== 'you') return;
+  LM.bindComposer(form, text => {
+    S.threads.find(t => t.id === state.thread).messages.push({ who: 'Dewi Lestari', color: 0, time: '16:32', text });
+    render();
+    toast(`Sent. Visible to ${whoLabel(S.threads.find(t => t.id === state.thread).visible)}`);
+  });
+}
+
+$('#viewAs').innerHTML = VIEWERS.map(v => `<option value="${v}">${v === 'you' ? 'Nusantara Cargo (you)' : D.orgs[v].name}</option>`).join('');
+$('#viewAs').value = state.viewer;
+$('#viewAs').addEventListener('change', e => { state.viewer = e.target.value; render(); $('#scroll').scrollTop = 0; });
+
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-viewer]');
+  if (v) { state.viewer = v.dataset.viewer; $('#viewAs').value = state.viewer; render(); return; }
+  if (e.target.closest('[data-viewer-pick]')) { $('#viewAs').focus(); $('#viewAs').showPicker?.(); return; }
+  const th = e.target.closest('[data-thread]');
+  if (th) { state.thread = th.dataset.thread; render(); return; }
+  if (e.target.closest('#sendBack')) {
+    state.fixSent = true;
+    S.threads.find(t => t.id === 'fumi').messages.push({ who: 'Dewi Lestari', color: 0, time: '16:30', text: 'Please reissue the certificate with both containers: TGHU 872311-8 and TGHU 872104-1. Thanks!' });
+    state.thread = 'fumi';
+    render();
+    toast('Sent back to CV Fumigasi Prima');
+  }
+});
+
+render();
+if (location.hash === '#docs') setTimeout(() => $('#docs').scrollIntoView({ block: 'start' }), 50);
+</script>
+</body>
+</html>

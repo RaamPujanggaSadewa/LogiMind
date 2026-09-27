@@ -1,0 +1,1241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    /* Brand / violet */
+    --primary: #5B3DE0;
+    --primary-hover: #4D30CC;
+    --primary-pressed: #4226B3;
+    --primary-soft: #EEEAFD;
+    --rail-top: #6001D5;
+    --rail-bottom: #3D12A0;
+    --on-rail: #FFFFFF;
+    --rail-active-tile: #FFFFFF;
+
+    /* Neutrals */
+    --shell: #F2F2F3;
+    --sidebar: #F7F7F8;
+    --surface: #FFFFFF;
+    --nav-active: #EBEBED;
+    --nav-hover: #F0F0F2;
+    --border: #E4E4E7;
+    --divider: #ECECEE;
+    --ink: #1F1F23;
+    --text-secondary: #3F3F46;
+    --muted: #6B6B73;
+    --muted-soft: #9C9CA3;
+    --disabled: #B8B8BE;
+    --on-primary: #FFFFFF;
+
+    /* Identity */
+    --avatar-teal: #4FB59F;
+    --avatar-indigo: #4C5BD4;
+    --avatar-violet: #6A4BE0;
+    --badge-channel: #3D9C88;
+    --presence-offline: #A1A1AA;
+    --presence-online: #22A06B;
+
+    /* Status */
+    --success: #1F9D63;  --success-soft: #E7F6EE;
+    --warning: #B7791F;  --warning-soft: #FDF4E3;
+    --danger: #D93A3A;   --danger-soft: #FDECEC;
+    --info: #2F6FDB;     --info-soft: #EAF1FD;
+
+    --scrim: rgba(15, 15, 20, 0.45);
+
+    /* Radius */
+    --r-xs: 4px; --r-sm: 6px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px; --r-full: 9999px;
+
+    /* Sizes */
+    --rail-width: 56px;
+    --sidebar-width: 240px;
+    --sidebar-row: 30px;
+    --tab-bar-height: 52px;
+    --control-sm: 28px;
+    --control-md: 32px;
+    --control-lg: 40px;
+
+    --shadow-lift: 0 1px 2px rgba(16,16,24,0.06);
+    --shadow-pop: 0 8px 24px rgba(16,16,24,0.12);
+    --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px rgba(91, 61, 224, 0.4);
+
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--shell);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; padding: 0; }
+  :focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  svg.lucide { width: 16px; height: 16px; stroke-width: 1.6; flex: none; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- App shell ---------- */
+  .app {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    height: 100vh;
+    min-width: 960px;
+  }
+
+  /* ---------- Icon rail ---------- */
+  .rail {
+    width: var(--rail-width);
+    flex: none;
+    border-radius: var(--r-md);
+    background: linear-gradient(180deg, var(--rail-top), var(--rail-bottom));
+    color: var(--on-rail);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail-logo {
+    width: 36px; height: 36px;
+    border-radius: var(--r-sm);
+    background: var(--rail-active-tile);
+    display: grid; place-items: center;
+    margin: 2px 0 12px;
+  }
+  .rail-list { display: flex; flex-direction: column; gap: 2px; width: 100%; align-items: center; }
+  .rail-item {
+    width: 54px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 4px 0 6px;
+    color: var(--on-rail);
+    opacity: 0.9;
+    border-radius: var(--r-sm);
+  }
+  .rail-item:hover { opacity: 1; }
+  .rail-item .glyph {
+    width: 36px; height: 32px;
+    display: grid; place-items: center;
+    border-radius: var(--r-sm);
+    transition: background .12s;
+  }
+  .rail-item:hover .glyph { background: rgba(255,255,255,0.12); }
+  .rail-item svg.lucide { width: 20px; height: 20px; }
+  .rail-item .label { font-size: 10.5px; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+  .rail-item.active { opacity: 1; }
+  .rail-item.active .glyph { background: var(--rail-active-tile); color: var(--primary); }
+  .rail-spacer { flex: 1; min-height: 12px; }
+
+  /* ---------- Workspace (sidebar + main) ---------- */
+  .workspace {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  /* ---------- Context sidebar ---------- */
+  .sidebar {
+    width: var(--sidebar-width);
+    flex: none;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .sidebar-header {
+    height: 56px;
+    padding: 0 12px 0 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex: none;
+  }
+  .sidebar-title { font-size: 17px; font-weight: 600; line-height: 1.3; margin: 0; }
+  .split-add {
+    height: var(--control-md);
+    display: flex; align-items: stretch;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    position: relative;
+  }
+  .split-add button {
+    display: grid; place-items: center;
+    color: var(--text-secondary);
+    padding: 0 7px;
+  }
+  .split-add button:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+  .split-add button:last-child { border-left: 1px solid var(--border); border-radius: 0 var(--r-md) var(--r-md) 0; padding: 0 5px; }
+  .split-add button:last-child svg { width: 14px; height: 14px; }
+  .split-add button:hover { background: var(--nav-hover); }
+
+  .menu {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    min-width: 210px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-pop);
+    padding: 4px;
+    z-index: 20;
+    display: none;
+  }
+  .menu.open { display: block; }
+  .menu button {
+    width: 100%; height: 32px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 8px;
+    border-radius: var(--r-sm);
+    color: var(--text-secondary);
+    text-align: left;
+  }
+  .menu button svg { color: var(--muted); }
+  .menu button:hover { background: var(--nav-hover); color: var(--ink); }
+
+  .sidebar-scroll { flex: 1; overflow-y: auto; padding: 0 8px 16px; min-height: 0; }
+  .nav { display: flex; flex-direction: column; gap: 1px; }
+  .row {
+    height: var(--sidebar-row);
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 8px;
+    border-radius: var(--r-sm);
+    color: var(--text-secondary);
+    font-size: 14px; line-height: 1.3;
+    width: 100%;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .row > svg.lucide { color: var(--muted); }
+  .row:hover { background: var(--nav-hover); }
+  .row.active { background: var(--nav-active); color: var(--ink); }
+  .row.active > svg.lucide { color: var(--ink); }
+  .row .text { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .row .suffix { color: var(--muted-soft); font-size: 12px; }
+  .row .count {
+    margin-left: auto; font-size: 12px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .row.placeholder, .row.placeholder > svg.lucide { color: var(--muted-soft); }
+
+  .divider { height: 1px; background: var(--divider); margin: 12px 8px; }
+  .section { margin-top: 24px; }
+  .section:first-of-type { margin-top: 0; }
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4px 0 8px;
+    margin-bottom: 8px;
+  }
+  .section-label { font-size: 12.5px; font-weight: 500; color: var(--muted); line-height: 1.3; }
+  .section-add {
+    width: 22px; height: 22px;
+    border-radius: var(--r-xs);
+    display: grid; place-items: center;
+    color: var(--muted);
+  }
+  .section-add:hover { background: var(--nav-hover); color: var(--ink); }
+  .section-add svg { width: 14px; height: 14px; }
+
+  .space-avatar {
+    width: 18px; height: 18px; flex: none;
+    border-radius: var(--r-xs);
+    background: var(--primary);
+    color: var(--on-primary);
+    font-size: 10.5px; font-weight: 600;
+    display: grid; place-items: center;
+  }
+  .channel-glyph { position: relative; width: 18px; height: 18px; flex: none; display: grid; place-items: center; color: var(--muted); }
+  .channel-glyph .badge {
+    position: absolute; right: -2px; bottom: -2px;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    background: var(--badge-channel);
+    color: #fff;
+    font-size: 7px; font-weight: 700;
+    display: grid; place-items: center;
+    border: 1px solid var(--sidebar);
+    box-sizing: content-box;
+  }
+  .user-avatar {
+    position: relative;
+    width: 18px; height: 18px; flex: none;
+    border-radius: var(--r-full);
+    color: #fff;
+    font-size: 9.5px; font-weight: 600;
+    display: grid; place-items: center;
+  }
+  .user-avatar .presence {
+    position: absolute; right: -2px; bottom: -2px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 0 0 1.5px var(--presence-offline);
+  }
+  .user-avatar .presence.online { background: var(--presence-online); box-shadow: 0 0 0 1.5px var(--sidebar); }
+  .row .role { color: var(--muted-soft); font-size: 12px; }
+
+  /* ---------- Main panel ---------- */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--surface); }
+  .view { flex: 1; display: none; flex-direction: column; min-height: 0; }
+  .view.active { display: flex; }
+
+  .tab-bar {
+    height: var(--tab-bar-height);
+    flex: none;
+    display: flex;
+    border-bottom: 1px solid var(--divider);
+  }
+  .tab {
+    flex: 1; max-width: 220px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 16px;
+    color: var(--text-secondary);
+    font-size: 14px; font-weight: 500;
+    border-right: 1px solid var(--divider);
+    position: relative;
+  }
+  .tab > svg.lucide { color: var(--muted); }
+  .tab:hover { background: #FAFAFB; }
+  .tab.active { color: var(--ink); }
+  .tab.active > svg.lucide { color: var(--ink); }
+  .tab.active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px;
+    height: 2px; background: var(--ink);
+  }
+  .tab .count { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .toolbar {
+    height: 40px; flex: none;
+    margin-top: 12px;
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .toolbar .right { display: flex; align-items: center; gap: 8px; }
+  .pill {
+    height: var(--control-sm);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    color: var(--text-secondary);
+    font-size: 13px; font-weight: 500; line-height: 1.2;
+    white-space: nowrap;
+  }
+  .pill svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+  .pill:hover { background: var(--nav-hover); }
+  .pill.selected { background: var(--primary-soft); border-color: transparent; color: var(--primary); }
+  .pill.selected svg.lucide { color: var(--primary); }
+  .icon-btn {
+    width: var(--control-sm); height: var(--control-sm);
+    display: grid; place-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--muted);
+  }
+  .icon-btn:hover { background: var(--nav-hover); color: var(--ink); }
+  .btn-secondary {
+    height: var(--control-sm);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text-secondary);
+    font-size: 13px; font-weight: 500;
+  }
+  .btn-secondary svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+  .btn-secondary:hover:not(:disabled) { background: var(--nav-hover); }
+  .btn-secondary:disabled { color: var(--disabled); cursor: default; }
+  .btn-secondary:disabled svg.lucide { color: var(--disabled); }
+
+  .btn-primary {
+    height: var(--control-lg);
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 0 16px;
+    background: var(--primary);
+    color: var(--on-primary);
+    border-radius: var(--r-md);
+    font-size: 14px; font-weight: 500; line-height: 1.2;
+    transition: background .12s;
+  }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-primary:active { background: var(--primary-pressed); }
+  .btn-primary:disabled { background: var(--primary); opacity: .45; cursor: default; }
+
+  /* ---------- Empty state ---------- */
+  .content { flex: 1; min-height: 0; overflow-y: auto; }
+  .empty {
+    height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+  }
+  .empty-tile {
+    width: 48px; height: 48px;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow-lift);
+    display: grid; place-items: center;
+    color: var(--primary);
+    margin-bottom: 24px;
+  }
+  .empty-tile svg.lucide { width: 22px; height: 22px; }
+  .empty-title { font-size: 18px; font-weight: 600; line-height: 1.3; letter-spacing: -0.1px; margin: 0 0 8px; }
+  .empty-body { color: var(--muted); margin: 0 0 20px; }
+
+  /* ---------- Inbox list (populated) ---------- */
+  .inbox-list { padding: 8px 16px 24px; }
+  .inbox-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 8px;
+    border-radius: var(--r-sm);
+    border-bottom: 1px solid var(--divider);
+  }
+  .inbox-item:hover { background: #FAFAFB; }
+  .inbox-item .ico {
+    width: 32px; height: 32px; flex: none;
+    border-radius: var(--r-md);
+    display: grid; place-items: center;
+  }
+  .inbox-item .main-text { flex: 1; min-width: 0; }
+  .inbox-item .title { font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inbox-item .meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+  .inbox-item .time { font-size: 12px; color: var(--muted-soft); font-variant-numeric: tabular-nums; }
+  .inbox-item .actions { display: none; gap: 4px; }
+  .inbox-item:hover .actions { display: flex; }
+  .inbox-item:hover .time { display: none; }
+
+  /* ---------- Status tag ---------- */
+  .tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 6px;
+    border-radius: var(--r-xs);
+    font-size: 12px; line-height: 1.3; font-weight: 500;
+    white-space: nowrap;
+  }
+  .tag svg.lucide { width: 12px; height: 12px; }
+  .tag.success { background: var(--success-soft); color: var(--success); }
+  .tag.warning { background: var(--warning-soft); color: var(--warning); }
+  .tag.danger  { background: var(--danger-soft);  color: var(--danger); }
+  .tag.info    { background: var(--info-soft);    color: var(--info); }
+  .tag.neutral { background: var(--nav-active);   color: var(--text-secondary); }
+  .tag.brand   { background: var(--surface); color: var(--primary); border: 1px solid rgba(91,61,224,.25); }
+
+  /* ---------- Prompt composer ---------- */
+  .composer-wrap { width: 100%; max-width: 680px; }
+  .composer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    min-height: 96px;
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    transition: border-color .12s, box-shadow .12s;
+    text-align: left;
+  }
+  .composer:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .composer textarea {
+    border: 0; outline: none; resize: none;
+    background: transparent;
+    min-height: 24px; max-height: 200px;
+    line-height: 1.45;
+    padding: 0;
+  }
+  .composer textarea::placeholder { color: var(--muted-soft); }
+  .composer-actions { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+  .composer-actions .left { display: flex; gap: 6px; align-items: center; }
+  .attach-btn {
+    height: var(--control-sm);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 8px;
+    border-radius: var(--r-sm);
+    color: var(--muted);
+    font-size: 13px; font-weight: 500;
+  }
+  .attach-btn:hover { background: var(--nav-hover); color: var(--ink); }
+  .attach-btn svg.lucide { width: 15px; height: 15px; }
+  .send-btn { width: 32px; height: 32px; padding: 0; border-radius: var(--r-md); }
+  .composer-hint { font-size: 12px; color: var(--muted-soft); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
+
+  /* ---------- Chat ---------- */
+  .chat-head {
+    height: var(--tab-bar-height); flex: none;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .chat-head h2 { font-size: 14px; font-weight: 600; margin: 0; }
+  .chat-head .right { margin-left: auto; display: flex; gap: 8px; }
+  .chat-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+  .chat-inner { max-width: 820px; margin: 0 auto; padding: 24px 24px 32px; display: flex; flex-direction: column; gap: 20px; }
+  .msg-user {
+    align-self: flex-end;
+    max-width: 75%;
+    background: var(--nav-active);
+    padding: 10px 14px;
+    border-radius: var(--r-lg);
+    border-bottom-right-radius: var(--r-xs);
+  }
+  .msg-ai { display: flex; gap: 12px; align-items: flex-start; }
+  .ai-mark {
+    width: 28px; height: 28px; flex: none;
+    border-radius: var(--r-sm);
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: grid; place-items: center;
+  }
+  .ai-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  .ai-body > p { margin: 3px 0 0; }
+  .thinking { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 13px; padding-top: 4px; }
+  .thinking .step { display: flex; align-items: center; gap: 8px; }
+  .thinking .step svg.lucide { width: 14px; height: 14px; }
+  .thinking .step.done svg { color: var(--success); }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .fade-in { animation: fade .28s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 16px;
+  }
+  .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .card-head h3 { font-size: 14px; font-weight: 600; margin: 0; }
+  .card-head > svg.lucide { color: var(--muted); }
+  .card-head .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+  .fact .k { font-size: 12px; color: var(--muted); }
+  .fact .v { font-weight: 500; }
+
+  .card.regulation { border-left: 3px solid var(--info); background: linear-gradient(90deg, var(--info-soft), var(--surface) 40%); }
+  .card.regulation ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+  .card.regulation li::marker { color: var(--muted-soft); }
+  .sources { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .source-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; color: var(--info);
+    text-decoration: none;
+    padding: 2px 6px; border-radius: var(--r-xs);
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .source-link svg.lucide { width: 12px; height: 12px; }
+  .source-link:hover { border-color: var(--info); }
+
+  .doc-table { width: 100%; border-collapse: collapse; }
+  .doc-table th {
+    text-align: left; font-size: 12px; font-weight: 500; color: var(--muted);
+    padding: 0 8px 8px; border-bottom: 1px solid var(--divider);
+  }
+  .doc-table td { padding: 8px; border-bottom: 1px solid var(--divider); vertical-align: middle; }
+  .doc-table tr:last-child td { border-bottom: 0; }
+  .doc-table .doc-name { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+  .doc-table .doc-name svg.lucide { color: var(--muted); }
+  .doc-table .issuer { color: var(--muted); font-size: 13px; }
+  .doc-table td:last-child { text-align: right; width: 1%; white-space: nowrap; }
+  .progress { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .progress-bar { width: 80px; height: 4px; background: var(--nav-active); border-radius: 99px; overflow: hidden; }
+  .progress-bar span { display: block; height: 100%; background: var(--success); border-radius: 99px; transition: width .25s; }
+
+  .routes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .route {
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 14px;
+    text-align: left;
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--surface);
+    transition: border-color .12s;
+  }
+  .route:hover { border-color: #CFCFD4; }
+  .route.recommended { background: var(--primary-soft); border-color: transparent; }
+  .route.selected { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+  .route .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+  .route .ports { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .route .ports svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+  .route .mode { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+  .route .mode svg.lucide { color: var(--muted); }
+  .route dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+  .route dt { color: var(--muted); }
+  .route dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .route .price { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .route .price small { font-size: 12px; font-weight: 400; color: var(--muted); }
+  .route .radio {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid var(--disabled);
+    flex: none;
+  }
+  .route.selected .radio { border: 5px solid var(--primary); }
+
+  .price-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .price-table td { padding: 7px 0; border-bottom: 1px solid var(--divider); }
+  .price-table td:last-child { text-align: right; }
+  .price-table .sub { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .price-table tr.total td { border-bottom: 0; border-top: 1px solid var(--border); padding-top: 12px; font-weight: 600; font-size: 15px; }
+  .select {
+    height: var(--control-sm);
+    padding: 0 26px 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+    appearance: none;
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .footnote { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  .next-step { display: flex; align-items: center; gap: 16px; }
+  .next-step p { margin: 0; color: var(--muted); flex: 1; }
+
+  .chat-composer { flex: none; padding: 12px 24px 16px; }
+  .chat-composer .composer-wrap { max-width: 772px; margin: 0 auto; }
+  .chat-composer .composer { min-height: 72px; padding: 12px 12px 10px 16px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px);
+    background: var(--ink); color: #fff;
+    padding: 10px 14px; border-radius: var(--r-md);
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
+    box-shadow: var(--shadow-pop);
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast svg.lucide { color: #6EE7B7; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ Icon rail ============ -->
+  <nav class="rail" aria-label="Primary">
+    <div class="rail-logo" title="LogiMind">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" aria-label="LogiMind" role="img" viewBox="260 260 1440 1520" fill="none">
+        <defs>
+          <linearGradient id="lm-base" x1="500" y1="980" x2="1450" y2="1740" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#4410A8"/>
+            <stop offset="1" stop-color="#6A00D8"/>
+          </linearGradient>
+        </defs>
+        <!-- lower slab -->
+        <path d="M675 963 L1525 958 Q1655 975 1620 1100 L1395 1645 Q1350 1720 1270 1725 L430 1750 Q320 1740 340 1580 L550 1047 Q590 990 675 963 Z" fill="url(#lm-base)"/>
+        <!-- upper slab, translucent over the lower one -->
+        <path d="M820 312 L1290 307 Q1420 320 1385 460 L1000 1240 Q960 1310 880 1318 L395 1322 Q290 1310 310 1140 L690 387 Q730 330 820 312 Z" fill="#3F22D2" fill-opacity=".86"/>
+      </svg>
+    </div>
+    <div class="rail-list" id="railList"></div>
+    <div class="rail-spacer"></div>
+    <button class="rail-item" title="Invite">
+      <span class="glyph"><i data-lucide="user-plus"></i></span>
+      <span class="label">Invite</span>
+    </button>
+  </nav>
+
+  <div class="workspace">
+    <!-- ============ Context sidebar ============ -->
+    <aside class="sidebar" aria-label="Home">
+      <div class="sidebar-header">
+        <h1 class="sidebar-title">Home</h1>
+        <div class="split-add">
+          <button title="New shipment prompt" data-action="new-chat"><i data-lucide="plus"></i></button>
+          <button title="More create options" id="addMenuBtn" aria-haspopup="menu" aria-expanded="false"><i data-lucide="chevron-down"></i></button>
+          <div class="menu" id="addMenu" role="menu">
+            <button role="menuitem" data-action="new-chat"><i data-lucide="sparkles"></i>New shipment prompt</button>
+            <button role="menuitem" data-toast="New quote — coming soon"><i data-lucide="receipt"></i>New quote</button>
+            <button role="menuitem" data-toast="Upload document — coming soon"><i data-lucide="upload"></i>Upload document</button>
+            <button role="menuitem" data-toast="New trade lane — coming soon"><i data-lucide="route"></i>New trade lane</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-scroll">
+        <div class="nav" id="primaryNav">
+          <button class="row active" data-view="inbox"><i data-lucide="inbox"></i><span class="text">Inbox</span><span class="count">4</span></button>
+          <button class="row"><i data-lucide="reply"></i><span class="text">Replies</span></button>
+          <button class="row"><i data-lucide="message-square-text"></i><span class="text">Assigned Comments</span></button>
+          <button class="row"><i data-lucide="list-checks"></i><span class="text">Action Items</span><span class="count">3</span></button>
+          <button class="row"><i data-lucide="video"></i><span class="text">Meetings</span></button>
+          <button class="row"><i data-lucide="circle-check"></i><span class="text">My Tasks</span></button>
+          <button class="row"><i data-lucide="ellipsis"></i><span class="text">More</span></button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <div class="section-head"><span class="section-label">AI Chats</span></div>
+          <div class="nav" id="chatNav">
+            <button class="row placeholder" data-action="new-chat"><i data-lucide="plus"></i><span class="text">Ask, Plan, Ship</span></button>
+            <button class="row" data-action="open-chat"><i data-lucide="sparkles"></i><span class="text">Coffee beans · SUB → SHA</span></button>
+            <button class="row"><i data-lucide="sparkles"></i><span class="text">Frozen shrimp · SUB → LAX</span></button>
+            <button class="row"><i data-lucide="sparkles"></i><span class="text">Auto parts · NGO → JKT</span></button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <span class="section-label">Trade Lanes</span>
+            <button class="section-add" title="New trade lane" data-toast="New trade lane — coming soon"><i data-lucide="plus"></i></button>
+          </div>
+          <div class="nav">
+            <button class="row"><i data-lucide="container"></i><span class="text">All Shipments <span class="suffix">— Nirvana</span></span></button>
+            <button class="row"><span class="space-avatar">I</span><span class="text">ID → CN</span></button>
+            <button class="row"><span class="space-avatar">J</span><span class="text">JP → ID</span></button>
+            <button class="row placeholder"><i data-lucide="plus"></i><span class="text">New Trade Lane</span></button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <span class="section-label">Channels</span>
+            <button class="section-add" title="Add channel"><i data-lucide="plus"></i></button>
+          </div>
+          <div class="nav">
+            <button class="row"><span class="channel-glyph"><i data-lucide="hash"></i><span class="badge">N</span></span><span class="text">General <span class="suffix">— Nirvana</span></span></button>
+            <button class="row placeholder"><i data-lucide="plus"></i><span class="text">Add Channel</span></button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <span class="section-label">Direct Messages</span>
+            <button class="section-add" title="New message"><i data-lucide="plus"></i></button>
+          </div>
+          <div class="nav">
+            <button class="row"><span class="user-avatar" style="background:var(--avatar-teal)">R<span class="presence online"></span></span><span class="text">Rina Wijaya</span></button>
+            <button class="row"><span class="user-avatar" style="background:var(--avatar-indigo)">B<span class="presence"></span></span><span class="text">Budi Santoso <span class="role">· Broker</span></span></button>
+            <button class="row"><span class="user-avatar" style="background:var(--avatar-violet)">C<span class="presence"></span></span><span class="text">Chen Wei <span class="role">· Forwarder</span></span></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ Main panel ============ -->
+    <main class="main">
+
+      <!-- Inbox view -->
+      <section class="view active" id="view-inbox">
+        <div class="tab-bar" role="tablist">
+          <button class="tab active" role="tab" data-tab="primary"><i data-lucide="inbox"></i>Primary<span class="count">4</span></button>
+          <button class="tab" role="tab" data-tab="other"><i data-lucide="activity"></i>Other</button>
+          <button class="tab" role="tab" data-tab="later"><i data-lucide="clock"></i>Later</button>
+          <button class="tab" role="tab" data-tab="cleared"><i data-lucide="list-checks"></i>Cleared</button>
+        </div>
+        <div class="toolbar">
+          <button class="pill"><i data-lucide="list-filter"></i>Filter</button>
+          <div class="right">
+            <button class="icon-btn" title="Inbox settings"><i data-lucide="settings"></i></button>
+            <button class="btn-secondary" id="clearAll"><i data-lucide="check-check"></i>Clear all</button>
+          </div>
+        </div>
+        <div class="content" id="inboxContent"></div>
+      </section>
+
+      <!-- New shipment (Home composer) view -->
+      <section class="view" id="view-new">
+        <div class="content">
+          <div class="empty">
+            <div class="empty-tile"><i data-lucide="ship"></i></div>
+            <h2 class="empty-title">Where are you shipping today?</h2>
+            <p class="empty-body">Describe your cargo, lane and timing. I'll cover the rules, documents, route and price.</p>
+            <div class="composer-wrap">
+              <form class="composer" data-composer>
+                <textarea rows="2" placeholder="e.g. Ship 20 tons of coffee beans from Surabaya to Shanghai in November" aria-label="Describe your shipment"></textarea>
+                <div class="composer-actions">
+                  <div class="left">
+                    <button type="button" class="attach-btn" title="Attach invoice or packing list"><i data-lucide="paperclip"></i>Attach</button>
+                    <span class="composer-hint">Invoice, packing list or PO</span>
+                  </div>
+                  <button type="submit" class="btn-primary send-btn" title="Send" disabled><i data-lucide="arrow-up"></i></button>
+                </div>
+              </form>
+              <div class="chips">
+                <button class="pill" data-fill="Ship 2 × 40ft containers of coffee beans from Surabaya to Shanghai in November"><i data-lucide="ship"></i>Export to China</button>
+                <button class="pill" data-fill="Import 12 pallets of machine parts from Nagoya to Jakarta, arriving before December 15"><i data-lucide="package"></i>Import from Japan</button>
+                <button class="pill" data-fill="Check documents for HS code 0901.11 exported from Indonesia to China"><i data-lucide="file-search"></i>Check documents for HS code…</button>
+                <button class="pill" data-fill="Compare sea vs air for 3 tons of electronics from Batam to Rotterdam"><i data-lucide="scale"></i>Compare sea vs air</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI chat view -->
+      <section class="view" id="view-chat">
+        <div class="chat-head">
+          <h2 id="chatTitle">Coffee beans · SUB → SHA</h2>
+          <span class="tag neutral">Draft</span>
+          <div class="right">
+            <button class="icon-btn" title="Share"><i data-lucide="share-2"></i></button>
+            <button class="icon-btn" title="More"><i data-lucide="ellipsis"></i></button>
+          </div>
+        </div>
+        <div class="chat-scroll" id="chatScroll">
+          <div class="chat-inner" id="chatInner"></div>
+        </div>
+        <div class="chat-composer">
+          <div class="composer-wrap">
+            <form class="composer" data-composer>
+              <textarea rows="1" placeholder="Ask a follow-up, e.g. What if we ship in December?" aria-label="Message"></textarea>
+              <div class="composer-actions">
+                <div class="left">
+                  <button type="button" class="attach-btn" title="Attach document"><i data-lucide="paperclip"></i>Attach</button>
+                </div>
+                <button type="submit" class="btn-primary send-btn" title="Send" disabled><i data-lucide="arrow-up"></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i data-lucide="check"></i><span></span></div>
+
+<script>
+/* ---------------------------------------------------------------
+   Sample data — illustrative only. Real requirements, rates and
+   duties must come from maintained trade-lane data (see DESIGN2.md).
+---------------------------------------------------------------- */
+const RAIL = [
+  { id: 'home', label: 'Home', icon: 'house' },
+  { id: 'shipments', label: 'Shipments', icon: 'container' },
+  { id: 'assistant', label: 'Assistant', icon: 'sparkles' },
+  { id: 'planner', label: 'Planner', icon: 'calendar-days' },
+  { id: 'quotes', label: 'Quotes', icon: 'receipt' },
+  { id: 'teams', label: 'Teams', icon: 'users' },
+  { id: 'docs', label: 'Docs', icon: 'file-text' },
+  { id: 'tracking', label: 'Tracking', icon: 'radar' },
+  { id: 'more', label: 'More', icon: 'layout-grid' },
+];
+
+const INBOX = {
+  primary: [
+    { icon: 'file-warning', tone: 'warning', title: 'Phytosanitary certificate requested for SHP-1042', lane: 'ID → CN', tag: ['Missing', 'warning'], who: 'Budi Santoso', time: '10:24' },
+    { icon: 'receipt', tone: 'info', title: 'Quote ready: 2 × 40ft SUB → SHA via Yangshan', lane: 'ID → CN', tag: ['Estimate', 'neutral'], who: 'LogiMind Assistant', time: '09:02' },
+    { icon: 'scale', tone: 'info', title: 'Regulation update: GACC registration renewal window opens', lane: 'ID → CN', tag: ['Regulatory tip', 'info'], who: 'LogiMind Assistant', time: 'Yesterday' },
+    { icon: 'octagon-alert', tone: 'danger', title: 'Packing list rejected — gross weight mismatch on SHP-0998', lane: 'JP → ID', tag: ['Rejected', 'danger'], who: 'Chen Wei', time: 'Yesterday' },
+  ],
+  other: [
+    { icon: 'ship', tone: 'neutral', title: 'SHP-0987 departed Tanjung Perak (vessel MV Oriental Bay)', lane: 'ID → CN', tag: ['In transit', 'neutral'], who: 'Tracking', time: 'Mon' },
+    { icon: 'badge-check', tone: 'success', title: 'SHP-0971 cleared customs at Yangshan', lane: 'ID → CN', tag: ['Cleared', 'success'], who: 'Budi Santoso', time: 'Sun' },
+  ],
+  later: [],
+  cleared: [],
+};
+
+const DOCS = [
+  { name: 'Export declaration (PEB)', issuer: 'Indonesian Customs via INSW', status: 'missing', icon: 'stamp' },
+  { name: 'Commercial invoice', issuer: 'Shipper', status: 'ready', icon: 'file-text' },
+  { name: 'Packing list', issuer: 'Shipper', status: 'ready', icon: 'file-text' },
+  { name: 'Bill of lading', issuer: 'Carrier / forwarder', status: 'pending', icon: 'file-text' },
+  { name: 'Certificate of origin — Form E', issuer: 'Ministry of Trade (IPSKA)', status: 'missing', icon: 'award' },
+  { name: 'Phytosanitary certificate', issuer: 'Indonesian Quarantine Agency', status: 'missing', icon: 'leaf' },
+  { name: 'Fumigation certificate', issuer: 'Accredited fumigator', status: 'rejected', icon: 'wind' },
+];
+const DOC_STATUS = {
+  ready: ['Ready', 'success', 'circle-check'],
+  missing: ['Missing', 'warning', 'circle-alert'],
+  rejected: ['Rejected', 'danger', 'circle-x'],
+  pending: ['Issued at loading', 'neutral', 'clock'],
+};
+
+const ROUTES = [
+  { id: 'direct', from: 'Surabaya (IDSUB)', to: 'Shanghai (CNSHA)', short: ['SUB', 'SHA'], mode: 'Sea · FCL', modeIcon: 'ship', carrier: 'COSCO', transit: '10–12 days', ts: 'Direct', freight: 1450, recommended: true },
+  { id: 'sin', from: 'Surabaya (IDSUB)', to: 'Shanghai (CNSHA)', short: ['SUB', 'SHA'], mode: 'Sea · FCL', modeIcon: 'ship', carrier: 'Maersk', transit: '14–17 days', ts: '1 · Singapore', freight: 1180 },
+  { id: 'jkt', from: 'Jakarta (IDTPP)', to: 'Ningbo (CNNGB)', short: ['JKT', 'NGB'], mode: 'Sea · FCL', modeIcon: 'ship', carrier: 'ONE', transit: '11–13 days', ts: 'Direct + trucking', freight: 1320, extraTrucking: 780 },
+];
+
+const CONTAINERS = 2;
+const CARGO_VALUE_USD = 96000;   // 2 × ~19.2 t coffee @ ~2.5 USD/kg (illustrative)
+const FX = { USD: { rate: 1, sym: 'US$', dp: 0 }, IDR: { rate: 16300, sym: 'Rp', dp: 0 }, CNY: { rate: 7.15, sym: '¥', dp: 0 } };
+
+/* ---------------------------------------------------------------
+   Helpers
+---------------------------------------------------------------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const icons = () => window.lucide && lucide.createIcons({ attrs: { 'stroke-width': 1.6 } });
+const esc = (s) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tag = (label, tone, icon) => `<span class="tag ${tone}">${icon ? `<i data-lucide="${icon}"></i>` : ''}${label}</span>`;
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  $('span', t).textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------------------------------------------------------------
+   Rail
+---------------------------------------------------------------- */
+$('#railList').innerHTML = RAIL.map((r, i) => `
+  <button class="rail-item${i === 0 ? ' active' : ''}" data-rail="${r.id}" title="${r.label}">
+    <span class="glyph"><i data-lucide="${r.icon}"></i></span>
+    <span class="label">${r.label}</span>
+  </button>`).join('');
+$('#railList').addEventListener('click', e => {
+  const b = e.target.closest('.rail-item'); if (!b) return;
+  $$('.rail-item', $('#railList')).forEach(x => x.classList.toggle('active', x === b));
+  if (b.dataset.rail === 'assistant') showView('new');
+  else if (b.dataset.rail === 'home') showView('inbox');
+  else toast(`${b.title} — not part of this mock yet`);
+});
+
+/* ---------------------------------------------------------------
+   Views & sidebar selection
+---------------------------------------------------------------- */
+function showView(name, activeRow) {
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
+  $$('.sidebar .row').forEach(r => r.classList.remove('active'));
+  const row = activeRow || (name === 'inbox' ? $('[data-view="inbox"]') : name === 'new' ? $('#chatNav [data-action="new-chat"]') : null);
+  if (row) row.classList.add('active');
+  if (name === 'new') setTimeout(() => $('#view-new textarea').focus(), 0);
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-action], [data-view], [data-toast]');
+  if (!t) {
+    if (!e.target.closest('.split-add')) closeMenu();
+    return;
+  }
+  if (t.dataset.toast) { toast(t.dataset.toast); closeMenu(); return; }
+  if (t.dataset.view) { showView(t.dataset.view, t); return; }
+  if (t.dataset.action === 'new-chat') { closeMenu(); showView('new'); return; }
+  if (t.dataset.action === 'open-chat') { openChat('Ship 2 × 40ft containers of coffee beans from Surabaya to Shanghai in November', t, true); return; }
+});
+
+$$('#primaryNav .row:not([data-view])').forEach(r => r.addEventListener('click', () => {
+  $$('.sidebar .row').forEach(x => x.classList.remove('active'));
+  r.classList.add('active');
+  toast(`${r.textContent.trim()} — not part of this mock yet`);
+}));
+
+/* Split button menu */
+const addMenu = $('#addMenu'), addMenuBtn = $('#addMenuBtn');
+function closeMenu() { addMenu.classList.remove('open'); addMenuBtn.setAttribute('aria-expanded', 'false'); }
+addMenuBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const open = addMenu.classList.toggle('open');
+  addMenuBtn.setAttribute('aria-expanded', String(open));
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+/* ---------------------------------------------------------------
+   Inbox
+---------------------------------------------------------------- */
+let currentTab = 'primary';
+function renderInbox() {
+  const items = INBOX[currentTab];
+  const el = $('#inboxContent');
+  $('#clearAll').disabled = items.length === 0 || currentTab === 'cleared';
+  const primaryCount = INBOX.primary.length;
+  $('.tab[data-tab="primary"] .count').textContent = primaryCount || '';
+  $('[data-view="inbox"] .count').textContent = primaryCount || '';
+
+  if (!items.length) {
+    const copy = {
+      primary: ['Looking to collaborate?', 'Collaboration is one invite away.', 'user-plus', 'Invite people'],
+      other: ['No activity yet', 'Updates from your shipments will show up here.', 'activity', null],
+      later: ['Nothing snoozed', 'Items you save for later will wait here.', 'clock', null],
+      cleared: ['Nothing cleared yet', 'Items you mark as done move here.', 'list-checks', null],
+    }[currentTab];
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-tile"><i data-lucide="${copy[2]}"></i></div>
+        <h2 class="empty-title">${copy[0]}</h2>
+        <p class="empty-body">${copy[1]}</p>
+        ${copy[3] ? `<button class="btn-primary" data-toast="Invite link copied">${copy[3]}</button>` : ''}
+      </div>`;
+  } else {
+    const toneBg = { warning: 'var(--warning-soft)', info: 'var(--info-soft)', danger: 'var(--danger-soft)', success: 'var(--success-soft)', neutral: 'var(--nav-active)' };
+    const toneFg = { warning: 'var(--warning)', info: 'var(--info)', danger: 'var(--danger)', success: 'var(--success)', neutral: 'var(--muted)' };
+    el.innerHTML = `<div class="inbox-list">${items.map((it, i) => `
+      <div class="inbox-item">
+        <span class="ico" style="background:${toneBg[it.tone]};color:${toneFg[it.tone]}"><i data-lucide="${it.icon}"></i></span>
+        <div class="main-text">
+          <div class="title">${it.title}</div>
+          <div class="meta"><span class="tag neutral">${it.lane}</span>${tag(it.tag[0], it.tag[1])}<span>${it.who}</span></div>
+        </div>
+        <span class="time">${it.time}</span>
+        <div class="actions">
+          <button class="icon-btn" title="Snooze" data-move="${i}:later"><i data-lucide="clock"></i></button>
+          <button class="icon-btn" title="Mark as done" data-move="${i}:cleared"><i data-lucide="check"></i></button>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+  icons();
+}
+$$('.tab').forEach(t => t.addEventListener('click', () => {
+  $$('.tab').forEach(x => x.classList.toggle('active', x === t));
+  currentTab = t.dataset.tab;
+  renderInbox();
+}));
+$('#inboxContent').addEventListener('click', e => {
+  const b = e.target.closest('[data-move]'); if (!b) return;
+  const [i, dest] = b.dataset.move.split(':');
+  const [item] = INBOX[currentTab].splice(+i, 1);
+  INBOX[dest].unshift(item);
+  renderInbox();
+  toast(dest === 'later' ? 'Snoozed' : 'Moved to Cleared');
+});
+$('#clearAll').addEventListener('click', () => {
+  INBOX.cleared.unshift(...INBOX[currentTab].splice(0));
+  renderInbox();
+  toast('All items cleared');
+});
+
+/* ---------------------------------------------------------------
+   Composer
+---------------------------------------------------------------- */
+$$('[data-composer]').forEach(form => {
+  const ta = $('textarea', form), send = $('[type="submit"]', form);
+  const sync = () => {
+    send.disabled = !ta.value.trim();
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+  };
+  ta.addEventListener('input', sync);
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!send.disabled) form.requestSubmit(); }
+  });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = ta.value.trim(); if (!text) return;
+    ta.value = ''; sync();
+    if (form.closest('#view-new')) openChat(text, $('#chatNav [data-action="open-chat"]'));
+    else followUp(text);
+  });
+  form.addEventListener('click', e => { if (e.target.closest('.attach-btn')) toast('File picker would open here'); });
+});
+$$('[data-fill]').forEach(chip => chip.addEventListener('click', () => {
+  const ta = $('#view-new textarea');
+  ta.value = chip.dataset.fill;
+  ta.dispatchEvent(new Event('input'));
+  ta.focus();
+}));
+
+/* ---------------------------------------------------------------
+   AI chat (scripted demo response)
+---------------------------------------------------------------- */
+let selectedRoute = 'direct';
+let currency = 'USD';
+
+function openChat(prompt, row, instant = false) {
+  showView('chat', row);
+  const inner = $('#chatInner');
+  inner.innerHTML = `<div class="msg-user fade-in">${esc(prompt)}</div>
+    <div class="msg-ai fade-in"><span class="ai-mark"><i data-lucide="sparkles"></i></span><div class="ai-body" id="aiBody"></div></div>`;
+  icons();
+  if (instant) { renderAnswer(); return; }
+
+  const steps = ['Identifying trade lane and HS code', 'Checking export and import rules', 'Building document checklist', 'Comparing routes and rates'];
+  const body = $('#aiBody');
+  body.innerHTML = `<div class="thinking">${steps.map((s, i) => `<div class="step" data-i="${i}" style="display:none"><i data-lucide="loader-circle" class="spin"></i>${s}</div>`).join('')}</div>`;
+  icons();
+  steps.forEach((_, i) => {
+    setTimeout(() => {
+      const prev = $(`.step[data-i="${i - 1}"]`, body);
+      if (prev) { prev.classList.add('done'); prev.querySelector('svg').outerHTML = '<i data-lucide="circle-check"></i>'; }
+      $(`.step[data-i="${i}"]`, body).style.display = 'flex';
+      icons();
+    }, i * 550);
+  });
+  setTimeout(renderAnswer, steps.length * 550 + 250);
+}
+
+function renderAnswer() {
+  const body = $('#aiBody');
+  body.innerHTML = `
+    <p class="fade-in">Here's what it takes to move <strong>2 × 40ft containers of green coffee beans</strong> from Surabaya to Shanghai in November. I've checked both sides of the lane, listed the paperwork, and priced three routes.</p>
+
+    <div class="card fade-in">
+      <div class="card-head"><i data-lucide="scan-search"></i><h3>Shipment understood</h3><div class="right">${tag('Please confirm', 'neutral')}</div></div>
+      <div class="facts">
+        <div class="fact"><div class="k">Trade lane</div><div class="v">Indonesia → China</div></div>
+        <div class="fact"><div class="k">Cargo</div><div class="v">Green coffee beans, not roasted</div></div>
+        <div class="fact"><div class="k">Likely HS code</div><div class="v num">0901.11</div></div>
+        <div class="fact"><div class="k">Equipment</div><div class="v num">2 × 40' dry, ~19 t each</div></div>
+        <div class="fact"><div class="k">Target ETD</div><div class="v">November 2026</div></div>
+      </div>
+    </div>
+
+    <div class="card regulation fade-in">
+      <div class="card-head"><i data-lucide="landmark" style="color:var(--info)"></i><h3>Regulation summary</h3><div class="right">${tag('AI note', 'info', 'info')}</div></div>
+      <ul>
+        <li>Lodge an <strong>export declaration (PEB)</strong> with Indonesian Customs before the cargo enters the terminal.</li>
+        <li>Coffee is a plant product, so it needs a <strong>phytosanitary certificate</strong> from the quarantine agency after inspection.</li>
+        <li>Claim ASEAN–China FTA preferential duty with a <strong>Form E certificate of origin</strong>. Without it, MFN duty applies.</li>
+        <li>The Chinese importer must hold <strong>GACC registration</strong>, and the Indonesian producer must be registered for food exports to China.</li>
+        <li>Chinese-language labeling is required before retail sale. Bulk bags only need shipping marks.</li>
+      </ul>
+      <div class="sources">
+        <a class="source-link" href="#" onclick="return false"><i data-lucide="external-link"></i>INSW — export procedures</a>
+        <a class="source-link" href="#" onclick="return false"><i data-lucide="external-link"></i>GACC — overseas producer registration</a>
+        <a class="source-link" href="#" onclick="return false"><i data-lucide="external-link"></i>ACFTA rules of origin</a>
+      </div>
+    </div>
+
+    <div class="card fade-in" id="docCard"></div>
+
+    <div class="card fade-in">
+      <div class="card-head"><i data-lucide="route"></i><h3>Route options</h3><div class="right"><span class="composer-hint">Select a route to update the estimate</span></div></div>
+      <div class="routes" id="routes"></div>
+    </div>
+
+    <div class="card fade-in" id="priceCard"></div>
+
+    <div class="card fade-in">
+      <div class="next-step">
+        <p>Once confirmed, this plan becomes a shipment record your team, forwarder and broker can track together.</p>
+        <button class="btn-primary" id="createShipment"><i data-lucide="plus"></i>Create shipment</button>
+      </div>
+    </div>`;
+  renderDocs(); renderRoutes(); renderPrice();
+  $('#createShipment').addEventListener('click', () => {
+    toast('Shipment SHP-1051 created');
+    $('.chat-head .tag').className = 'tag success';
+    $('.chat-head .tag').textContent = 'Shipment created';
+  });
+  icons();
+}
+
+function renderDocs() {
+  const ready = DOCS.filter(d => d.status === 'ready').length;
+  $('#docCard').innerHTML = `
+    <div class="card-head"><i data-lucide="files"></i><h3>Document checklist</h3>
+      <div class="right"><div class="progress"><div class="progress-bar"><span style="width:${ready / DOCS.length * 100}%"></span></div><span class="num">${ready} of ${DOCS.length} ready</span></div></div>
+    </div>
+    <table class="doc-table">
+      <thead><tr><th>Document</th><th>Issued by</th><th>Status</th><th></th></tr></thead>
+      <tbody>${DOCS.map((d, i) => {
+        const [label, tone, icon] = DOC_STATUS[d.status];
+        const action = d.status === 'ready'
+          ? `<button class="btn-secondary" title="View"><i data-lucide="eye"></i>View</button>`
+          : d.status === 'pending'
+            ? `<button class="btn-secondary" disabled><i data-lucide="upload"></i>Upload</button>`
+            : `<button class="btn-secondary" data-upload="${i}"><i data-lucide="upload"></i>${d.status === 'rejected' ? 'Re-upload' : 'Upload'}</button>`;
+        return `<tr>
+          <td><span class="doc-name"><i data-lucide="${d.icon}"></i>${d.name}</span></td>
+          <td class="issuer">${d.issuer}</td>
+          <td>${tag(label, tone, icon)}</td>
+          <td>${action}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  $$('[data-upload]', $('#docCard')).forEach(b => b.addEventListener('click', () => {
+    DOCS[+b.dataset.upload].status = 'ready';
+    renderDocs();
+    toast('Document uploaded');
+  }));
+  icons();
+}
+
+function renderRoutes() {
+  $('#routes').innerHTML = ROUTES.map(r => {
+    const perBox = r.freight + (r.extraTrucking || 0);
+    return `
+    <button class="route${r.recommended ? ' recommended' : ''}${r.id === selectedRoute ? ' selected' : ''}" data-route="${r.id}">
+      <div class="top">${r.recommended ? tag('Recommended', 'brand', 'star') : '<span></span>'}<span class="radio"></span></div>
+      <div class="ports">${r.short[0]} <i data-lucide="arrow-right"></i> ${r.short[1]}</div>
+      <div class="mode"><i data-lucide="${r.modeIcon}"></i>${r.mode} · ${r.carrier}</div>
+      <dl>
+        <dt>Transit</dt><dd>${r.transit}</dd>
+        <dt>Transshipment</dt><dd>${r.ts}</dd>
+        <dt>Ports</dt><dd style="font-size:12px;color:var(--muted)">${r.from.split(' ')[0]} → ${r.to.split(' ')[0]}</dd>
+      </dl>
+      <div class="price">${fmt(perBox * 0.93)}–${fmt(perBox * 1.1).replace(FX[currency].sym, '')}<br><small>per 40' container</small></div>
+    </button>`;
+  }).join('');
+  $$('[data-route]').forEach(b => b.addEventListener('click', () => {
+    selectedRoute = b.dataset.route;
+    renderRoutes(); renderPrice();
+  }));
+  icons();
+}
+
+function fmt(usd) {
+  const c = FX[currency];
+  return c.sym + Math.round(usd * c.rate).toLocaleString('en-US');
+}
+
+function renderPrice() {
+  const r = ROUTES.find(x => x.id === selectedRoute);
+  const lines = [
+    ['Ocean freight', `${CONTAINERS} × 40'`, r.freight * CONTAINERS],
+    ['Surcharges', 'BAF, PSS, EBS', 310 * CONTAINERS],
+    ['Origin handling', 'THC, docs, seal', 245 * CONTAINERS],
+    ...(r.extraTrucking ? [['Inland trucking', 'Surabaya → Jakarta', r.extraTrucking * CONTAINERS]] : []),
+    ['Destination handling', 'THC, D/O', 290 * CONTAINERS],
+    ['Customs & certificates', 'PEB, Form E, phyto, fumigation', 540],
+    ['Estimated import duty', 'ACFTA 0% with Form E · MFN 8% without', 0],
+    ['Estimated import VAT', '9% of CIF value', Math.round(CARGO_VALUE_USD * 0.09)],
+  ];
+  const total = lines.reduce((s, l) => s + l[2], 0);
+  $('#priceCard').innerHTML = `
+    <div class="card-head"><i data-lucide="calculator"></i><h3>Price estimate</h3>${tag('Estimate', 'neutral')}
+      <div class="right">
+        <select class="select" id="currency" aria-label="Currency">
+          ${Object.keys(FX).map(k => `<option${k === currency ? ' selected' : ''}>${k}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <table class="price-table">
+      ${lines.map(l => `<tr><td>${l[0]}<span class="sub">${l[1]}</span></td><td>${fmt(l[2])}</td></tr>`).join('')}
+      <tr class="total"><td>Estimated total <span class="sub" style="font-weight:400">${r.carrier} · ${r.short.join(' → ')}</span></td><td>${fmt(total)}</td></tr>
+    </table>
+    <p class="footnote">Duties and VAT are paid by the importer at destination. Rates are indicative for November sailings and exclude cargo insurance.</p>`;
+  $('#currency').addEventListener('change', e => { currency = e.target.value; renderRoutes(); renderPrice(); });
+  icons();
+}
+
+function followUp(text) {
+  const inner = $('#chatInner');
+  inner.insertAdjacentHTML('beforeend', `<div class="msg-user fade-in">${esc(text)}</div>
+    <div class="msg-ai fade-in"><span class="ai-mark"><i data-lucide="sparkles"></i></span>
+      <div class="ai-body"><div class="thinking"><div class="step"><i data-lucide="loader-circle" class="spin"></i>Thinking…</div></div></div></div>`);
+  icons();
+  const scroll = $('#chatScroll');
+  scroll.scrollTop = scroll.scrollHeight;
+  setTimeout(() => {
+    const last = $$('.msg-ai .ai-body', inner).pop();
+    last.innerHTML = `<p class="fade-in">This is a design mock, so follow-ups aren't connected to a model yet. In the product, I'd update the checklist, routes and estimate above to reflect your change.</p>`;
+    scroll.scrollTop = scroll.scrollHeight;
+  }, 900);
+}
+
+/* ---------------------------------------------------------------
+   Init
+---------------------------------------------------------------- */
+renderInbox();
+icons();
+</script>
+</body>
+</html>

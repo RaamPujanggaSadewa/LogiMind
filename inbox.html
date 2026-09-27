@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inbox · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .inbox-list { padding: 4px 16px 24px; }
+  .inbox-item {
+    display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--divider);
+    border-radius: var(--r-sm);
+  }
+  .inbox-item:hover { background: var(--row-hover); }
+  .inbox-item .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inbox-item .meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+  .inbox-item .ref { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .inbox-item .time { font-size: 12px; color: var(--muted-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .inbox-item .actions { display: none; gap: 4px; }
+  .inbox-item:hover .actions { display: flex; }
+  .inbox-item:hover .time { display: none; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="home" data-row="inbox">
+  <div class="workspace">
+    <main class="main">
+      <div class="tab-bar" role="tablist">
+        <button class="tab active" role="tab" data-tab="primary"><i data-lucide="inbox"></i>Primary<span class="count"></span></button>
+        <button class="tab" role="tab" data-tab="other"><i data-lucide="activity"></i>Other<span class="count"></span></button>
+        <button class="tab" role="tab" data-tab="later"><i data-lucide="clock"></i>Later<span class="count"></span></button>
+        <button class="tab" role="tab" data-tab="cleared"><i data-lucide="list-checks"></i>Cleared<span class="count"></span></button>
+      </div>
+      <div class="toolbar">
+        <button class="pill" data-soon="Filter"><i data-lucide="list-filter"></i>Filter</button>
+        <div class="right">
+          <button class="icon-btn" title="Inbox settings" data-soon="Inbox settings"><i data-lucide="settings"></i></button>
+          <button class="btn-secondary" id="clearAll"><i data-lucide="check-check"></i>Clear all</button>
+        </div>
+      </div>
+      <div class="content" id="inboxContent"></div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+LM.mount();
+
+const INBOX = D.inbox;
+let current = 'primary';
+
+const EMPTY = {
+  primary: ['Inbox zero', 'RFQ replies, document requests and booking updates land here.', 'inbox'],
+  other: ['No activity yet', 'FYI updates from your shipments and network show up here.', 'activity'],
+  later: ['Nothing snoozed', 'Items you save for later wait here.', 'clock'],
+  cleared: ['Nothing cleared yet', 'Items you mark as done move here.', 'list-checks'],
+};
+
+function render() {
+  const items = INBOX[current];
+  $$('.tab').forEach(t => { $('.count', t).textContent = INBOX[t.dataset.tab].length || ''; });
+  const inboxRow = $('.sidebar .row.active .count');
+  if (inboxRow) inboxRow.textContent = INBOX.primary.length || '';
+  $('#clearAll').disabled = !items.length || current === 'cleared';
+
+  const el = $('#inboxContent');
+  if (!items.length) {
+    const [title, body, icon] = EMPTY[current];
+    el.innerHTML = `<div class="empty">
+      <div class="empty-tile"><i data-lucide="${icon}"></i></div>
+      <h2 class="empty-title">${title}</h2>
+      <p class="empty-body">${body}</p>
+    </div>`;
+  } else {
+    el.innerHTML = `<div class="inbox-list">${items.map((it, i) => `
+      <div class="inbox-item">
+        ${orgAvatar(it.org)}
+        <div style="min-width:0">
+          <div class="title">${it.title}</div>
+          <div class="meta">${tag(it.tag[0], it.tag[1])}<span class="ref">${it.ref}</span>${visibility(it.visible)}</div>
+        </div>
+        <span class="time">${it.time}</span>
+        <div class="actions">
+          <button class="icon-btn" title="Snooze" data-move="${i}:later"><i data-lucide="clock"></i></button>
+          <button class="icon-btn" title="Mark as done" data-move="${i}:cleared"><i data-lucide="check"></i></button>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+  icons();
+}
+
+$$('.tab').forEach(t => t.addEventListener('click', () => {
+  $$('.tab').forEach(x => x.classList.toggle('active', x === t));
+  current = t.dataset.tab;
+  render();
+}));
+$('#inboxContent').addEventListener('click', e => {
+  const b = e.target.closest('[data-move]'); if (!b) return;
+  const [i, dest] = b.dataset.move.split(':');
+  const [item] = INBOX[current].splice(+i, 1);
+  INBOX[dest].unshift(item);
+  render();
+  toast(dest === 'later' ? 'Snoozed' : 'Moved to Cleared');
+});
+$('#clearAll').addEventListener('click', () => {
+  INBOX.cleared.unshift(...INBOX[current].splice(0));
+  render();
+  toast('All items cleared');
+});
+
+render();
+</script>
+</body>
+</html>

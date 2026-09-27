@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="260 260 1440 1520" fill="none">
+  <title>LogiMind</title>
+  <defs>
+    <linearGradient id="lm-base" x1="500" y1="980" x2="1450" y2="1740" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4410A8"/>
+      <stop offset="1" stop-color="#6A00D8"/>
+    </linearGradient>
+  </defs>
+  <!-- lower slab -->
+  <path d="M675 963 L1525 958 Q1655 975 1620 1100 L1395 1645 Q1350 1720 1270 1725 L430 1750 Q320 1740 340 1580 L550 1047 Q590 990 675 963 Z" fill="url(#lm-base)"/>
+  <!-- upper slab, translucent over the lower one -->
+  <path d="M820 312 L1290 307 Q1420 320 1385 460 L1000 1240 Q960 1310 880 1318 L395 1322 Q290 1310 310 1140 L690 387 Q730 330 820 312 Z" fill="#3F22D2" fill-opacity=".86"/>
+</svg>

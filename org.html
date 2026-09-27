@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organization · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .crumbs a:hover { color: var(--ink); text-decoration: underline; }
+  .crumbs svg.lucide { width: 13px; height: 13px; color: var(--muted-soft); }
+  .crumbs b { color: var(--ink); font-weight: 600; }
+
+  .pf { max-width: 1200px; margin: 0 auto; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .hero { display: flex; align-items: center; gap: 16px; }
+  .hero .org-avatar { width: 52px; height: 52px; font-size: 18px; border-radius: var(--r-lg); }
+  .hero h1 { font-size: 18px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .hero .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .hero .acts { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); padding: 0; overflow: hidden; }
+  .stat { padding: 12px 16px; border-right: 1px solid var(--divider); }
+  .stat:last-child { border-right: 0; }
+  .stat .k { font-size: 12px; color: var(--muted); }
+  .stat .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .stat .s { font-size: 12px; color: var(--muted-soft); }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  @media (max-width: 1240px) { .grid { grid-template-columns: minmax(0, 1fr); } .stats { grid-template-columns: repeat(3, 1fr); } }
+
+  .svc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .lane-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--divider); font-size: 13.5px; }
+  .lane-row:first-child { border-top: 0; }
+  .lane-row span:first-child { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+  .lane-row svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+
+  .contact { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--divider); }
+  .contact:first-of-type { border-top: 0; }
+  .contact .user-avatar { width: 28px; height: 28px; font-size: 12px; }
+  .contact b { font-weight: 500; font-size: 13.5px; display: block; }
+  .sees ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+  .sees li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; color: var(--text-secondary); }
+  .sees li svg.lucide { width: 13px; height: 13px; margin-top: 2px; }
+  .sees .y svg { color: var(--success); }
+  .sees .n li { color: var(--muted); }
+  .sees .n svg { color: var(--muted-soft); }
+  .conn dl { margin: 0 0 12px; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
+  .conn dt { color: var(--muted); }
+  .conn dd { margin: 0; text-align: right; }
+
+  .banner { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-lg); }
+  .banner.info { background: var(--info-soft); }
+  .banner.info > svg.lucide { color: var(--info); }
+  .banner.warning { background: var(--warning-soft); }
+  .banner.warning > svg.lucide { color: var(--warning); }
+  .banner .text { flex: 1; font-size: 13px; color: var(--text-secondary); }
+  .banner .text b { color: var(--ink); font-weight: 600; }
+  .muted-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--r-md); background: var(--row-hover); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="network">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><nav class="crumbs" id="crumbs"></nav></header>
+      <div class="content"><div class="pf" id="pf"></div></div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script>
+  (function () {
+    const id = new URLSearchParams(location.search).get('id') || 'truk';
+    const isCustomer = window.LMData.network.customers.some(c => c.org === id);
+    document.querySelector('.app').dataset.row = isCustomer ? 'customers' : 'vendors';
+  })();
+</script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+LM.mount();
+
+const id = new URLSearchParams(location.search).get('id') || 'truk';
+const N = D.network;
+const row = [...N.vendors, ...N.customers].find(r => r.org === id);
+const o = D.orgs[id];
+const isCustomer = N.customers.some(c => c.org === id);
+const full = N.profiles[id];
+const STATUS = { connected: ['Connected', 'success', 'link-2'], link: ['Link only', 'neutral', 'link'], pending: ['Invited', 'info', 'mail'], expired: ['Invite expired', 'warning', 'timer-off'] };
+
+// Customer profile (kept here: only used on this page)
+const CUSTOMER = {
+  kopi: {
+    since: 'June 2024',
+    stats: [['Shipments', '14', 'this year'], ['On-time', '95%', 'their shipments'], ['Revenue', 'US$41,200', 'this year · internal'], ['Quotes accepted', '6 of 8', 'last 6 months'], ['Last shipment', 'Today', 'SHP-2411']],
+    services: ['FCL export', 'Origin trucking', 'Fumigation', 'Export customs'],
+    lanes: [['Surabaya → Shanghai', '9 shipments'], ['Surabaya → Busan', '5 shipments']],
+    contacts: [['Sari Wulandari', 'Export manager · portal admin', 'WhatsApp · Email', 0], ['Andi Firmansyah', 'Finance', 'Email', 1]],
+    history: [['SHP-2411', '2 × 40ft coffee → Shanghai', 'ETD Sat 14 Nov', ['Booked', 'neutral']], ['QT-0891', 'Quote US$4,091', 'Tue 10 Nov', ['Accepted', 'success']], ['SHP-2386', '1 × 20ft roasted coffee → Busan', 'ETA Sat 14 Nov', ['In transit', 'info']], ['QT-0855', 'Quote US$3,880', 'Mon 12 Oct', ['Declined · price', 'neutral']]],
+    sees: ['Their requests, quotes and shipments', 'Milestones and documents for their cargo', 'Your branded portal at ' + D.tenant.portal],
+    never: ['Your vendors and their costs', 'Your margin', 'Other customers and the marketplace'],
+  },
+};
+
+document.title = `${o.name} · LogiMind`;
+$('#crumbs').innerHTML = `<a href="network.html">Network</a><i data-lucide="chevron-right"></i><a href="network.html?tab=${isCustomer ? 'customers' : 'vendors'}">${isCustomer ? 'Customers' : 'Vendors'}</a><i data-lucide="chevron-right"></i><b>${o.name}</b>`;
+
+function profileData() {
+  if (full) return full;
+  if (CUSTOMER[id]) return CUSTOMER[id];
+  // Generic fallback built from the directory row
+  return {
+    since: row.status === 'connected' ? '2025' : null,
+    stats: isCustomer
+      ? [['Shipments', String(row.jobs), 'this year'], ['On-time', row.onTime ? row.onTime + '%' : '—', ''], ['Revenue', row.spend ? row.spend.split(' ')[0] : '—', 'this year · internal'], ['Quotes accepted', '—', ''], ['Last shipment', row.last, '']]
+      : [['Rating', row.rating ? row.rating.toFixed(1) : '—', `${row.jobs} jobs`], ['On-time', row.onTime ? row.onTime + '%' : '—', 'last 12 months'], ['Avg. reply to RFQs', row.jobs ? '2h 10m' : '—', ''], ['Quote accuracy', row.jobs ? '96%' : '—', 'invoiced vs quoted'], ['Last job', row.last, '']],
+    services: [row.type],
+    lanes: row.lanes.map(l => [l, '']),
+    rates: [],
+    contacts: [],
+    history: [],
+    sees: ['RFQs you send them, one leg at a time', 'Jobs you award, with pickup details', 'Their own rates, invoices and documents'],
+    never: ['Your customer prices and margin', 'Your other vendors and their quotes', 'Other legs of a shipment'],
+  };
+}
+
+function bannerHTML() {
+  if (row.status === 'link') return `<div class="banner info"><i data-lucide="link"></i>
+    <div class="text"><b>Not on LogiMind yet.</b> They reply to your RFQs from a one-time WhatsApp or email link. Invite them to claim a free profile so you get ratings, documents and their full history.</div>
+    <button class="btn-secondary" data-soon="Invite to claim profile"><i data-lucide="user-plus"></i>Invite to claim</button></div>`;
+  if (row.status === 'pending') return `<div class="banner info"><i data-lucide="mail"></i>
+    <div class="text"><b>Invitation pending.</b> Sent by email on Sun 8 Nov and opened twice. You can already send them RFQs by link.</div>
+    <a class="btn-secondary" href="network.html?tab=invitations"><i data-lucide="mail"></i>View invitation</a></div>`;
+  if (row.status === 'expired') return `<div class="banner warning"><i data-lucide="timer-off"></i>
+    <div class="text"><b>Invitation expired.</b> It was sent on Mon 26 Oct by WhatsApp and never accepted.</div>
+    <a class="btn-secondary" href="network.html?tab=invitations"><i data-lucide="rotate-cw"></i>Resend</a></div>`;
+  return '';
+}
+
+function render() {
+  const p = profileData();
+  const [label, tone, icon] = STATUS[row.status];
+  const primary = isCustomer
+    ? `<a class="btn-primary" href="index.html#prompt"><i data-lucide="sparkles"></i>New request for them</a>`
+    : `<a class="btn-primary" href="index.html#prompt"><i data-lucide="send"></i>Send RFQ</a>`;
+  $('#pf').innerHTML = `
+    <section class="hero">
+      ${orgAvatar(id)}
+      <div><h1>${o.name}${tag(label, tone, icon)}</h1>
+        <div class="sub">${isCustomer ? 'Customer' : 'Vendor'} · ${o.type}${p.since ? ` · connected since ${p.since}` : ''}</div></div>
+      <div class="acts">
+        <button class="btn-secondary" data-soon="Direct message"><i data-lucide="message-circle"></i>Message</button>
+        <button class="icon-btn" title="More" data-soon="Connection settings"><i data-lucide="ellipsis"></i></button>
+        ${row.status === 'expired' ? '' : primary}
+      </div>
+    </section>
+    ${bannerHTML()}
+    <section class="card stats">${p.stats.map(([k, v, s]) => `<div class="stat"><div class="k">${k}${/internal/.test(s) ? ' <i data-lucide="lock" style="width:11px;height:11px"></i>' : ''}</div><div class="v">${v}</div><div class="s">${s.replace(' · internal', '')}</div></div>`).join('')}</section>
+
+    <div class="grid">
+      <div class="col">
+        <section class="card">
+          <div class="card-head"><i data-lucide="${isCustomer ? 'package' : 'wrench'}"></i><h3>${isCustomer ? 'What they ship with you' : 'Services and lanes'}</h3></div>
+          <div class="svc">${p.services.map(s => `<span class="tag neutral">${s}</span>`).join('')}</div>
+          ${p.lanes.map(([l, n]) => `<div class="lane-row"><span><i data-lucide="route"></i>${l}</span><span class="caption">${n}</span></div>`).join('')}
+        </section>
+
+        ${isCustomer ? '' : `<section class="card flush">
+          <div class="card-head"><i data-lucide="receipt"></i><h3>Rate card</h3><span class="caption">USD</span>
+            <div class="right">${visibility(`You, ${o.name}`)}</div></div>
+          ${p.rates && p.rates.length ? `<table class="table" style="margin-top:8px">
+            <thead><tr><th>Lane</th><th>Unit</th><th style="text-align:right">Rate</th><th>Source</th><th>Valid until</th></tr></thead>
+            <tbody>${p.rates.map(([l, u, r, src, v]) => `<tr style="cursor:default"><td class="primary-cell">${l}</td><td>${u}</td><td class="num" style="text-align:right">US$${r}</td><td>${tag(src, src === 'Rate card' ? 'success' : 'neutral')}</td><td>${v}</td></tr>`).join('')}</tbody>
+          </table>` : `<div style="padding:12px 16px 16px"><div class="muted-empty">No agreed rates yet. Prices from their RFQ replies will appear here.</div></div>`}
+        </section>`}
+
+        <section class="card flush">
+          <div class="card-head"><i data-lucide="history"></i><h3>Shared history</h3>
+            <div class="right"><span class="caption">RFQs, quotes and shipments with ${isCustomer ? 'them' : 'this vendor'}</span></div></div>
+          ${p.history.length ? `<table class="table" style="margin-top:8px"><tbody>${p.history.map(([ref, what, when, st]) => `
+            <tr ${ref === 'SHP-2411' ? 'data-href="shipment.html"' : ref === 'RFQ-0194' ? 'data-href="rfq.html"' : ref === 'QT-0891' ? 'data-href="quote.html"' : 'style="cursor:default"'}>
+              <td class="primary-cell num" style="width:1%;white-space:nowrap">${ref}</td><td>${what}</td><td class="sub" style="white-space:nowrap">${when}</td><td style="text-align:right">${tag(...st)}</td></tr>`).join('')}</tbody></table>`
+            : `<div style="padding:12px 16px 16px"><div class="muted-empty">No jobs together yet.</div></div>`}
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="card conn sees">
+          <div class="card-head"><i data-lucide="shield-check"></i><h3>Connection and visibility</h3></div>
+          <dl>
+            <dt>Role</dt><dd>${isCustomer ? 'Customer' : `Vendor · ${row.type}`}</dd>
+            <dt>Access</dt><dd>${row.status === 'connected' ? (isCustomer ? 'Customer portal' : 'LogiMind account') : row.status === 'link' ? 'Magic links only' : 'Not yet'}</dd>
+            ${isCustomer ? `<dt>Portal</dt><dd>${D.tenant.portal}</dd>` : ''}
+          </dl>
+          <div style="margin-bottom:10px"><div class="caption" style="font-weight:500;color:var(--text-secondary);margin-bottom:6px">They see</div><ul class="y">${p.sees.map(t => `<li><i data-lucide="eye"></i>${t}</li>`).join('')}</ul></div>
+          <div><div class="caption" style="font-weight:500;color:var(--text-secondary);margin-bottom:6px">Never shown to them</div><ul class="n">${p.never.map(t => `<li><i data-lucide="eye-off"></i>${t}</li>`).join('')}</ul></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><i data-lucide="contact"></i><h3>Contacts</h3>
+            <div class="right"><button class="link-btn" data-soon="Add contact"><i data-lucide="plus"></i>Add</button></div></div>
+          ${p.contacts.length ? p.contacts.map(([n, r, ch, c]) => `<div class="contact">
+            <span class="user-avatar" style="background:${['var(--avatar-teal)', 'var(--avatar-indigo)', 'var(--avatar-violet)'][c]}">${n[0]}</span>
+            <div><b>${n}</b><span class="caption">${r} · ${ch}</span></div>
+            <button class="icon-btn" title="Message ${n}" data-soon="Direct message"><i data-lucide="message-circle"></i></button></div>`).join('')
+            : `<div class="muted-empty">No contacts yet. ${row.status === 'link' ? 'Messages go to the phone number the RFQ link was sent to.' : ''}</div>`}
+        </section>
+      </div>
+    </div>`;
+  icons();
+}
+
+document.addEventListener('click', e => { const r = e.target.closest('tr[data-href]'); if (r) location.href = r.dataset.href; });
+render();
+</script>
+</body>
+</html>

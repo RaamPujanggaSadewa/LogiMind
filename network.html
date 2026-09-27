@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head h1 { white-space: nowrap; }
+  .search { position: relative; }
+  .search svg.lucide { position: absolute; left: 9px; top: 50%; margin-top: -7px; width: 14px; height: 14px; color: var(--muted-soft); }
+  .search input { height: var(--control-sm); width: 220px; border: 1px solid var(--border); border-radius: var(--r-full); padding: 0 12px 0 28px; font-size: 13px; background: var(--surface); }
+  .search input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .chips-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .toolbar { height: auto; min-height: 40px; gap: 12px; flex-wrap: wrap; }
+
+  .wrap { padding: 8px 24px 24px; }
+  .table td { font-size: 13.5px; }
+  .org-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .org-cell b { font-weight: 500; font-size: 14px; display: block; white-space: nowrap; }
+  .lanes { color: var(--text-secondary); max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rating { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+  .rating svg.lucide { width: 13px; height: 13px; color: var(--warning); fill: var(--warning); }
+  .none { color: var(--muted-soft); }
+
+  .inv-section h2 { font-size: 13px; font-weight: 600; color: var(--muted); margin: 8px 0 8px; }
+  .inv { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: 8px; background: var(--surface); }
+  .inv .t { font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .inv .s { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .inv .acts { display: flex; gap: 6px; }
+  .inv.expired { background: var(--row-hover); }
+
+  .soon-wrap { max-width: 640px; margin: 40px auto; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .soon-card { width: 100%; text-align: left; margin-top: 8px; display: flex; flex-direction: column; gap: 12px; }
+  .soon-card .row-x { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: var(--r-md); background: var(--row-hover); }
+
+  /* Invite flow */
+  .modal.wide { max-width: 760px; }
+  .modal-steps { padding: 12px 20px; border-bottom: 1px solid var(--divider); }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-field > span { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .text-input, .textarea { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 10px; height: 36px; background: var(--surface); width: 100%; }
+  .textarea { padding: 8px 10px; height: auto; resize: vertical; line-height: 1.45; }
+  .text-input:focus, .textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .full { grid-column: 1 / -1; }
+  .hint { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .hint svg.lucide { width: 12px; height: 12px; }
+  .hint.warn { color: var(--warning); }
+  .choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .choice { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); cursor: pointer; font-size: 13.5px; }
+  .choice:hover { background: var(--row-hover); }
+  .choice:has(input:checked) { border-color: var(--ink); background: var(--row-hover); }
+  .choice svg.lucide { color: var(--muted); }
+  .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .role-card { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--r-md); text-align: left; }
+  .role-card b { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .role-card span { font-size: 12.5px; color: var(--muted); }
+  .role-card.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); background: var(--primary-soft); }
+  .lane-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lane-chip { height: 26px; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px 0 10px; border-radius: var(--r-full); background: var(--nav-active); font-size: 12.5px; font-weight: 500; }
+  .lane-chip button { width: 16px; height: 16px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); }
+  .lane-chip button:hover { background: var(--border); }
+  .lane-chip svg.lucide { width: 11px; height: 11px; }
+  .suggest { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .suggest .pill { height: 24px; font-size: 12px; padding: 0 8px; }
+
+  .preview-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  /* Proposed: message-preview — invitation as the recipient receives it (tenant brand) */
+  .wa { background: #ECE5DD; border-radius: var(--r-lg); padding: 14px; }
+  .wa .bubble { background: #fff; border-radius: 8px; border-top-left-radius: 2px; padding: 10px 12px; font-size: 13px; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+  .wa .bubble .from { font-weight: 600; color: #0E6E5C; font-size: 12.5px; margin-bottom: 4px; }
+  .wa .bubble .link { display: block; margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: #F4F4F5; color: var(--info); font-size: 12.5px; }
+  .mail { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; font-size: 13px; }
+  .mail .top { border-top: 4px solid #0E6E5C; padding: 10px 12px; border-bottom: 1px solid var(--divider); font-size: 12px; color: var(--muted); }
+  .mail .top b { color: var(--ink); font-weight: 600; }
+  .mail .body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .mail .cta { align-self: flex-start; height: 32px; padding: 0 12px; border-radius: 6px; background: #0E6E5C; color: #fff; font-weight: 500; display: inline-flex; align-items: center; font-size: 12.5px; }
+  .sees { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+  .sees ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .sees li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; color: var(--text-secondary); }
+  .sees li svg.lucide { width: 13px; height: 13px; margin-top: 2px; }
+  .sees .y svg { color: var(--success); }
+  .sees .n svg { color: var(--muted-soft); }
+  .sees .n { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="network">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <h1 id="title"></h1>
+        <span class="caption" id="count"></span>
+        <div class="right">
+          <span class="search"><i data-lucide="search"></i><input id="q" placeholder="Search by name or lane" aria-label="Search"></span>
+          <button class="btn-primary" data-action="invite" id="headInvite" style="height:32px"><i data-lucide="user-plus"></i>Invite partner</button>
+        </div>
+      </header>
+      <div class="toolbar" id="toolbar"></div>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"><div class="modal wide" role="dialog" aria-modal="true" id="modal"></div></div>
+
+<script src="assets/data.js"></script>
+<script>
+  // Pick the active sidebar row before the shell mounts
+  (function () {
+    const p = new URLSearchParams(location.search);
+    const tab = p.get('tab') || 'vendors';
+    document.querySelector('.app').dataset.row = p.get('type') ? 'type:' + p.get('type') : tab;
+  })();
+</script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+LM.mount();
+
+const N = D.network;
+const params = new URLSearchParams(location.search);
+const state = {
+  tab: params.get('tab') || 'vendors',
+  type: params.get('type') || 'all',
+  status: 'all',
+  q: '',
+  empty: params.get('state') === 'empty',
+};
+
+const STATUS = {
+  connected: ['Connected', 'success', 'link-2'],
+  link: ['Link only', 'neutral', 'link'],
+  pending: ['Invited', 'info', 'mail'],
+  expired: ['Invite expired', 'warning', 'timer-off'],
+  accepted: ['Accepted', 'success', 'check'],
+  received: ['Wants to connect', 'info', 'inbox'],
+};
+
+/* ---------------- directory ---------------- */
+function rowsFor(list) {
+  const q = state.q.toLowerCase();
+  return list.filter(r => (state.type === 'all' || r.type === state.type)
+    && (state.status === 'all' || r.status === state.status)
+    && (!q || D.orgs[r.org].name.toLowerCase().includes(q) || r.lanes.join(' ').toLowerCase().includes(q)));
+}
+
+function toolbarHTML() {
+  if (state.tab === 'invitations' || state.tab === 'marketplace' || state.empty) return '';
+  const types = state.tab === 'vendors' ? ['all', ...N.types] : ['all', 'Exporter', 'Importer'];
+  const statuses = ['all', 'connected', 'link', 'pending', 'expired'];
+  const list = state.tab === 'vendors' ? N.vendors : N.customers;
+  return `<div class="chips-row">${types.map(t => `<button class="pill${state.type === t ? ' selected' : ''}" data-type="${esc(t)}">${t === 'all' ? 'All types' : t}</button>`).join('')}</div>
+    <div class="chips-row">
+      <select class="select" id="status" aria-label="Connection status">${statuses.filter(s => s === 'all' || list.some(r => r.status === s)).map(s => `<option value="${s}"${state.status === s ? ' selected' : ''}>${s === 'all' ? 'Any status' : STATUS[s][0]}</option>`).join('')}</select>
+    </div>`;
+}
+
+function directoryHTML() {
+  const isV = state.tab === 'vendors';
+  const list = rowsFor(isV ? N.vendors : N.customers);
+  if (state.empty) return emptyHTML();
+  if (!list.length) return `<div class="empty" style="height:auto;padding:64px 24px"><div class="empty-tile"><i data-lucide="search-x"></i></div><h2 class="empty-title">No matches</h2><p class="empty-body">Try another type, status or search term.</p></div>`;
+  return `<div class="card flush"><table class="table">
+    <thead><tr><th>Organization</th><th>${isV ? 'Service' : 'Type'}</th><th>Lanes</th>${isV ? '<th>Rating</th>' : '<th>Business</th>'}<th>On-time</th><th>Last job</th><th>Connection</th></tr></thead>
+    <tbody>${list.map(r => {
+      const o = D.orgs[r.org];
+      const [label, tone, icon] = STATUS[r.status];
+      return `<tr data-href="org.html?id=${r.org}">
+        <td><div class="org-cell">${orgAvatar(r.org)}<div><b>${o.name}</b><span class="sub">${o.type.split(' · ')[1] || o.type}</span></div></div></td>
+        <td>${r.type}</td>
+        <td><div class="lanes" title="${esc(r.lanes.join(', '))}">${r.lanes.join(', ')}</div></td>
+        <td>${isV ? (r.rating ? `<span class="rating"><i data-lucide="star"></i>${r.rating.toFixed(1)} <span class="sub">(${r.jobs})</span></span>` : '<span class="none">No jobs yet</span>') : `<span class="num">${r.spend || '—'}</span>`}</td>
+        <td class="num">${r.onTime ? r.onTime + '%' : '<span class="none">—</span>'}</td>
+        <td>${r.last === 'Never' ? '<span class="none">Never</span>' : r.last}</td>
+        <td>${tag(label, tone, icon)}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>
+    <p class="caption" style="margin:10px 4px 0;display:flex;align-items:center;gap:6px"><i data-lucide="lock" style="width:12px;height:12px"></i>Your network is private. ${isV ? 'Vendors' : 'Customers'} don’t see who else you work with.</p>`;
+}
+
+function emptyHTML() {
+  return `<div class="empty" style="height:auto;padding:72px 24px">
+    <div class="empty-tile"><i data-lucide="${state.tab === 'customers' ? 'building-2' : 'truck'}"></i></div>
+    <h2 class="empty-title">${state.tab === 'customers' ? 'No customers yet' : 'No vendors yet'}</h2>
+    <p class="empty-body" style="max-width:440px">${state.tab === 'customers'
+      ? 'Invite a shipper and they get a customer portal in your brand for requests, quotes and tracking.'
+      : 'Invite your trucker, customs broker or carrier agent. They can reply to RFQs from a WhatsApp or email link, no account needed.'}</p>
+    <button class="btn-primary" data-action="invite"><i data-lucide="user-plus"></i>${state.tab === 'customers' ? 'Invite your first customer' : 'Invite your first vendor'}</button>
+    <button class="link-btn" style="margin-top:12px" data-soon="Import contacts (CSV)"><i data-lucide="file-up"></i>Or import from a spreadsheet</button>
+  </div>`;
+}
+
+/* ---------------- invitations ---------------- */
+function invitationsHTML() {
+  const inv = (i, kind) => {
+    const o = D.orgs[i.org];
+    const [label, tone, icon] = STATUS[i.status];
+    const acts = {
+      pending: `<button class="btn-secondary" data-soon="Copy invite link"><i data-lucide="copy"></i>Copy link</button><button class="btn-secondary" data-revoke="${i.org}"><i data-lucide="x"></i>Revoke</button>`,
+      expired: `<button class="btn-secondary" data-resend="${i.org}"><i data-lucide="rotate-cw"></i>Resend</button>`,
+      accepted: `<a class="btn-secondary" href="org.html?id=${i.org}"><i data-lucide="arrow-up-right"></i>Open profile</a>`,
+      link: `<button class="btn-secondary" data-soon="Invite to claim profile"><i data-lucide="user-plus"></i>Invite to join</button>`,
+      received: `<button class="btn-secondary" data-decline="${i.org}">Decline</button><button class="btn-secondary" data-accept="${i.org}"><i data-lucide="check"></i>Accept</button>`,
+    }[i.status];
+    return `<div class="inv ${i.status}">${orgAvatar(i.org)}
+      <div><div class="t">${o.name}${tag(label, tone, icon)}</div>
+        <div class="s">${i.role} · ${kind === 'sent' ? `to ${i.to} by ${i.via}` : `from ${i.to}`} · ${i.when}</div>
+        <div class="s">${i.note}</div></div>
+      <div></div>
+      <div class="acts">${acts}</div>
+    </div>`;
+  };
+  return `<div style="max-width:880px">
+    <section class="inv-section"><h2>Received · ${N.invitations.received.length}</h2>${N.invitations.received.map(i => inv(i, 'received')).join('') || '<p class="caption">Nothing waiting for you.</p>'}</section>
+    <section class="inv-section" style="margin-top:20px"><h2>Sent · ${N.invitations.sent.length}</h2>${N.invitations.sent.map(i => inv(i, 'sent')).join('')}</section>
+    <p class="caption" style="margin-top:12px">Invitation links expire after 14 days. Link-only vendors can keep replying to RFQs without an account.</p>
+  </div>`;
+}
+
+/* ---------------- marketplace (coming soon) ---------------- */
+function marketplaceHTML() {
+  return `<div class="soon-wrap">
+    <div class="empty-tile" style="margin-bottom:16px"><i data-lucide="store"></i></div>
+    <h2 class="empty-title">${tag('Coming soon', 'neutral')} Marketplace</h2>
+    <p class="empty-body" style="max-width:500px">Find vetted vendors outside your network when yours are busy or you’re opening a new lane. Vendors choose to be listed. Your network stays private, and your customers never see the marketplace.</p>
+    <div class="card soon-card">
+      <div class="row-x"><span><b style="font-weight:500">Also ask marketplace vendors</b><div class="caption">An extra switch when you send an RFQ. “My network” stays the default.</div></span>
+        <label class="switch disabled"><input type="checkbox" disabled>Off</label></div>
+      <div class="row-x"><span><b style="font-weight:500">Browse by service and lane</b><div class="caption">Ratings, on-time record and response time from real LogiMind jobs.</div></span>${tag('Phase 2', 'neutral')}</div>
+    </div>
+    <button class="btn-secondary" style="margin-top:16px" data-notify><i data-lucide="bell"></i>Notify me when it launches</button>
+  </div>`;
+}
+
+/* ---------------- render ---------------- */
+const TITLES = { vendors: 'Vendors', customers: 'Customers', invitations: 'Invitations', marketplace: 'Marketplace' };
+function render() {
+  $('#title').textContent = TITLES[state.tab] + (state.type !== 'all' && state.tab === 'vendors' ? ` · ${state.type}` : '');
+  const list = state.tab === 'vendors' ? N.vendors : state.tab === 'customers' ? N.customers : null;
+  $('#count').textContent = state.empty ? '' : list ? `${rowsFor(list).length} of ${list.length}` : '';
+  $('.search').style.display = list && !state.empty ? '' : 'none';
+  // one violet button per view: the empty state's CTA replaces the header button
+  $('#headInvite').style.display = state.empty || state.tab === 'marketplace' ? 'none' : '';
+  $('#toolbar').innerHTML = toolbarHTML();
+  $('#toolbar').style.display = $('#toolbar').innerHTML.trim() ? '' : 'none';
+  $('#wrap').innerHTML = state.tab === 'invitations' ? invitationsHTML() : state.tab === 'marketplace' ? marketplaceHTML() : directoryHTML();
+  icons();
+}
+
+document.addEventListener('click', e => {
+  const r = e.target.closest('tr[data-href]'); if (r) { location.href = r.dataset.href; return; }
+  const t = e.target.closest('[data-type]'); if (t) { state.type = t.dataset.type; render(); return; }
+  const rv = e.target.closest('[data-revoke]');
+  if (rv) { const i = N.invitations.sent.find(x => x.org === rv.dataset.revoke); i.status = 'expired'; i.note = 'Revoked by you just now'; render(); toast('Invitation revoked. The link no longer works'); return; }
+  const rs = e.target.closest('[data-resend]');
+  if (rs) { const i = N.invitations.sent.find(x => x.org === rs.dataset.resend); i.status = 'pending'; i.when = 'Resent just now'; i.note = 'New link valid for 14 days'; render(); toast(`Invitation resent to ${i.to}`); return; }
+  const ac = e.target.closest('[data-accept]');
+  if (ac) { const i = N.invitations.received.shift(); N.customers.push({ org: i.org, type: 'Exporter', lanes: ['ID → NL'], jobs: 0, onTime: null, last: 'Never', status: 'connected' }); render(); toast(`${D.orgs[i.org].name} is now your customer`); return; }
+  const dc = e.target.closest('[data-decline]');
+  if (dc) { N.invitations.received.shift(); render(); toast('Declined. They won’t be notified of the reason'); return; }
+  if (e.target.closest('[data-notify]')) { e.target.closest('[data-notify]').disabled = true; toast('We’ll let you know when Marketplace launches'); }
+});
+document.addEventListener('change', e => { if (e.target.id === 'status') { state.status = e.target.value; render(); } });
+$('#q').addEventListener('input', e => { state.q = e.target.value; const el = $('#wrap'); el.innerHTML = directoryHTML(); $('#count').textContent = `${rowsFor(state.tab === 'vendors' ? N.vendors : N.customers).length} of ${(state.tab === 'vendors' ? N.vendors : N.customers).length}`; icons(); });
+
+/* ==========================================================================
+   Invite partner flow (3 steps) — also opened from anywhere via ?invite=1
+   ========================================================================== */
+const SERVICES = [['Trucking', 'truck'], ['Warehouse', 'warehouse'], ['Packing / Fumigation', 'wind'], ['Customs broker', 'stamp'], ['Shipping line / Agent', 'ship'], ['Air', 'plane']];
+const LANE_SUGGEST = ['Surabaya ↔ Tanjung Perak', 'ID → CN', 'Surabaya → Jakarta', 'Tanjung Priok', 'JP → ID', 'ID → NL'];
+let inv;
+
+function openModal(html) { $('#modal').innerHTML = html; $('#scrim').classList.add('open'); icons(); }
+function closeModal() { $('#scrim').classList.remove('open'); $('#modal').innerHTML = ''; }
+$('#scrim').addEventListener('click', e => { if (e.target.id === 'scrim' || e.target.closest('[data-close]')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+window.openInvite = function (role) {
+  inv = { step: 0, role: role || (state.tab === 'customers' ? 'customer' : 'vendor'), company: '', contact: '', via: 'whatsapp', address: '', services: [], lanes: [], message: '' };
+  drawInvite();
+};
+
+function inviteSteps() {
+  return ['Who', inv.role === 'vendor' ? 'Services and lanes' : 'Lanes', 'Preview and send'].map((s, i) => {
+    const cls = i < inv.step ? 'done' : i === inv.step ? 'current' : '';
+    return `${i ? '<span class="sep"></span>' : ''}<span class="s ${cls}"><span class="dot">${i < inv.step ? '<i data-lucide="check"></i>' : i + 1}</span>${s}</span>`;
+  }).join('');
+}
+
+function existingMatch(name) {
+  const n = name.trim().toLowerCase(); if (n.length < 3) return null;
+  return Object.entries(D.orgs).find(([k, o]) => o.name.toLowerCase().includes(n) || n.includes(o.name.toLowerCase().replace(/^(pt|cv|ppjk) /, '')));
+}
+
+function stepWho() {
+  const m = existingMatch(inv.company);
+  const inNet = m && [...N.vendors, ...N.customers].some(r => r.org === m[0]);
+  return `
+    <div class="form-field"><span>They are your</span>
+      <div class="role-cards">
+        <button class="role-card${inv.role === 'vendor' ? ' on' : ''}" data-role="vendor"><b><i data-lucide="truck"></i>Vendor</b><span>Quotes on your RFQs and does jobs: trucking, customs, freight, warehousing.</span></button>
+        <button class="role-card${inv.role === 'customer' ? ' on' : ''}" data-role="customer"><b><i data-lucide="building-2"></i>Customer</b><span>Sends you shipment requests and gets quotes and tracking in your branded portal.</span></button>
+      </div>
+    </div>
+    <div class="form-grid">
+      <label class="form-field full"><span>Company name</span>
+        <input class="text-input" id="f-company" value="${esc(inv.company)}" placeholder="e.g. PT Ekspres Logistik Timur" autocomplete="off">
+        ${m ? `<span class="hint warn" id="f-match"><i data-lucide="info"></i>${inNet ? `${m[1].name} is already in your network. <a class="link-btn" href="org.html?id=${m[0]}">Open profile</a>` : `${m[1].name} is on LogiMind. They’ll get a request to connect instead of a new account.`}</span>` : '<span class="hint" id="f-match"></span>'}
+      </label>
+      <label class="form-field"><span>Contact person</span><input class="text-input" id="f-contact" value="${esc(inv.contact)}" placeholder="Full name"></label>
+      <div class="form-field"><span>Send invitation by</span>
+        <div class="segmented">
+          <button class="pill${inv.via === 'whatsapp' ? ' selected' : ''}" data-via="whatsapp"><i data-lucide="message-circle"></i>WhatsApp</button>
+          <button class="pill${inv.via === 'email' ? ' selected' : ''}" data-via="email"><i data-lucide="mail"></i>Email</button>
+        </div>
+      </div>
+      <label class="form-field full"><span>${inv.via === 'email' ? 'Email address' : 'WhatsApp number'}</span>
+        <input class="text-input" id="f-address" value="${esc(inv.address)}" placeholder="${inv.via === 'email' ? 'name@company.co.id' : '+62 812 …'}" inputmode="${inv.via === 'email' ? 'email' : 'tel'}"></label>
+    </div>`;
+}
+
+function stepServices() {
+  const lanes = `<div class="form-field"><span>${inv.role === 'vendor' ? 'Lanes or areas they cover' : 'Lanes they ship'}</span>
+      <div class="lane-chips">${inv.lanes.map((l, i) => `<span class="lane-chip">${esc(l)}<button data-rm-lane="${i}" aria-label="Remove"><i data-lucide="x"></i></button></span>`).join('')}
+        <input class="text-input" id="f-lane" placeholder="Type a lane and press Enter" style="width:220px;height:26px;border-radius:99px;font-size:12.5px">
+      </div>
+      <div class="suggest"><span class="caption">From your trade lanes:</span>${LANE_SUGGEST.filter(l => !inv.lanes.includes(l)).slice(0, 4).map(l => `<button class="pill" data-add-lane="${esc(l)}"><i data-lucide="plus"></i>${l}</button>`).join('')}</div>
+    </div>`;
+  if (inv.role === 'customer') return lanes + `<div class="notice info" style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:10px 12px;border-radius:8px;background:var(--info-soft);font-size:13px"><i data-lucide="palette" style="width:15px;height:15px;color:var(--info)"></i><span>They’ll use your customer portal at <b>${D.tenant.portal}</b>, in Nusantara Cargo’s branding. LogiMind appears only as a small footer.</span></div>`;
+  return `<div class="form-field"><span>Services</span>
+      <div class="choice-grid">${SERVICES.map(([s, i]) => `<label class="choice"><input type="checkbox" class="check" data-service="${s}" ${inv.services.includes(s) ? 'checked' : ''}><i data-lucide="${i}"></i>${s}</label>`).join('')}</div>
+    </div>` + lanes;
+}
+
+function seesLists() {
+  return inv.role === 'vendor'
+    ? [['RFQs you send them, one leg at a time', 'Jobs you award, with pickup details', 'Their own rates, invoices and documents'],
+       ['Your customer prices and margin', 'Your other vendors and their quotes', 'Your customers’ contact details beyond the job']]
+    : [['Their requests, quotes and shipments', 'Milestones and documents for their cargo', 'Your branded portal and team contacts'],
+       ['Your vendors and their costs', 'Your margin', 'Other customers and the LogiMind marketplace']];
+}
+
+function stepPreview() {
+  const name = inv.contact.split(' ')[0] || 'there';
+  if (!inv.message) inv.message = inv.role === 'vendor'
+    ? `Hi ${name}, Nusantara Cargo would like to send you RFQs for ${inv.services[0]?.toLowerCase() || 'logistics'} jobs${inv.lanes[0] ? ` on ${inv.lanes[0]}` : ''} through LogiMind. You can reply from this link, no account needed.`
+    : `Hi ${name}, we’ve set up your customer portal with Nusantara Cargo. You can request shipments, approve quotes and track cargo here.`;
+  const [y, n] = seesLists();
+  const link = inv.role === 'vendor' ? 'logimind.app/i/7Kq2-truk' : `${D.tenant.portal}/join/K3v9`;
+  return `<div class="preview-2">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <label class="form-field"><span>Message</span><textarea class="textarea" id="f-message" rows="5">${esc(inv.message)}</textarea></label>
+      <div class="sees">
+        <div><div class="caption" style="font-weight:500;color:var(--text-secondary);margin-bottom:6px">${esc(inv.company || 'They')} will see</div><ul class="y">${y.map(t => `<li><i data-lucide="eye"></i>${t}</li>`).join('')}</ul></div>
+        <div><div class="caption" style="font-weight:500;color:var(--text-secondary);margin-bottom:6px">Never shown to them</div><ul class="n">${n.map(t => `<li><i data-lucide="eye-off"></i>${t}</li>`).join('')}</ul></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span class="caption" style="font-weight:500">Preview · ${inv.via === 'email' ? 'Email' : 'WhatsApp'} to ${esc(inv.address || 'recipient')}</span>
+      ${inv.via === 'email'
+        ? `<div class="mail"><div class="top"><b>PT Nusantara Cargo</b> via LogiMind<br>Subject: ${inv.role === 'vendor' ? 'Nusantara Cargo invited you to quote on LogiMind' : 'Your Nusantara Cargo customer portal'}</div>
+            <div class="body"><span id="pv-msg">${esc(inv.message)}</span><span class="cta">${inv.role === 'vendor' ? 'View invitation' : 'Open your portal'}</span><span class="caption">Link expires in 14 days</span></div></div>`
+        : `<div class="wa"><div class="bubble"><div class="from">PT Nusantara Cargo</div><span id="pv-msg">${esc(inv.message)}</span><span class="link">${link}</span></div>
+            <div class="caption" style="margin-top:8px;color:#6B6B73">Sent from Nusantara Cargo’s WhatsApp Business number · link expires in 14 days</div></div>`}
+      ${visibility(`You, ${inv.company || 'the invitee'}`)}
+    </div>
+  </div>`;
+}
+
+function validStep() {
+  if (inv.step === 0) return inv.company.trim() && inv.contact.trim() && inv.address.trim().length > 5;
+  if (inv.step === 1) return inv.role === 'customer' ? true : inv.services.length > 0;
+  return true;
+}
+
+function drawInvite() {
+  const body = [stepWho, stepServices, stepPreview][inv.step]();
+  const last = inv.step === 2;
+  openModal(`
+    <div class="modal-head"><i data-lucide="user-plus"></i><h2>Invite ${inv.role === 'vendor' ? 'a vendor' : 'a customer'}</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
+    <div class="modal-steps"><nav class="stepper">${inviteSteps()}</nav></div>
+    <div class="modal-body" style="gap:16px">${body}</div>
+    <div class="modal-foot">
+      <span class="caption left">${last ? 'Nothing is sent until you press Send.' : ''}</span>
+      ${inv.step ? '<button class="btn-secondary" data-inv="back">Back</button>' : '<button class="btn-secondary" data-close>Cancel</button>'}
+      <button class="btn-primary" data-inv="${last ? 'send' : 'next'}" ${validStep() ? '' : 'disabled'}>${last ? `<i data-lucide="send"></i>Send invitation` : 'Continue'}</button>
+    </div>`);
+  bindInvite();
+}
+
+function syncNext() { const b = $('[data-inv="next"]'); if (b) b.disabled = !validStep(); }
+
+function bindInvite() {
+  const m = $('#modal');
+  const f = (id, key, after) => { const el = $('#' + id, m); if (el) el.addEventListener('input', () => { inv[key] = el.value; after && after(); syncNext(); }); };
+  f('f-company', 'company', () => {
+    const hit = existingMatch(inv.company);
+    const hint = $('#f-match');
+    if (!hit) { hint.className = 'hint'; hint.innerHTML = ''; return; }
+    const inNet = [...N.vendors, ...N.customers].some(r => r.org === hit[0]);
+    hint.className = 'hint warn';
+    hint.innerHTML = `<i data-lucide="info"></i>${inNet ? `${hit[1].name} is already in your network. <a class="link-btn" href="org.html?id=${hit[0]}">Open profile</a>` : `${hit[1].name} is on LogiMind. They’ll get a request to connect instead of a new account.`}`;
+    icons();
+  });
+  f('f-contact', 'contact'); f('f-address', 'address');
+  f('f-message', 'message', () => { const p = $('#pv-msg'); if (p) p.textContent = inv.message; });
+  const lane = $('#f-lane', m);
+  if (lane) lane.addEventListener('keydown', e => { if (e.key === 'Enter' && lane.value.trim()) { e.preventDefault(); inv.lanes.push(lane.value.trim()); drawInvite(); $('#f-lane').focus(); } });
+  $$('[data-service]', m).forEach(c => c.addEventListener('change', () => {
+    inv.services = $$('[data-service]', m).filter(x => x.checked).map(x => x.dataset.service); syncNext();
+  }));
+}
+
+$('#modal').addEventListener('click', e => {
+  const r = e.target.closest('[data-role]'); if (r) { inv.role = r.dataset.role; inv.message = ''; drawInvite(); return; }
+  const v = e.target.closest('[data-via]'); if (v) { inv.via = v.dataset.via; inv.address = ''; drawInvite(); return; }
+  const al = e.target.closest('[data-add-lane]'); if (al) { inv.lanes.push(al.dataset.addLane); drawInvite(); return; }
+  const rl = e.target.closest('[data-rm-lane]'); if (rl) { inv.lanes.splice(+rl.dataset.rmLane, 1); drawInvite(); return; }
+  const a = e.target.closest('[data-inv]'); if (!a) return;
+  if (a.dataset.inv === 'next') { inv.step++; drawInvite(); }
+  else if (a.dataset.inv === 'back') { inv.step--; drawInvite(); }
+  else if (a.dataset.inv === 'send') sendInvite();
+});
+
+function sendInvite() {
+  const key = 'new' + Date.now();
+  const initials = inv.company.replace(/^(PT|CV|PPJK)\s+/i, '').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  D.orgs[key] = { name: inv.company.trim(), initials, role: inv.role, type: inv.role === 'vendor' ? (inv.services[0] || 'Vendor') : 'Customer' };
+  N.invitations.sent.unshift({ org: key, role: inv.role === 'vendor' ? `Vendor · ${inv.services.join(', ')}` : 'Customer', via: inv.via === 'email' ? 'Email' : 'WhatsApp', to: inv.contact, when: 'Sent just now', status: 'pending', note: 'Not opened yet' });
+  (inv.role === 'vendor' ? N.vendors : N.customers).push({ org: key, type: inv.role === 'vendor' ? (inv.services[0] || 'Trucking') : 'Exporter', lanes: inv.lanes.length ? inv.lanes : ['—'], rating: null, jobs: 0, onTime: null, last: 'Never', status: 'pending' });
+  closeModal();
+  state.tab = 'invitations'; state.empty = false;
+  history.replaceState(null, '', 'network.html?tab=invitations');
+  $$('.sidebar .row').forEach(r => r.classList.toggle('active', r.getAttribute('href') === 'network.html?tab=invitations'));
+  render();
+  toast(`Invitation sent to ${inv.contact} by ${inv.via === 'email' ? 'email' : 'WhatsApp'}`);
+}
+
+render();
+if (params.get('invite')) { window.openInvite(params.get('role')); history.replaceState(null, '', location.pathname + (state.tab !== 'vendors' ? `?tab=${state.tab}` : '')); }
+</script>
+</body>
+</html>
