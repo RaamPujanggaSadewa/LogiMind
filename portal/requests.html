@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My requests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 8px 24px 24px; }
+  .table td { font-size: 13.5px; }
+  .table .t { font-weight: 500; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .note.warn { color: var(--warning); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="requests" data-row="requests">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <h1>My requests</h1><span class="caption" id="count"></span>
+        <div class="right"><a class="btn-primary" href="ask.html" style="height:32px"><i data-lucide="plus"></i>New request</a></div>
+      </header>
+      <div class="toolbar"><div class="left" id="filters"></div></div>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, tag, icons } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T;
+P.title('My requests');
+
+const FILTERS = [['all', 'All'], ['open', 'Waiting on ' + T.short], ['quote', 'Quote ready'], ['done', 'Booked'], ['closed', 'Expired or declined']];
+let filter = 'all';
+const match = (r) => filter === 'all' || (filter === 'open' && ['sent', 'review'].includes(r.status)) || (filter === 'quote' && r.status === 'quote')
+  || (filter === 'done' && ['accepted', 'booked'].includes(r.status)) || (filter === 'closed' && ['expired', 'declined'].includes(r.status));
+
+function noteFor(r) {
+  if (r.status === 'review') return `<div class="note">Under review for ${r.reviewDays || 'less than 1'} day${r.reviewDays === 1 ? '' : 's'} · ${esc(S.accountManager.name)} notified</div>`;
+  if (r.status === 'sent') return `<div class="note">Sent ${esc(r.created.toLowerCase())} · ${esc(T.short)} usually replies within 1 business day</div>`;
+  if (r.status === 'quote') { const q = P.quote(r.quote); return q ? `<div class="note">Confirmed quote ${P.money(q.lines.reduce((s, l) => s + l[1], 0))} · valid until ${q.expires}</div>` : ''; }
+  if (r.status === 'expired') return `<div class="note warn">Quote expired ${P.quote(r.quote).expiredOn}</div>`;
+  if (r.status === 'booked') return `<div class="note">Shipment ${r.shipment}</div>`;
+  if (r.status === 'accepted') return `<div class="note">Accepted · booking in progress</div>`;
+  if (r.status === 'declined') return `<div class="note${r.declinedBy === 'tenant' ? ' warn' : ''}">${r.declinedBy === 'tenant' ? `${esc(T.short)} declined: ` : 'You declined: '}${esc(r.declineReason || '')}</div>`;
+  return '';
+}
+
+function render() {
+  const all = P.requests();
+  const list = all.filter(match);
+  $('#count').textContent = `${all.length}`;
+  $('#filters').innerHTML = FILTERS.map(([k, l]) => `<button class="pill${filter === k ? ' selected' : ''}" data-f="${k}">${esc(l)}</button>`).join('');
+  $('#wrap').innerHTML = list.length ? `<div class="card flush"><table class="table">
+    <thead><tr><th>Request</th><th>Route option</th><th>Estimate</th><th>Created</th><th>Status</th></tr></thead>
+    <tbody>${list.map(r => `<tr data-href="request.html?id=${encodeURIComponent(r.id)}">
+      <td><div class="t">${esc(r.title)}</div><div class="note"><span class="num">${r.id}</span> · ${esc(r.when)}</div></td>
+      <td>${esc(r.option)}</td>
+      <td class="num">${P.estimateHTML(r.estimate)}</td>
+      <td class="sub">${esc(r.created)}</td>
+      <td>${P.statusTag(r)}${noteFor(r)}</td></tr>`).join('')}</tbody></table></div>`
+    : `<div class="empty" style="height:auto;padding:64px 24px"><div class="empty-tile"><i data-lucide="file-text"></i></div><h2 class="empty-title">No requests here</h2>
+       <p class="empty-body">Describe a shipment and it goes straight to ${esc(T.short)}.</p><a class="btn-secondary" href="ask.html"><i data-lucide="sparkles"></i>New request</a></div>`;
+  icons();
+}
+document.addEventListener('click', e => {
+  const f = e.target.closest('[data-f]'); if (f) { filter = f.dataset.f; render(); return; }
+  const r = e.target.closest('tr[data-href]'); if (r) location.href = r.dataset.href;
+});
+render();
+</script>
+</body>
+</html>

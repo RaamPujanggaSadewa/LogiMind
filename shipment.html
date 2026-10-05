@@ -115,6 +115,21 @@
   .party .can .y { color: var(--success); }
   .party .can .x { color: var(--muted-soft); }
 
+  .chain { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .chain .link { padding: 6px 10px; border-radius: var(--r-sm); background: var(--warning-soft); font-size: 13px; font-weight: 500; }
+  .chain .link.end { background: var(--danger-soft); color: var(--danger); }
+  .chain svg.lucide { width: 14px; height: 14px; color: var(--muted-soft); }
+  .fixo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: start; padding: 12px; border: 1px solid var(--border); border-radius: var(--r-md); }
+  .fixo.rec { border-color: var(--primary); background: var(--primary-soft); }
+  .fixo .tradeoff { grid-column: 1; display: grid; grid-template-columns: auto auto auto auto auto auto auto auto; gap: 2px 8px; font-size: 12.5px; font-variant-numeric: tabular-nums; justify-content: start; }
+  .fixo .tradeoff span { color: var(--muted); }
+  .fixo button { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+  .build { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13.5px; }
+  .build td { padding: 6px 0; border-bottom: 1px solid var(--divider); }
+  .build td:last-child { text-align: right; }
+  .build tr.t td { font-weight: 600; border-top: 1.5px solid var(--ink); }
+  .comms { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+  .comms li { padding: 8px 10px; background: var(--row-hover); border-radius: var(--r-sm); }
   .restricted { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 1px dashed var(--border); border-radius: var(--r-lg); color: var(--muted); font-size: 13px; background: var(--row-hover); }
   .restricted svg.lucide { color: var(--muted-soft); }
 </style>
@@ -143,6 +158,7 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
 <script>
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
@@ -346,9 +362,14 @@ function bindChat() {
   });
 }
 
-$('#viewAs').innerHTML = VIEWERS.map(v => `<option value="${v}">${v === 'you' ? 'Nusantara Cargo (you)' : D.orgs[v].name}</option>`).join('');
+$('#viewAs').innerHTML = `<option value="you">Nusantara Cargo (you)</option>
+  <optgroup label="Customer (opens their portal)"><option value="customer">${esc(D.orgs.kopi.name)} · Rina Wijaya</option><option value="kopi">${esc(D.orgs.kopi.name)} · summary here</option></optgroup>
+  <optgroup label="Partners (their leg and status only)">${VIEWERS.filter(v => !['you', 'kopi'].includes(v)).map(v => `<option value="${v}">${D.orgs[v].name}</option>`).join('')}</optgroup>`;
 $('#viewAs').value = state.viewer;
-$('#viewAs').addEventListener('change', e => { state.viewer = e.target.value; render(); $('#scroll').scrollTop = 0; });
+$('#viewAs').addEventListener('change', e => {
+  if (e.target.value === 'customer') { location.href = Staff.viewAsHref('kopi', 'shipment.html?id=' + S.id); return; }
+  state.viewer = e.target.value; render(); $('#scroll').scrollTop = 0;
+});
 
 document.addEventListener('click', e => {
   const v = e.target.closest('[data-viewer]');
@@ -365,8 +386,89 @@ document.addEventListener('click', e => {
   }
 });
 
-render();
-if (location.hash === '#docs') setTimeout(() => $('#docs').scrollIntoView({ block: 'start' }), 50);
+/* ==========================================================================
+   Other shipments: delay detail (what slipped, knock-on chain, cost before/after,
+   fixes with trade-offs, customer communication log), booked-in-demo, or summary.
+   ========================================================================== */
+const OTHER_ID = new URLSearchParams(location.search).get('id');
+function renderOther(id) {
+  const d = D.ops.delays.find(x => x.id === id);
+  const bookedRec = (LM.db.read().shipments || []).find(x => x.id === id && x.tenant === LM.account.tenant);
+  const row = D.shipments.find(x => x.id === id);
+  $('.view-as').style.display = 'none';
+  $('#riskTag').style.display = 'none';
+  const stageTag = $('.page-head .title-wrap .tag.neutral');
+  if (stageTag) stageTag.outerHTML = d ? tag(`Delayed ${d.days} days`, d.severity, 'clock-alert') : bookedRec ? tag('Booked', 'success', 'badge-check') : row ? tag(row.stage[0], row.stage[1]) : '';
+  $$('.sidebar .row.active').forEach(r => r.classList.remove('active'));
+  $('h1.num').textContent = id;
+  document.title = `${id} · LogiMind`;
+  if (d) {
+    const c = Staff.customer(d.org);
+    const after = d.quotedCost + d.cost.extra;
+    const msgs = [...d.comms, ...(((LM.db.read().shipMessages || {})[id]) || []).map(m => ['Portal', 'Today', m.text])];
+    $('#subtitle').textContent = `${d.lane[0]} → ${d.lane[1]} · ${d.cargo} · ${D.orgs[d.org].name}`;
+    $('.page-head .right').insertAdjacentHTML('afterbegin', Staff.viewAsLink(d.org, 'shipment.html?id=' + id));
+    $('#ws').innerHTML = `
+      <div class="banner ${d.severity === 'danger' ? 'danger' : 'warning'}"><i data-lucide="clock-alert"></i><div class="text"><b>Delayed ${d.days} days · new ETA ${d.eta} (was ${d.etaWas}).</b> ${esc(d.cause)}</div>
+        <button class="btn-primary" data-notify-delay><i data-lucide="send"></i>Notify customer</button></div>
+      <section class="card"><div class="card-head"><i data-lucide="git-commit-horizontal"></i><h3>Knock-on chain</h3></div>
+        <div class="chain">${d.chain.map((x, i) => `${i ? '<i data-lucide="arrow-right"></i>' : ''}<span class="link${i === d.chain.length - 1 ? ' end' : ''}">${esc(x)}</span>`).join('')}</div></section>
+      <div class="grid">
+        <div class="col">
+          <section class="card flush"><div class="card-head"><i data-lucide="list-restart"></i><h3>What slipped</h3><span class="caption">Planned vs actual</span></div>
+            <table class="table" style="margin-top:8px"><thead><tr><th>Milestone</th><th>Planned</th><th>Actual / now</th><th style="text-align:right">Change</th></tr></thead>
+              <tbody>${d.slip.map(([e2, p, a, dd]) => `<tr style="cursor:default"><td class="primary-cell">${esc(e2)}</td><td class="sub">${p}</td><td>${a === 'Missed' ? tag('Missed', 'danger') : a}</td>
+                <td style="text-align:right">${dd == null ? '' : dd ? `<b style="color:var(--danger);font-weight:600">+${dd} days</b>` : tag('On time', 'success')}</td></tr>`).join('')}</tbody></table></section>
+          <section class="card"><div class="card-head"><i data-lucide="wand-sparkles"></i><h3>Fix options</h3><span class="caption">Time vs cost</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px">${d.fixes.map(f => `<div class="fixo${f.recommended ? ' rec' : ''}">
+              <div><b style="font-weight:600">${esc(f.title)}</b> ${f.recommended ? tag('Recommended', 'brand', 'star') : ''}<div class="caption">${esc(f.detail)}</div></div>
+              <div class="tradeoff"><span>Arrives</span><b>${f.eta}</b><span>Delay</span><b>${f.days}</b><span>Extra cost</span><b style="color:${f.cost ? 'var(--danger)' : 'var(--success)'}">${f.cost ? '+' + Staff.money(f.cost) : 'None'}</b>
+                <span>Margin after</span><b>${Staff.money(d.cost.marginBefore - f.cost)}</b></div>
+              <button class="btn-secondary" data-apply-fix="${f.id}"><i data-lucide="check"></i>Apply</button></div>`).join('')}</div></section>
+        </div>
+        <div class="col">
+          <section class="card"><div class="card-head"><i data-lucide="calculator"></i><h3>Cost before and after</h3><div class="right"><span class="lock-badge"><i data-lucide="lock"></i>Internal only</span></div></div>
+            <table class="build"><tr><td>Quoted cost</td><td>${Staff.money(d.quotedCost)}</td></tr>
+              ${d.cost.items.map(([l, a]) => `<tr><td>${esc(l)}</td><td style="color:var(--danger)">+${Staff.money(a)}</td></tr>`).join('')}
+              <tr class="t"><td>Cost now</td><td>${Staff.money(after)}</td></tr>
+              <tr><td>Margin before</td><td>${Staff.money(d.cost.marginBefore)}</td></tr>
+              <tr><td>Margin now</td><td style="color:var(--danger);font-weight:600">${Staff.money(d.cost.marginAfter)}</td></tr></table></section>
+          <section class="card"><div class="card-head"><i data-lucide="messages-square"></i><h3>Told the customer</h3><span class="caption">${esc(c.contact)} · ${c.portal === 'active' ? 'portal' : 'WhatsApp'}</span></div>
+            <ul class="comms">${msgs.map(([ch, w, t]) => `<li><div class="caption">${esc(ch)} · ${esc(w)}</div>${esc(t)}</li>`).join('')}</ul></section>
+        </div>
+      </div>`;
+  } else if (bookedRec) {
+    const bookings = (LM.db.read().bookings || []).filter(b => b.request === bookedRec.request);
+    $('#subtitle').textContent = `${bookedRec.route[0]} → ${bookedRec.route[bookedRec.route.length - 1]} · ${bookedRec.title.split(' · ')[0]} · ${D.orgs[bookedRec.org].name}`;
+    $('.page-head .right').insertAdjacentHTML('afterbegin', Staff.viewAsLink(bookedRec.org, 'shipment.html?id=' + id));
+    $('#ws').innerHTML = `<div class="banner success"><i data-lucide="badge-check"></i><div class="text"><b>Booked: the customer accepted ${bookedRec.quote}.</b> Created from <a class="link-btn" href="request.html?id=${bookedRec.request}">${bookedRec.request}</a>. Departure ${esc(bookedRec.departure)} · ${esc(bookedRec.transit)} transit.</div></div>
+      <section class="card"><div class="card-head"><i data-lucide="list-checks"></i><h3>Next steps</h3></div>
+        <ul class="comms">${[...bookings.map(b => `${b.service} booked directly with ${esc(D.orgs[b.org].name)} · ${b.ref} (${b.status})`), 'Confirm ocean booking with the carrier (RFQ replies due Wed 11 Nov)', 'Remind the customer to upload the phytosanitary certificate', 'VGM and SI before the cut-off'].map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`;
+  } else if (row) {
+    $('#subtitle').textContent = `${row.lane[0]} → ${row.lane[1]} · ${row.cargo} · ${row.customer}`;
+    $('#ws').innerHTML = `<section class="card facts">${[['Customer', row.customer], ['Stage', row.stage[0]], ['Next milestone', `${row.next} · ${row.when}`], ['Status', row.risk[0]]].map(([k, v]) => `<div class="fact"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}</section>
+      <p class="caption">Full workspace for this shipment isn’t part of the prototype. SHP-2411 shows the complete view.</p>`;
+  } else {
+    $('#ws').innerHTML = `<div class="empty" style="height:auto;padding:64px"><div class="empty-tile"><i data-lucide="search-x"></i></div><h2 class="empty-title">Shipment not found</h2><a class="btn-secondary" href="index.html">Back to operations</a></div>`;
+  }
+  icons();
+}
+if (OTHER_ID && OTHER_ID !== S.id) {
+  renderOther(OTHER_ID);
+  document.addEventListener('click', e => {
+    const d = D.ops.delays.find(x => x.id === OTHER_ID);
+    if (e.target.closest('[data-notify-delay]') && d) {
+      const c = Staff.customer(d.org);
+      Staff.notifyCustomer({ shipment: d.id, org: d.org, onSent: () => renderOther(OTHER_ID),
+        draft: `Hi ${c.contact.split(' ')[0]}, an update on ${d.id}: ${d.cause.replace(/\.$/, '').toLowerCase()}. The new ETA is ${d.eta} (was ${d.etaWas}). We’re working on the fastest option and will confirm today. ${LM.account.name}, ${Staff.T.short}` });
+    }
+    const f = e.target.closest('[data-apply-fix]');
+    if (f && d) toast(`${d.fixes.find(x => x.id === f.dataset.applyFix).title} requested. Partner and customer will be updated`);
+  });
+} else {
+  render();
+  if (location.hash === '#docs') setTimeout(() => $('#docs').scrollIntoView({ block: 'start' }), 50);
+}
 </script>
 </body>
 </html>

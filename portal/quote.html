@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .title-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-head h1, .page-head .caption { white-space: nowrap; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+  @media (max-width: 1200px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .sticky { position: sticky; top: 0; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Branded quote document (same component as the staff quote preview) */
+  .doc { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); box-shadow: var(--shadow-lift); }
+  .doc-top { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-top: 4px solid var(--primary); border-bottom: 1px solid var(--divider); }
+  .doc-logo { width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--primary); color: #fff; font-weight: 700; font-size: 12.5px; display: grid; place-items: center; }
+  .doc-top .name { font-weight: 600; }
+  .doc-top .url { font-size: 12px; color: var(--muted); }
+  .doc-top .qno { margin-left: auto; text-align: right; font-size: 12.5px; color: var(--muted); }
+  .doc-top .qno b { display: block; color: var(--ink); font-size: 14px; font-weight: 600; }
+  .doc-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .doc-route { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+  .doc-meta { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; margin-top: -6px; }
+  .doc-meta span { color: var(--muted); }
+  .doc-meta b { font-weight: 500; }
+  .lines { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .lines td { padding: 9px 0; border-bottom: 1px solid var(--divider); }
+  .lines td:last-child { text-align: right; white-space: nowrap; padding-left: 16px; }
+  .lines tr.total td { border-bottom: 0; border-top: 1.5px solid var(--ink); font-weight: 600; font-size: 16px; padding-top: 12px; }
+  .inc { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .inc h4 { margin: 0 0 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .inc ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-secondary); }
+  .inc li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; }
+  .inc li svg.lucide { width: 13px; height: 13px; margin-top: 2px; }
+  .inc .y svg { color: var(--success); } .inc .n svg { color: var(--muted-soft); }
+  .terms { font-size: 12.5px; color: var(--muted); padding-top: 12px; border-top: 1px solid var(--divider); }
+
+  .decide .total { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; margin: 2px 0; }
+  .countdown { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--r-md); background: var(--row-hover); margin: 12px 0; font-size: 13px; }
+  .countdown svg.lucide { color: var(--muted); }
+  .countdown b { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .countdown.soon { background: var(--warning-soft); } .countdown.soon svg { color: var(--warning); }
+  .decide .btn-primary { width: 100%; }
+  .decide .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .decide .row2 .btn-secondary { justify-content: center; height: 34px; }
+  .confirmed-by { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+  .confirmed-by .user-avatar { width: 22px; height: 22px; font-size: 9px; }
+  .vs { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 13px; align-items: center; }
+  .vs .num { font-variant-numeric: tabular-nums; text-align: right; }
+
+  .checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .checklist li { display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; padding: 12px 0; border-top: 1px solid var(--divider); align-items: start; }
+  .checklist li:first-child { border-top: 0; }
+  .checklist .box { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--disabled); display: grid; place-items: center; }
+  .checklist .box.done { background: var(--success); border-color: var(--success); color: #fff; }
+  .checklist .box svg.lucide { width: 12px; height: 12px; stroke-width: 3; }
+  .checklist .t { font-weight: 500; }
+  .checklist .d { font-size: 12.5px; color: var(--muted); }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-field > span { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .textarea { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; resize: vertical; min-height: 90px; line-height: 1.45; }
+  .textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .radio-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 13.5px; }
+  .radio-row:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="requests" data-row="requests">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><div class="title-wrap"><h1 class="num" id="qid">Quote</h1><span class="caption" id="qtitle"></span><span id="qtag"></span></div>
+        <div class="right"><a class="link-btn" id="backLink" href="requests.html"><i data-lucide="arrow-left"></i>Request</a></div></header>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T;
+const id = new URLSearchParams(location.search).get('id');
+let q = P.quote(id);                        // only this sender's quotes
+if (q) P.markViewed(id);
+const req = q && P.requests().find(r => r.id === q.request);
+const total = q ? q.lines.reduce((s, l) => s + l[1], 0) : 0;
+const expiresAt = q && q.hoursLeft ? Date.now() + q.hoursLeft * 36e5 : null;
+const AM = S.accountManager;
+
+function docHTML() {
+  // Same renderer as the staff preview in quote.html, so the two always match
+  const money = q.currency === 'IDR' ? (n) => 'Rp' + Math.round(n * 16300).toLocaleString('en-US') : P.money;
+  return LM.quoteDocHTML({ ...q, id, cargo: q.cargo || q.title.split(' · ')[0] }, T, { money });
+}
+
+function countdownText() {
+  if (!expiresAt) return '';
+  const ms = Math.max(0, expiresAt - Date.now());
+  const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), s = Math.floor(ms % 6e4 / 1e3);
+  return `${d ? `${d} day${d > 1 ? 's' : ''} ` : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function sideHTML() {
+  const est = req ? `<section class="card"><div class="card-head"><i data-lucide="scale"></i><h3>Estimate vs confirmed</h3></div>
+    <div class="vs"><span>${tag('Estimate', 'neutral')} <span class="caption">when you asked</span></span><span class="num">${P.range(req.estimate)}</span>
+      <span>${tag('Confirmed', 'success', 'badge-check')} <span class="caption">by ${esc(AM.name.split(' ')[0])}</span></span><span class="num"><b style="font-weight:600">${P.money(total)}</b></span></div></section>` : '';
+  if (q.status === 'ready') return `<section class="card decide">
+      <span class="caption">Total for this shipment</span><div class="total">${P.money(total)}</div>${tag('Confirmed', 'success', 'badge-check')}
+      <div class="countdown${q.hoursLeft < 48 ? ' soon' : ''}"><i data-lucide="timer"></i><span>Expires in <b id="cd">${countdownText()}</b></span></div>
+      <button class="btn-primary" id="accept"><i data-lucide="check"></i>Accept quote</button>
+      <div class="row2"><button class="btn-secondary" id="changes"><i data-lucide="message-square"></i>Ask for changes</button><button class="btn-secondary" id="decline"><i data-lucide="x"></i>Decline</button></div>
+      <div class="confirmed-by"><span class="user-avatar" style="background:${LM.AVATAR_COLORS[AM.color]}">${AM.initials}</span>Confirmed by ${esc(AM.name)}, ${esc(T.short)}</div>
+    </section>${est}`;
+  if (q.status === 'expired') return `<section class="card decide">
+      <span class="caption">Total</span><div class="total" style="color:var(--muted);text-decoration:line-through">${P.money(total)}</div>${tag('Quote expired', 'warning', 'timer-off')}
+      <p style="font-size:13px;color:var(--text-secondary);margin:12px 0">This quote expired on ${q.expiredOn}. Rates and space may have changed.</p>
+      <a class="btn-primary" href="request.html?id=${q.request}"><i data-lucide="rotate-cw"></i>Ask for a new quote</a></section>${est}`;
+  if (q.status === 'declined') return `<section class="card decide"><span class="caption">Total</span><div class="total">${P.money(total)}</div>${tag('Declined', 'neutral', 'x')}
+      <p style="font-size:13px;color:var(--text-secondary);margin:12px 0 0">You declined this quote. ${esc(T.short)} has been told.</p></section>`;
+  // accepted
+  return `<section class="card decide"><span class="caption">Total</span><div class="total">${P.money(total)}</div>${tag('Accepted', 'success', 'check')}
+    <p style="font-size:13px;color:var(--text-secondary);margin:12px 0 0">Accepted ${q.accepted || 'just now'}.</p></section>${est}`;
+}
+
+function bookingHTML() {
+  if (q.status !== 'accepted') return '';
+  const sh = q.shipment && P.shipments().find(s => s.id === q.shipment);
+  const items = sh && !sh.fresh
+    ? [[true, `${T.short} confirmed the sailing`, `Booked as ${sh.id} · departs ${sh.etd}`], [false, 'Upload the documents listed for you', 'Phytosanitary certificate by Thu 12 Nov, 10:00', 'documents.html', 'Upload'], [false, 'Container pickup at your warehouse', 'Wed 11 Nov, 08:00. Have the cargo ready for loading.'], [false, 'Track your shipment', `Arrival in ${sh.lane[1]} ${sh.eta}`, `shipment.html?id=${sh.id}`, 'Track']]
+    : [[false, `${T.short} confirms the sailing`, 'Usually within 1 business day. You’ll get a notification.'], [false, 'Upload the documents listed for you', 'Commercial invoice, packing list and the phytosanitary certificate', 'documents.html', 'Upload'], [false, 'Container pickup at your warehouse', 'The date is confirmed with the booking'], [false, 'Track your shipment', sh ? `Booked as ${sh.id}` : 'From the moment the containers leave your warehouse', sh ? `shipment.html?id=${sh.id}` : null, 'Track']];
+  return `<div class="banner success"><i data-lucide="party-popper"></i><div class="text"><b>Quote accepted.</b> ${sh ? `Your shipment is booked as ${sh.id}.` : `${esc(T.short)} is booking your shipment now.`}</div></div>
+    <section class="card"><div class="card-head"><i data-lucide="list-checks"></i><h3>What happens next</h3></div>
+      <ul class="checklist">${items.map(([done, t, d, href, cta]) => `<li><span class="box${done ? ' done' : ''}">${done ? '<i data-lucide="check"></i>' : ''}</span>
+        <div><div class="t">${esc(t)}</div><div class="d">${esc(d)}</div></div>${href ? `<a class="btn-secondary" href="${href}">${cta}</a>` : '<span></span>'}</li>`).join('')}</ul></section>`;
+}
+
+let timer;
+function render() {
+  if (!q) { $('#wrap').innerHTML = P.notFound('Quote'); P.title('Quote'); icons(); return; }
+  P.title(id);
+  $('#qid').textContent = id;
+  $('#qtitle').textContent = q.title;
+  $('#qtag').innerHTML = { ready: tag('Confirmed · awaiting you', 'success', 'badge-check'), accepted: tag('Accepted', 'success', 'check'), expired: tag('Expired', 'warning', 'timer-off'), declined: tag('Declined', 'neutral', 'x') }[q.status];
+  $('#backLink').href = `request.html?id=${q.request}`;
+  $('#wrap').innerHTML = bookingHTML() + `<div class="grid"><div class="col">${docHTML()}</div><div class="col"><div class="sticky">${sideHTML()}</div></div></div>`;
+  icons();
+  clearInterval(timer);
+  if (q.status === 'ready') timer = setInterval(() => { const el = $('#cd'); if (el) el.textContent = countdownText(); }, 1000);
+}
+render();
+
+/* ---------------- actions ---------------- */
+document.addEventListener('click', e => {
+  if (e.target.closest('#accept')) {
+    const m = P.openModal(`
+      <div class="modal-head"><i data-lucide="check"></i><h2>Accept ${id} for ${P.money(total)}?</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
+      <div class="modal-body">
+        <p style="margin:0;font-size:13.5px">${esc(T.short)} will book your shipment (${esc(q.routeLabel.toLowerCase())}, departing ${q.departure}) and confirm the sailing.</p>
+        <label class="radio-row" style="border:0;padding:0"><input type="checkbox" class="check" id="agree">I agree to the quote’s terms: ${esc(q.terms)}</label>
+      </div>
+      <div class="modal-foot"><button class="btn-secondary" data-close>Back</button><button class="btn-primary" id="confirmAccept" disabled><i data-lucide="check"></i>Accept quote</button></div>`);
+    m.querySelector('#agree').addEventListener('change', ev => { m.querySelector('#confirmAccept').disabled = !ev.target.checked; });
+    m.querySelector('#confirmAccept').addEventListener('click', () => {
+      const shipId = P.decide(id, 'accepted'); P.closeModal(); q = P.quote(id); render();
+      P.notify(`Quote ${id} accepted. Booked as ${shipId}`);
+      $('.content').scrollTop = 0;
+    });
+    return;
+  }
+  if (e.target.closest('#changes')) {
+    const m = P.openModal(`
+      <div class="modal-head"><i data-lucide="message-square"></i><h2>Ask ${esc(AM.name.split(' ')[0])} for changes</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
+      <div class="modal-body">
+        <div class="chips">${['Can you do a later sailing?', 'Can you include cargo insurance?', 'Can the price be lower for 3 containers?'].map(c => `<button class="pill" data-q="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+        <label class="form-field"><span>Message to ${esc(AM.name)}</span><textarea class="textarea" id="msg" placeholder="What should change?"></textarea></label>
+        <span class="caption">The quote stays valid while ${esc(AM.name.split(' ')[0])} reviews your message.</span>
+      </div>
+      <div class="modal-foot"><button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" id="sendMsg" disabled><i data-lucide="send"></i>Send message</button></div>`);
+    const ta = m.querySelector('#msg'), btn = m.querySelector('#sendMsg');
+    ta.addEventListener('input', () => { btn.disabled = !ta.value.trim(); });
+    m.querySelectorAll('[data-q]').forEach(c => c.addEventListener('click', () => { ta.value = c.dataset.q; btn.disabled = false; ta.focus(); }));
+    btn.addEventListener('click', () => { P.closeModal(); toast(`Sent to ${AM.name}. You’ll get a reply in the Inbox`, { note: 'Replies also arrive by WhatsApp and email' }); });
+    return;
+  }
+  if (e.target.closest('#decline')) {
+    const m = P.openModal(`
+      <div class="modal-head"><i data-lucide="x"></i><h2>Decline ${id}?</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
+      <div class="modal-body">
+        <span class="caption">Telling ${esc(T.short)} why helps them send a better quote next time.</span>
+        ${['The price is too high', 'The timing doesn’t work', 'We’re not shipping after all', 'Another reason'].map((r, i) => `<label class="radio-row"><input type="radio" name="why" ${i ? '' : 'checked'}>${r}</label>`).join('')}
+      </div>
+      <div class="modal-foot"><button class="btn-secondary" data-close>Back</button><button class="btn-primary" id="confirmDecline">Decline quote</button></div>`);
+    m.querySelector('#confirmDecline').addEventListener('click', () => {
+      const reason = [...m.querySelectorAll('input[name=why]')].findIndex(x => x.checked);
+      P.decide(id, 'declined', ['The price is too high', 'The timing doesn’t work', 'We’re not shipping after all', 'Another reason'][reason]);
+      P.closeModal(); q = P.quote(id); render(); toast(`Quote declined. ${T.short} has been told why`);
+    });
+  }
+});
+</script>
+</body>
+</html>

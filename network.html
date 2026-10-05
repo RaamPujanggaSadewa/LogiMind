@@ -120,12 +120,14 @@
   })();
 </script>
 <script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
 <script>
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
 const N = D.network;
 const params = new URLSearchParams(location.search);
+if (params.get('tab') === 'customers') location.replace('customers.html');
 const state = {
   tab: params.get('tab') || 'vendors',
   type: params.get('type') || 'all',
@@ -168,7 +170,7 @@ function directoryHTML() {
   if (state.empty) return emptyHTML();
   if (!list.length) return `<div class="empty" style="height:auto;padding:64px 24px"><div class="empty-tile"><i data-lucide="search-x"></i></div><h2 class="empty-title">No matches</h2><p class="empty-body">Try another type, status or search term.</p></div>`;
   return `<div class="card flush"><table class="table">
-    <thead><tr><th>Organization</th><th>${isV ? 'Service' : 'Type'}</th><th>Lanes</th>${isV ? '<th>Rating</th>' : '<th>Business</th>'}<th>On-time</th><th>Last job</th><th>Connection</th></tr></thead>
+    <thead><tr><th>Organization</th><th>${isV ? 'Service' : 'Type'}</th><th>Lanes</th>${isV ? '<th>Rating</th>' : '<th>Business</th>'}<th>On-time</th><th>Integration · availability</th><th>Connection</th></tr></thead>
     <tbody>${list.map(r => {
       const o = D.orgs[r.org];
       const [label, tone, icon] = STATUS[r.status];
@@ -178,7 +180,7 @@ function directoryHTML() {
         <td><div class="lanes" title="${esc(r.lanes.join(', '))}">${r.lanes.join(', ')}</div></td>
         <td>${isV ? (r.rating ? `<span class="rating"><i data-lucide="star"></i>${r.rating.toFixed(1)} <span class="sub">(${r.jobs})</span></span>` : '<span class="none">No jobs yet</span>') : `<span class="num">${r.spend || '—'}</span>`}</td>
         <td class="num">${r.onTime ? r.onTime + '%' : '<span class="none">—</span>'}</td>
-        <td>${r.last === 'Never' ? '<span class="none">Never</span>' : r.last}</td>
+        <td>${Staff.integHTML(r.org)}${availabilityLine(r.org)}</td>
         <td>${tag(label, tone, icon)}</td>
       </tr>`;
     }).join('')}</tbody></table></div>
@@ -195,6 +197,15 @@ function emptyHTML() {
     <button class="btn-primary" data-action="invite"><i data-lucide="user-plus"></i>${state.tab === 'customers' ? 'Invite your first customer' : 'Invite your first vendor'}</button>
     <button class="link-btn" style="margin-top:12px" data-soon="Import contacts (CSV)"><i data-lucide="file-up"></i>Or import from a spreadsheet</button>
   </div>`;
+}
+
+// Live availability from API-connected partners (only what they share with you)
+function availabilityLine(org) {
+  const k = Staff.integ(org), a = D.availability[org];
+  if (k === 'api' && a && a.days) { const [t, tr] = Staff.availabilityOn(org, 3); return `<div class="sub">${Staff.dayLabel(org, 3)}: ${t} of ${a.total} ${a.unit}${tr ? ` · 40ft trailers: ${tr}` : ''}</div>`; }
+  if (k === 'offline') return `<div class="sub" style="color:var(--danger)">Offline since ${a.offlineSince.split(', ')[1]} · RFQ instead</div>`;
+  if (k === 'pending') return '<div class="sub">Not connected yet</div>';
+  return '<div class="sub">RFQ by link</div>';
 }
 
 /* ---------------- invitations ---------------- */
@@ -229,7 +240,7 @@ function marketplaceHTML() {
   return `<div class="soon-wrap">
     <div class="empty-tile" style="margin-bottom:16px"><i data-lucide="store"></i></div>
     <h2 class="empty-title">${tag('Coming soon', 'neutral')} Marketplace</h2>
-    <p class="empty-body" style="max-width:500px">Find vetted vendors outside your network when yours are busy or you’re opening a new lane. Vendors choose to be listed. Your network stays private, and your customers never see the marketplace.</p>
+    <p class="empty-body" style="max-width:500px">Find vetted partners outside your network when yours are busy or you’re opening a new lane. Partners choose to be listed. <b style="font-weight:600;color:var(--text-secondary)">The marketplace lists partners only, never customers.</b> Your customers stay yours and never see it.</p>
     <div class="card soon-card">
       <div class="row-x"><span><b style="font-weight:500">Also ask marketplace vendors</b><div class="caption">An extra switch when you send an RFQ. “My network” stays the default.</div></span>
         <label class="switch disabled"><input type="checkbox" disabled>Off</label></div>
@@ -240,7 +251,7 @@ function marketplaceHTML() {
 }
 
 /* ---------------- render ---------------- */
-const TITLES = { vendors: 'Vendors', customers: 'Customers', invitations: 'Invitations', marketplace: 'Marketplace' };
+const TITLES = { vendors: 'Partners', customers: 'Customers', invitations: 'Invitations', marketplace: 'Marketplace' };
 function render() {
   $('#title').textContent = TITLES[state.tab] + (state.type !== 'all' && state.tab === 'vendors' ? ` · ${state.type}` : '');
   const list = state.tab === 'vendors' ? N.vendors : state.tab === 'customers' ? N.customers : null;
@@ -283,7 +294,8 @@ $('#scrim').addEventListener('click', e => { if (e.target.id === 'scrim' || e.ta
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 window.openInvite = function (role) {
-  inv = { step: 0, role: role || (state.tab === 'customers' ? 'customer' : 'vendor'), company: '', contact: '', via: 'whatsapp', address: '', services: [], lanes: [], message: '' };
+  if (role === 'customer') { location.href = 'customers.html?invite=1'; return; }
+  inv = { step: 0, role: 'vendor', company: '', contact: '', via: 'whatsapp', address: '', services: [], lanes: [], message: '' };
   drawInvite();
 };
 
@@ -294,9 +306,10 @@ function inviteSteps() {
   }).join('');
 }
 
+// Duplicate check against YOUR partners only — there is no global company search
 function existingMatch(name) {
   const n = name.trim().toLowerCase(); if (n.length < 3) return null;
-  return Object.entries(D.orgs).find(([k, o]) => o.name.toLowerCase().includes(n) || n.includes(o.name.toLowerCase().replace(/^(pt|cv|ppjk) /, '')));
+  return N.vendors.map(v => [v.org, D.orgs[v.org]]).find(([k, o]) => o.name.toLowerCase().includes(n) || n.includes(o.name.toLowerCase().replace(/^(pt|cv|ppjk) /, '')));
 }
 
 function stepWho() {
@@ -306,13 +319,13 @@ function stepWho() {
     <div class="form-field"><span>They are your</span>
       <div class="role-cards">
         <button class="role-card${inv.role === 'vendor' ? ' on' : ''}" data-role="vendor"><b><i data-lucide="truck"></i>Vendor</b><span>Quotes on your RFQs and does jobs: trucking, customs, freight, warehousing.</span></button>
-        <button class="role-card${inv.role === 'customer' ? ' on' : ''}" data-role="customer"><b><i data-lucide="building-2"></i>Customer</b><span>Sends you shipment requests and gets quotes and tracking in your branded portal.</span></button>
+        <a class="role-card" href="customers.html?invite=1"><b><i data-lucide="building-2"></i>Customer</b><span>Customers are invited from the Customers page, into your branded portal.</span></a>
       </div>
     </div>
     <div class="form-grid">
       <label class="form-field full"><span>Company name</span>
         <input class="text-input" id="f-company" value="${esc(inv.company)}" placeholder="e.g. PT Ekspres Logistik Timur" autocomplete="off">
-        ${m ? `<span class="hint warn" id="f-match"><i data-lucide="info"></i>${inNet ? `${m[1].name} is already in your network. <a class="link-btn" href="org.html?id=${m[0]}">Open profile</a>` : `${m[1].name} is on LogiMind. They’ll get a request to connect instead of a new account.`}</span>` : '<span class="hint" id="f-match"></span>'}
+        ${m ? `<span class="hint warn" id="f-match"><i data-lucide="info"></i>${m[1].name} is already in your network. <a class="link-btn" href="org.html?id=${m[0]}">Open profile</a></span>` : '<span class="hint" id="f-match"></span>'}
       </label>
       <label class="form-field"><span>Contact person</span><input class="text-input" id="f-contact" value="${esc(inv.contact)}" placeholder="Full name"></label>
       <div class="form-field"><span>Send invitation by</span>
@@ -406,7 +419,7 @@ function bindInvite() {
     if (!hit) { hint.className = 'hint'; hint.innerHTML = ''; return; }
     const inNet = [...N.vendors, ...N.customers].some(r => r.org === hit[0]);
     hint.className = 'hint warn';
-    hint.innerHTML = `<i data-lucide="info"></i>${inNet ? `${hit[1].name} is already in your network. <a class="link-btn" href="org.html?id=${hit[0]}">Open profile</a>` : `${hit[1].name} is on LogiMind. They’ll get a request to connect instead of a new account.`}`;
+    hint.innerHTML = `<i data-lucide="info"></i>${hit[1].name} is already in your network. <a class="link-btn" href="org.html?id=${hit[0]}">Open profile</a>`;
     icons();
   });
   f('f-contact', 'contact'); f('f-address', 'address');

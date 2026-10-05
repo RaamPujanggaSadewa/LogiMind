@@ -132,6 +132,7 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
 <script>
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
@@ -139,6 +140,11 @@ LM.mount();
 const R = D.request;
 const params = new URLSearchParams(location.search);
 const streaming = params.has('new');
+// A request is always for one of YOUR customers: ?customer=, the Home picker, or choose now
+let customerKey = params.get('customer');
+try { customerKey = customerKey || sessionStorage.getItem('lm.customer'); } catch (e) {}
+if (customerKey && !Staff.customer(customerKey)) customerKey = null;   // never another company's customer
+if (!customerKey && !streaming) customerKey = R.customer;
 let userPrompt = R.prompt;
 if (streaming) { try { userPrompt = sessionStorage.getItem('lm.prompt') || R.prompt; } catch (e) {} }
 
@@ -160,10 +166,10 @@ function renderStepper() { $('#stepper').innerHTML = LM.stepperHTML(state.sent ?
 
 /* ---------------- thread ---------------- */
 function userMsgHTML() {
-  const c = D.orgs[R.customer];
+  const c = D.orgs[customerKey];
   return `<div class="msg-user fade-in">
     <div class="bubble">${esc(userPrompt)}</div>
-    <span class="for-customer">For customer ${orgAvatar(R.customer)} ${c.name}</span>
+    <span class="for-customer">For customer ${orgAvatar(customerKey)} ${esc(c.name)} · <button class="link-btn" data-change-customer style="font-size:12px">Change</button> · created by ${esc(LM.account.name)} on their behalf</span>
   </div>`;
 }
 
@@ -513,7 +519,22 @@ function renderAll() {
     history.replaceState(null, '', 'chat.html');
   }, steps.length * T + 200);
 }
-renderAll();
+
+function start() {
+  const c = Staff.customer(customerKey);
+  if (c) { state.fields[0] = { ...state.fields[0], v: D.orgs[customerKey].name, p: customerKey === R.customer ? 'profile' : 'edited', note: customerKey === R.customer ? 'Matched to your customer' : 'Chosen by you' }; }
+  renderAll();
+}
+if (!customerKey) {
+  $('#thread').innerHTML = `<div class="empty" style="height:auto;padding:64px 24px"><div class="empty-tile"><i data-lucide="building-2"></i></div>
+    <h2 class="empty-title">Choose the customer first</h2><p class="empty-body">Requests are always created for one of your own customers.</p>
+    <button class="btn-secondary" data-change-customer><i data-lucide="building-2"></i>Choose customer</button></div>`;
+  icons();
+  Staff.pickCustomer(org => { customerKey = org; try { sessionStorage.setItem('lm.customer', org); } catch (e) {} start(); });
+} else start();
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-change-customer]')) Staff.pickCustomer(org => { customerKey = org; try { sessionStorage.setItem('lm.customer', org); } catch (e2) {} start(); });
+});
 </script>
 </body>
 </html>

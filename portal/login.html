@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  body { overflow: auto; }
+  .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 16px; }
+  .card.signin { width: 100%; max-width: 400px; padding: 32px 28px 24px; border-radius: var(--r-lg); box-shadow: var(--shadow-lift); border-top: 4px solid var(--primary); }
+  .logo { width: 44px; height: 44px; border-radius: var(--r-md); background: var(--primary); color: #fff; font-weight: 700; font-size: 15px; display: grid; place-items: center; margin-bottom: 16px; }
+  .company { font-size: 13px; color: var(--muted); margin-bottom: 2px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 20px; }
+  .fld { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .fld > span:not(.error) { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); display: flex; justify-content: space-between; }
+  .input { height: 40px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 12px; width: 100%; background: var(--surface); }
+  .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .input.invalid { border-color: var(--danger); }
+  .error { display: none; align-items: center; gap: 6px; font-size: 12.5px; color: var(--danger); }
+  .error.show { display: flex; }
+  .error svg.lucide { width: 13px; height: 13px; }
+  .forgot { font-size: 12.5px; color: var(--primary); font-weight: 500; }
+  .btn-primary { width: 100%; margin-top: 6px; }
+  .help { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--divider); font-size: 12.5px; color: var(--muted); }
+  .back { margin-top: 20px; font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .back:hover { color: var(--ink); text-decoration: underline; }
+  .back svg.lucide { width: 13px; height: 13px; }
+  .demo-hint { margin-top: 10px; font-size: 12px; color: var(--muted-soft); }
+  .demo-hint button { color: var(--muted); text-decoration: underline; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="card signin">
+    <div class="logo" id="logo"></div>
+    <div class="company" id="company"></div>
+    <h1 id="heading"></h1>
+    <form id="form" novalidate>
+      <label class="fld"><span>Email</span><input class="input" id="email" type="email" autocomplete="username"></label>
+      <label class="fld"><span>Password <a href="#" class="forgot" id="forgot">Forgot password?</a></span>
+        <input class="input" id="password" type="password" autocomplete="current-password">
+        <span class="error" id="error" role="alert"><i data-lucide="circle-alert"></i><span>Email or password is incorrect.</span></span>
+      </label>
+      <button class="btn-primary" type="submit"><i data-lucide="log-in"></i>Sign in</button>
+    </form>
+    <p class="help" id="help"></p>
+    <p class="powered">Powered by LogiMind</p>
+  </section>
+  <p class="demo-hint">Demo: <button id="fillDemo">fill in this company’s demo sender</button></p>
+  <a class="back" href="../login.html"><i data-lucide="arrow-left"></i>Back to demo accounts</a>
+</div>
+
+<script>window.LM_PUBLIC = true;</script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script>
+const { $, $$, icons, toast, data: D } = LM;
+// One portal per logistics company: ?tenant=samudralog, default Nusantara Cargo
+const key = new URLSearchParams(location.search).get('tenant');
+const T = D.tenants[key] || D.tenants.nusantara;
+
+// Brand this page as the logistics company
+const r = document.documentElement.style;
+r.setProperty('--primary', T.brand); r.setProperty('--primary-hover', T.brandDark); r.setProperty('--primary-pressed', T.brandDeep); r.setProperty('--primary-soft', T.brandSoft);
+document.title = `Sign in · ${T.short}`;
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="${T.brand}"/><text x="16" y="21" font-family="Arial" font-weight="700" font-size="13" fill="#fff" text-anchor="middle">${T.initials}</text></svg>`;
+document.head.insertAdjacentHTML('beforeend', `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(svg)}">`);
+$('#logo').textContent = T.initials;
+$('#company').textContent = T.name;
+$('#heading').textContent = `Sign in to your ${T.short} portal`;
+$('#help').textContent = `New here? Use the invitation link ${T.short} sent to your email. There is no public sign-up.`;
+
+// Only senders invited by THIS logistics company can sign in here.
+// A wrong company gets the same generic error, so no other company is revealed.
+const senders = D.accounts.filter(a => a.persona === 'sender' && a.tenant === T.key);
+
+function clearError() { $('#error').classList.remove('show'); $$('.input').forEach(i => i.classList.remove('invalid')); }
+$$('.input').forEach(i => i.addEventListener('input', clearError));
+$('#forgot').addEventListener('click', e => { e.preventDefault(); toast(`${T.short} will email you a reset link.`); });
+$('#fillDemo').addEventListener('click', () => { $('#email').value = senders[0].email; $('#password').value = D.demoPassword; clearError(); });
+
+$('#form').addEventListener('submit', e => {
+  e.preventDefault();
+  const a = senders.find(x => x.email === $('#email').value.trim().toLowerCase());
+  if (!a || $('#password').value !== D.demoPassword) {
+    $('#error').classList.add('show'); $('#password').classList.add('invalid');
+    return;
+  }
+  LM.signIn(a.id);
+  location.href = 'index.html';
+});
+icons();
+</script>
+</body>
+</html>

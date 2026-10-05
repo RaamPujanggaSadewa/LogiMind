@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New request</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .goes { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+  .mini-logo { width: 18px; height: 18px; border-radius: var(--r-xs); background: var(--primary); color: #fff; font-size: 8px; font-weight: 700; display: grid; place-items: center; }
+
+  .thread { max-width: 940px; }
+  .for-you { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+
+  /* Empty state */
+  .start { max-width: 720px; margin: 0 auto; padding: 72px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .start h2 { font-size: 18px; font-weight: 600; margin: 0; text-align: center; }
+  .start p { margin: 0 0 8px; text-align: center; color: var(--muted); }
+  .start .chips { justify-content: center; }
+
+  .fields { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* Route option cards */
+  .version-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: -4px 0 12px; }
+  .options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .options.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .opt { border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px; text-align: left; background: var(--surface); transition: border-color .12s, box-shadow .12s; }
+  .opt:hover { border-color: #CFCFD4; }
+  .opt.selected { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+  .opt.recommended { background: var(--primary-soft); border-color: transparent; }
+  .opt.recommended.selected { border-color: var(--primary); }
+  .opt .top { display: flex; align-items: center; justify-content: space-between; }
+  .opt .radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--disabled); background: var(--surface); }
+  .opt.selected .radio { border: 5px solid var(--primary); }
+  .opt .name { font-weight: 600; }
+  .opt .mode { font-size: 12.5px; color: var(--muted); margin-top: -8px; }
+  .opt .route-line .rl-name { font-size: 11.5px; }
+  .opt .route-line .rl-sub { display: none; }
+  .opt dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 13px; }
+  .opt dt { color: var(--muted); }
+  .opt dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .opt .cost { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--divider); }
+  .opt .cost b { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .opt .note { display: grid; grid-template-columns: 14px 1fr; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .opt .note svg.lucide { width: 13px; height: 13px; margin-top: 1px; }
+  .opt .note.warning svg { color: var(--warning); }
+  .opt .note.info svg { color: var(--info); }
+  .earlier { opacity: .6; }
+  .earlier .opt { pointer-events: none; }
+  .compare-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .compare-table th { text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--divider); }
+  .compare-table td { padding: 8px; border-bottom: 1px solid var(--divider); }
+  .compare-table .was { color: var(--muted); text-decoration: line-through; margin-right: 6px; }
+  .compare-table .up { color: var(--danger); font-size: 12px; margin-left: 4px; }
+  .compare-table .down { color: var(--success); font-size: 12px; margin-left: 4px; }
+  .card-foot-note { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--divider); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  /* Documents */
+  .docs2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+  .docs2 h4 { margin: 0 0 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .docs2 h4 svg.lucide { width: 14px; height: 14px; }
+  .drow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 9px 0; border-top: 1px solid var(--divider); align-items: start; }
+  .drow:first-of-type { border-top: 0; }
+  .drow .n { font-weight: 500; font-size: 13.5px; }
+  .drow .due { font-size: 12px; color: var(--muted); }
+  .drow .check { font-size: 12px; margin-top: 3px; display: flex; gap: 5px; align-items: flex-start; }
+  .drow .check svg.lucide { width: 12px; height: 12px; margin-top: 2px; flex: none; }
+  .drow .check.ready { color: var(--success); } .drow .check.fix { color: var(--danger); } .drow .check.checking { color: var(--info); }
+  .drow .acts { display: flex; align-items: center; gap: 6px; }
+  .they { background: var(--row-hover); border-radius: var(--r-md); padding: 10px 12px; }
+  .they .drow { border-color: var(--border); }
+
+  .foot { flex: none; padding: 0 24px 14px; }
+  .foot-inner { max-width: 892px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+  .whatif { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .whatif .caption { margin-right: 2px; }
+  .foot .composer { min-height: 60px; padding: 10px 10px 8px 16px; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="ask">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <h1 id="pageTitle">New request</h1>
+        <span class="tag neutral" id="statusTag" style="display:none">Draft</span>
+        <span class="goes"><span class="mini-logo" id="miniLogo"></span><span id="goesTo"></span></span>
+      </header>
+      <div class="content" id="scroll"><div id="stage"></div></div>
+      <div class="foot" id="foot" style="display:none">
+        <div class="foot-inner">
+          <div id="actionBar"></div>
+          <div class="whatif" id="whatif"></div>
+          <form class="composer" data-composer id="followUp">
+            <textarea rows="1" placeholder="Add a detail for your account manager, e.g. “we can load on Saturday too”" aria-label="Message"></textarea>
+            <div class="composer-actions">
+              <div class="left"><button type="button" class="attach-btn"><i data-lucide="paperclip"></i>Attach</button></div>
+              <button type="submit" class="btn-primary send-btn neutral" title="Send" disabled><i data-lucide="arrow-up"></i></button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../assets/data.js"></script>
+<script>
+  // Highlight the saved chat in the sidebar when opened from there
+  (function () { const c = new URLSearchParams(location.search).get('chat'); document.querySelector('.app').dataset.row = c != null ? 'chat-' + c : 'ask'; })();
+</script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast, data: D } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T, SC = S.scenario;
+P.title('New request');
+$('#miniLogo').textContent = T.initials;
+$('#goesTo').innerHTML = `Goes to <b style="font-weight:600;color:var(--text-secondary)">${esc(T.short)}</b> only`;
+
+const params = new URLSearchParams(location.search);
+const q = params.get('q');
+const saved = params.has('chat');
+
+/* ---------------- state ---------------- */
+const state = {
+  prompt: q || SC.prompt,
+  versions: [],            // [{ n, params, label, options }]
+  selected: SC.options[0].id,
+  compare: false,
+  docs: SC.docsYou.map(d => ({ ...d })),
+  notes: [],
+};
+
+/* ---------------- dates & money ---------------- */
+const DAY = 864e5;
+const d0 = new Date(SC.baseDepart + 'T00:00:00');
+const fmtDay = (d) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+function windowLabel(a, b) {
+  const x = new Date(d0.getTime() + a * DAY), y = new Date(d0.getTime() + b * DAY);
+  const sameMonth = x.getMonth() === y.getMonth();
+  const left = x.toLocaleDateString('en-GB', sameMonth ? { weekday: 'short', day: 'numeric' } : { weekday: 'short', day: 'numeric', month: 'short' });
+  return `${left} – ${fmtDay(y)}`;
+}
+const round10 = (n) => Math.round(n / 10) * 10;
+
+/* ---------------- options for a set of what-if parameters ---------------- */
+function unitsFor(p) { return SC.units + p.extra * (SC.addStep || 1); }
+function compute(p) {
+  const base = p.air ? SC.airOptions : SC.options;
+  const units = unitsFor(p);
+  // P.priceFactor() applies the logistics company's own margin rules (Settings → Pricing)
+  const scale = units / SC.units * Math.pow(0.97, p.week) * P.priceFactor();
+  const ins = p.incoterm === 'CIF' ? round10(SC.cargoValue * units / SC.units * 0.003) : 0;
+  return base.map(o => {
+    const notes = [...o.notes];
+    if (ins) notes.push(['info', `Includes cargo insurance to ${SC.lane[1]} (CIF): about ${P.money(ins)}.`]);
+    if (p.week) notes.push(['info', `Departing ${p.week} week${p.week > 1 ? 's' : ''} later is outside the peak, so rates are a little lower.`]);
+    return { ...o, notes, price: [round10(o.price[0] * scale + ins), round10(o.price[1] * scale + ins)],
+      windowLabel: windowLabel(o.window[0] + 7 * p.week, o.window[1] + 7 * p.week) };
+  });
+}
+const SHOW_PORTS = P.SET.showTransship;
+const CONFIRMED_ONLY = P.SET.estimatePolicy === 'confirmed';
+const priceHTML = (r) => CONFIRMED_ONLY ? '<span class="caption">Price in your confirmed quote</span>' : `<b>${P.range(r)}</b>`;
+function optionName(o) {
+  const air = o.legs.includes('plane');
+  if (o.nodes.length === 2) return air ? 'Air · direct' : 'Direct';
+  if (!SHOW_PORTS) return air ? 'Air · 1 stop' : '1 transshipment';
+  return `${air ? 'Air via' : 'Via'} ${o.nodes[1].replace(/ \(.*\)$/, '')}`;
+}
+function paramsLabel(p) {
+  const bits = [SC.unitFormat.replace('{n}', unitsFor(p))];
+  if (p.week) bits.push(`${p.week} week${p.week > 1 ? 's' : ''} later`);
+  if (p.air) bits.push('Air freight');
+  bits.push(p.incoterm);
+  return bits;
+}
+function addVersion(p, label) {
+  const options = compute(p);
+  if (!options.find(o => o.id === state.selected)) state.selected = options[0].id;
+  state.versions.push({ n: state.versions.length + 1, params: p, label, options });
+}
+
+/* ---------------- blocks ---------------- */
+const TAG_TONE = { Recommended: 'brand', Fastest: 'info', Cheapest: 'success' };
+const PROV = { prompt: ['From your message', 'message-square', ''], profile: ['From your company profile', 'building-2', ''], ai: ['AI guess', 'sparkles', 'ai'] };
+const estimateNote = () => `<span class="estimate-note"><i data-lucide="info"></i>${esc(P.estimateNoteText())}</span>`;
+
+function summaryHTML() {
+  return `<section class="card fade-in">
+    <div class="card-head"><i data-lucide="clipboard-list"></i><h3>Your request</h3><div class="right"><span class="ai-label"><i data-lucide="sparkles"></i>AI-extracted · click any value to edit</span></div></div>
+    <div class="fields">${SC.summary.map(([k, v, p], i) => `<label class="field">
+      <span class="k">${k}<span class="prov ${PROV[p][2]}" title="${PROV[p][0]}"><i data-lucide="${PROV[p][1]}"></i></span></span>
+      <input value="${esc(v)}" data-sum="${i}" aria-label="${k}"></label>`).join('')}</div>
+  </section>`;
+}
+
+function optionCard(o, v, live) {
+  const sel = live && o.id === state.selected;
+  return `<button class="opt${o.tag === 'Recommended' ? ' recommended' : ''}${sel ? ' selected' : ''}" ${live ? `data-opt="${o.id}"` : 'tabindex="-1"'}>
+    <div class="top">${tag(o.tag, TAG_TONE[o.tag] || 'neutral', o.tag === 'Recommended' ? 'star' : o.tag === 'Fastest' ? 'zap' : 'piggy-bank')}<span class="radio"></span></div>
+    <div class="name">${optionName(o)}</div>
+    <div class="mode">${o.label}</div>
+    ${P.carrierFor(o.id) ? `<div class="mode">Carrier: ${esc(P.carrierFor(o.id))}</div>` : ''}
+    ${P.routeLine({ nodes: o.nodes.map((n, i) => !SHOW_PORTS && i > 0 && i < o.nodes.length - 1 ? 'Transshipment' : n.replace(/ \(.*\)$/, '')), legs: o.legs, at: 0 }, { showPosition: false })}
+    <dl><dt>Total transit</dt><dd>${o.transit} days</dd><dt>Departure</dt><dd>${o.windowLabel}</dd></dl>
+    ${o.notes.map(([tone, t]) => `<div class="note ${tone}"><i data-lucide="${tone === 'warning' ? 'triangle-alert' : 'info'}"></i><span>${t}</span></div>`).join('')}
+    <div class="cost"><span class="price-label">${CONFIRMED_ONLY ? '' : P.SET.estimatePolicy === 'pending' ? tag('Estimate · pending review', 'warning') : tag('Estimate', 'neutral')}</span>${priceHTML(o.price)}</div>
+  </button>`;
+}
+
+function compareHTML(v) {
+  const prev = state.versions[v.n - 2];
+  if (!prev) return '';
+  const rows = v.options.map(o => {
+    const po = prev.options.find(x => x.id === o.id);
+    const mid = (r) => (r[0] + r[1]) / 2;
+    const delta = po ? Math.round((mid(o.price) / mid(po.price) - 1) * 100) : null;
+    return `<tr><td><b style="font-weight:500">${optionName(o)}</b></td>
+      <td>${po && po.transit !== o.transit ? `<span class="was">${po.transit} d</span>` : ''}${o.transit} days</td>
+      <td>${po && po.windowLabel !== o.windowLabel ? `<span class="was">${po.windowLabel}</span>` : ''}${o.windowLabel}</td>
+      <td>${CONFIRMED_ONLY ? '<span class="caption">In your quote</span>' : `${po ? `<span class="was">${P.range(po.price)}</span>` : '<span class="caption">New option</span> '}${P.range(o.price)}${delta ? `<span class="${delta > 0 ? 'up' : 'down'}">${delta > 0 ? '+' : ''}${delta}%</span>` : ''}`}</td></tr>`;
+  }).join('');
+  return `<table class="compare-table"><thead><tr><th>Option</th><th>Transit</th><th>Departure</th><th>Estimated cost (version ${prev.n} → ${v.n})</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function versionHTML(v, animate = true) {
+  const live = v.n === state.versions.length;
+  return `<section class="card${animate ? ' fade-in' : ''}${live ? '' : ' earlier'}" data-version="${v.n}">
+    <div class="card-head"><i data-lucide="route"></i><h3>${live ? 'Ways to ship it' : 'Earlier options'}</h3><span class="caption">Version ${v.n}${v.label ? ` · ${esc(v.label)}` : ''}</span>
+      <div class="right">${live && v.n > 1 ? `<label class="switch"><input type="checkbox" data-compare ${state.compare ? 'checked' : ''}>Compare with version ${v.n - 1}</label>` : ''}${!live ? tag('Superseded', 'neutral') : ''}</div></div>
+    <div class="version-meta">${paramsLabel(v.params).map(b => `<span class="tag neutral">${esc(b)}</span>`).join('')}<span class="caption">${P.SET.showCarriers ? `Carriers shown by ${esc(T.short)}.` : 'Carrier names are shared once your quote is confirmed.'}</span></div>
+    <div class="options${v.options.length === 2 ? ' two' : ''}">${v.options.map(o => optionCard(o, v, live)).join('')}</div>
+    ${live && state.compare ? compareHTML(v) : ''}
+    ${live ? `<div class="card-foot-note">${estimateNote()}</div>` : ''}
+  </section>`;
+}
+
+const DOC_ICON = { ready: 'circle-check', fix: 'circle-x', checking: 'loader-circle' };
+function docsHTML(animate = true) {
+  return `<section class="card${animate ? ' fade-in' : ''}" id="docsCard">
+    <div class="card-head"><i data-lucide="files"></i><h3>Documents for this shipment</h3>
+      <div class="right"><span class="ai-label"><i data-lucide="sparkles"></i>Uploads are checked by AI first</span></div></div>
+    <div class="docs2">
+      <div>
+        <h4><i data-lucide="user-round"></i>You prepare</h4>
+        ${state.docs.map((d, i) => `<div class="drow">
+          <div><div class="n">${esc(d.name)}</div>${d.due ? `<div class="due">Due ${d.due}</div>` : ''}
+            ${d.check ? `<div class="check ${d.status}"><i data-lucide="${DOC_ICON[d.status] || 'info'}" ${d.status === 'checking' ? 'class="spin"' : ''}></i><span>${esc(d.check)}</span></div>` : d.note ? `<div class="due">${esc(d.note)}</div>` : ''}</div>
+          <div class="acts">${P.docTag(d.status)}${d.status !== 'ready' && d.status !== 'checking' ? `<button class="btn-secondary" data-upload="${i}"><i data-lucide="upload"></i>${d.status === 'fix' ? 'Upload again' : 'Upload'}</button>` : ''}</div>
+        </div>`).join('')}
+      </div>
+      <div class="they">
+        <h4><i data-lucide="building-2"></i>${esc(T.short)} handles</h4>
+        ${SC.docsThey.map(([n, by]) => `<div class="drow"><div><div class="n">${esc(n)}</div><div class="due">${by}</div></div><div class="acts">${tag('Handled for you', 'neutral')}</div></div>`).join('')}
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ---------------- thread rendering ---------------- */
+function userMsg(text) {
+  return `<div class="msg-user fade-in"><div class="bubble">${esc(text)}</div><span class="for-you"><span class="mini-logo">${T.initials}</span>To ${esc(T.short)}</span></div>`;
+}
+function aiMsg(inner, id) {
+  return `<div class="msg-ai fade-in"><span class="ai-mark"><i data-lucide="sparkles"></i></span><div class="ai-body"${id ? ` id="${id}"` : ''}>${inner}</div></div>`;
+}
+function thinking(steps) {
+  return `<div class="thinking">${steps.map((s, i) => `<div class="step" data-i="${i}" style="display:none"><i data-lucide="loader-circle" class="spin"></i>${s}</div>`).join('')}</div>`;
+}
+function runSteps(body, steps, done, T0 = 380) {
+  body.innerHTML = thinking(steps); icons();
+  steps.forEach((_, i) => setTimeout(() => {
+    const prev = body.querySelector(`.step[data-i="${i - 1}"]`);
+    if (prev) { prev.classList.add('done'); prev.querySelector('svg').outerHTML = '<i data-lucide="circle-check"></i>'; }
+    body.querySelector(`.step[data-i="${i}"]`).style.display = 'flex'; icons();
+  }, i * T0));
+  setTimeout(done, steps.length * T0 + 150);
+}
+function scrollBottom() { const s = $('#scroll'); s.scrollTo({ top: s.scrollHeight, behavior: 'smooth' }); }
+
+function refreshVersions() {
+  $$('[data-version]').forEach(el => { const v = state.versions[+el.dataset.version - 1]; el.outerHTML = versionHTML(v, false); });
+  renderActionBar(); icons();
+}
+function refreshDocs() { $('#docsCard').outerHTML = docsHTML(false); icons(); }
+
+/* ---------------- action bar + what-if chips ---------------- */
+function current() { return state.versions[state.versions.length - 1]; }
+function renderActionBar() {
+  const v = current(); if (!v) return;
+  const o = v.options.find(x => x.id === state.selected);
+  $('#actionBar').innerHTML = `<div class="action-bar">
+    <div class="summary"><b>${optionName(o)} · ${o.transit} days${CONFIRMED_ONLY ? '' : ` · ${P.range(o.price)}`}</b> <span class="muted">${CONFIRMED_ONLY ? 'price confirmed in your quote' : 'estimate'}</span>
+      <div class="caption"><i data-lucide="user-round-check"></i>${esc(S.accountManager.name)} at ${esc(T.short)} confirms the final quote, usually within 1 business day.</div></div>
+    <button class="btn-primary" id="submit"><i data-lucide="send"></i>Send request to ${esc(T.short)}</button>
+  </div>`;
+  const p = v.params;
+  $('#whatif').innerHTML = `<span class="caption">What if…</span>
+    <button class="pill" data-whatif="week"><i data-lucide="calendar-plus"></i>Ship a week later</button>
+    <button class="pill" data-whatif="add"><i data-lucide="plus"></i>${SC.addLabel}</button>
+    <button class="pill" data-whatif="air"><i data-lucide="${p.air ? 'ship' : 'plane'}"></i>${p.air ? 'Back to sea freight' : 'Try air freight'}</button>
+    <button class="pill" data-whatif="incoterm"><i data-lucide="repeat"></i>Change Incoterm (${p.incoterm === 'FOB' ? 'FOB → CIF' : 'CIF → FOB'})</button>`;
+  icons();
+}
+
+const WHATIF = {
+  week: (p) => [{ ...p, week: p.week + 1 }, 'What if we ship a week later?', 'a week later'],
+  add: (p) => [{ ...p, extra: p.extra + 1 }, `What if we ${SC.addLabel.toLowerCase()}?`, SC.addLabel.toLowerCase().replace(/^add /, '+ ')],
+  air: (p) => [{ ...p, air: !p.air }, p.air ? 'Go back to sea freight, please.' : 'What if we try air freight?', p.air ? 'sea freight' : 'air freight'],
+  incoterm: (p) => { const inc = p.incoterm === 'FOB' ? 'CIF' : 'FOB'; return [{ ...p, incoterm: inc }, `What if we sell ${inc} instead of ${p.incoterm}?`, inc]; },
+};
+function runWhatIf(kind) {
+  const [np, question, label] = WHATIF[kind](current().params);
+  state.compare = true;
+  $('#thread').insertAdjacentHTML('beforeend', userMsg(question) + aiMsg('', 'wi' + Date.now()));
+  const body = $$('#thread .ai-body').pop();
+  icons(); scrollBottom();
+  runSteps(body, ['Re-checking sailings and space', 'Updating the estimate'], () => {
+    const before = current();
+    addVersion(np, label);
+    // older version cards become "Earlier options"
+    $$('[data-version]').forEach(el => { el.outerHTML = versionHTML(state.versions[+el.dataset.version - 1], false); });
+    const v = current();
+    const a = before.options.find(o => o.id === state.selected) || before.options[0];
+    const b = v.options.find(o => o.id === state.selected);
+    body.innerHTML = `<p class="fade-in">${np.air && !before.params.air ? 'By air it arrives much sooner, but for this volume it costs far more than sea freight.' : CONFIRMED_ONLY ? 'Here are the updated options. Switch on “Compare” to see every change.' : `Here are the updated options. Your selection changes from <b>${P.range(a.price)}</b> to <b>${P.range(b.price)}</b>. Switch on “Compare” to see every change.`}</p>` + versionHTML(v);
+    renderActionBar(); icons(); scrollBottom();
+  });
+}
+
+/* ---------------- first answer ---------------- */
+function answer(instant) {
+  addVersion({ week: 0, extra: 0, air: false, incoterm: 'FOB' }, '');
+  const mismatch = q && !new RegExp(SC.keyword, 'i').test(q);
+  const blocks = [
+    () => `<p class="fade-in">Here’s your request, three ways to ship it, and the documents you’ll need. Prices are estimates from ${esc(T.short)}. Your account manager confirms the final quote.</p>${mismatch ? `<p class="caption" style="margin:0">Prototype note: this demo always plans your usual ${esc(SC.goods)} shipment.</p>` : ''}`,
+    summaryHTML,
+    () => versionHTML(state.versions[0]),
+    docsHTML,
+  ];
+  const body = $('#first');
+  const finish = () => { $('#foot').style.display = ''; $('#statusTag').style.display = ''; renderActionBar(); };
+  if (instant) { body.innerHTML = blocks.map(b => b()).join(''); icons(); finish(); return; }
+  runSteps(body, ['Reading your request', `Checking the rules for ${SC.lane[0]} → ${SC.lane[1]}`, `Finding routes ${T.short} offers`, 'Estimating costs and documents'], () => {
+    body.innerHTML = '';
+    blocks.forEach((b, i) => setTimeout(() => {
+      body.insertAdjacentHTML('beforeend', b()); icons();
+      if (i === blocks.length - 1) finish();
+    }, i * 300));
+  });
+}
+
+function startThread(text, instant) {
+  state.prompt = text;
+  $('#pageTitle').textContent = 'New request';
+  $('#stage').innerHTML = `<div class="thread" id="thread">${userMsg(text)}${aiMsg('', 'first')}</div>`;
+  icons();
+  answer(instant);
+}
+
+/* ---------------- empty state ---------------- */
+function startScreen() {
+  $('#stage').innerHTML = `<div class="start">
+    <div class="empty-tile" style="align-self:center;margin-bottom:8px"><i data-lucide="ship"></i></div>
+    <h2>What do you want to ship?</h2>
+    <p>Describe it like a message to ${esc(T.short)}. You’ll get route options, an estimate and a document list.</p>
+    <form class="composer" data-composer id="startForm">
+      <textarea rows="2" placeholder="e.g. ${esc(SC.prompt)}" aria-label="Describe your shipment"></textarea>
+      <div class="composer-actions"><div class="left"><button type="button" class="attach-btn"><i data-lucide="paperclip"></i>Attach</button></div>
+        <button type="submit" class="btn-primary send-btn" title="Send" disabled><i data-lucide="arrow-up"></i></button></div>
+    </form>
+    <div class="chips">${S.suggestions.slice(0, 2).map(([i, l, f]) => `<button class="pill" data-fill="${esc(f)}"><i data-lucide="${i}"></i>${l}</button>`).join('')}</div>
+  </div>`;
+  icons();
+  const c = LM.bindComposer($('#startForm'), text => startThread(text, false));
+  $$('[data-fill]').forEach(b => b.addEventListener('click', () => c.fill(b.dataset.fill)));
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-opt]');
+  if (o) { state.selected = o.dataset.opt; refreshVersions(); return; }
+  const w = e.target.closest('[data-whatif]');
+  if (w) { runWhatIf(w.dataset.whatif); return; }
+  const u = e.target.closest('[data-upload]');
+  if (u) {
+    const d = state.docs[+u.dataset.upload];
+    P.upload(d.name, SC.checks, res => {
+      d.status = res.status; d.check = res.note; refreshDocs();
+      if (res.status === 'fix') toast(`${d.name} needs a fix`);
+      if (res.status === 'ready') toast(`${d.name} passed the AI check`);
+    });
+    return;
+  }
+  if (e.target.closest('#submit')) submit();
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('[data-compare]')) { state.compare = e.target.checked; refreshVersions(); }
+  if (e.target.matches('[data-sum]')) { e.target.closest('.field').querySelector('.prov').outerHTML = '<span class="prov edited"><i data-lucide="pencil"></i></span>'; icons(); toast('Updated. Your account manager will see the change'); }
+});
+
+LM.bindComposer($('#followUp'), text => {
+  state.notes.push(text);
+  $('#thread').insertAdjacentHTML('beforeend', userMsg(text) + aiMsg(`<p class="fade-in">Noted. I’ll add this to your request so ${esc(S.accountManager.name)} sees it when preparing your quote.</p>`));
+  icons(); scrollBottom();
+});
+
+function submit() {
+  const v = current();
+  const o = v.options.find(x => x.id === state.selected);
+  const units = unitsFor(v.params);
+  const id = P.nextRequestId();
+  P.addRequest({
+    id, status: 'sent', created: 'Just now', fresh: true,
+    title: `${SC.unitFormat.replace('{n}', units)} ${SC.goods} · ${SC.lane[0]} → ${SC.lane[1]}`,
+    when: v.params.week ? `${SC.when}, +${v.params.week} week${v.params.week > 1 ? 's' : ''}` : SC.when,
+    option: `${optionName(o)} · ${o.transit} days`, estimate: o.price, window: o.windowLabel,
+    incoterm: v.params.incoterm, mode: v.params.air ? 'Air' : 'Sea',
+    docsReady: state.docs.filter(d => d.status === 'ready').length, docsTotal: state.docs.length,
+    notes: state.notes,
+    // for the logistics company's staff view
+    prompt: state.prompt, laneKey: SC.lane.map(c => ({ Surabaya: 'SUB', Shanghai: 'SHA', Busan: 'BUS', Semarang: 'SRG', Dubai: 'DXB' })[c] || c.slice(0, 3).toUpperCase()).join('-'),
+    optionId: o.id, route: o.nodes.map(n => n.replace(/ \(.*\)$/, '')), transit: o.transit,
+    docs: state.docs.map(d => [d.name, d.status]),
+  });
+  location.href = `request.html?id=${encodeURIComponent(id)}&sent=1`;
+}
+
+/* ---------------- boot ---------------- */
+if (q) startThread(q, false);
+else if (saved) startThread(SC.prompt, true);
+else startScreen();
+</script>
+</body>
+</html>

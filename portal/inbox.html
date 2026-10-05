@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .list { padding: 4px 16px 24px; max-width: 980px; }
+  .item { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 8px; border-bottom: 1px solid var(--divider); border-radius: var(--r-sm); }
+  .item:hover { background: var(--row-hover); }
+  .item .t { font-weight: 500; }
+  .item .m { font-size: 12.5px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .item .ch { display: inline-flex; align-items: center; gap: 4px; color: var(--muted-soft); }
+  .item .ch svg.lucide { width: 11px; height: 11px; }
+  .item .time { font-size: 12px; color: var(--muted-soft); white-space: nowrap; text-align: right; }
+  .item.read .t { font-weight: 400; color: var(--text-secondary); }
+  .channels { display: flex; align-items: center; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="home" data-row="inbox">
+  <div class="workspace">
+    <main class="main">
+      <div class="tab-bar" role="tablist">
+        <button class="tab active" data-tab="action"><i data-lucide="bell"></i>Needs action<span class="count" id="c-action"></span></button>
+        <button class="tab" data-tab="updates"><i data-lucide="activity"></i>Updates<span class="count" id="c-updates"></span></button>
+        <button class="tab" data-tab="all"><i data-lucide="inbox"></i>All</button>
+      </div>
+      <div class="toolbar">
+        <span class="caption" id="from"></span>
+        <div class="right channels"><span class="caption">Also notify me by</span>
+          <button class="pill selected" data-ch>WhatsApp</button><button class="pill selected" data-ch>Email</button></div>
+      </div>
+      <div class="content"><div class="list" id="list"></div></div>
+    </main>
+  </div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, icons, toast } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T;
+P.title('Inbox');
+$('#from').textContent = `Updates from ${T.short} about your requests and shipments`;
+let tab = 'action';
+
+function render() {
+  const list = S.inbox.filter(n => tab === 'all' || (tab === 'action' ? n.attention : !n.attention));
+  $('#c-action').textContent = S.inbox.filter(n => n.attention).length;
+  $('#c-updates').textContent = S.inbox.filter(n => !n.attention).length;
+  $('#list').innerHTML = list.length ? list.map(n => {
+    const [icon, tone] = P.NOTIF[n.type];
+    return `<a class="item${n.attention ? '' : ' read'}" href="${n.href}">
+      <span class="icon-tile tone-${tone}"><i data-lucide="${icon}"></i></span>
+      <div><div class="t">${esc(n.title)}</div><div class="m"><span>${esc(n.meta)}</span><span class="ch"><i data-lucide="message-circle"></i>${P.NOTE}</span></div></div>
+      <span class="time">${n.time}</span></a>`;
+  }).join('') : `<div class="empty" style="height:auto;padding:64px"><div class="empty-tile"><i data-lucide="inbox"></i></div><h2 class="empty-title">All caught up</h2><p class="empty-body">New updates from ${esc(T.short)} appear here.</p></div>`;
+  icons();
+}
+$$('.tab').forEach(t => t.addEventListener('click', () => { $$('.tab').forEach(x => x.classList.toggle('active', x === t)); tab = t.dataset.tab; render(); }));
+$$('[data-ch]').forEach(b => b.addEventListener('click', () => { b.classList.toggle('selected'); toast(`${b.textContent} notifications ${b.classList.contains('selected') ? 'on' : 'off'}`); }));
+render();
+</script>
+</body>
+</html>

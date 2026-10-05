@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer request · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .title-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-head h1, .page-head .caption { white-space: nowrap; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 20px 32px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
+  @media (max-width: 1240px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .typed { display: grid; grid-template-columns: 32px 1fr; gap: 10px; }
+  .typed .user-avatar { width: 32px; height: 32px; font-size: 12px; }
+  .typed .bubble { background: var(--nav-active); padding: 10px 14px; border-radius: var(--r-lg); border-top-left-radius: var(--r-xs); font-size: 14px; }
+  .typed .who { font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+  .kv { display: grid; grid-template-columns: 150px 1fr; gap: 8px 16px; font-size: 13.5px; margin: 0; }
+  .kv dt { color: var(--muted); } .kv dd { margin: 0; }
+  .docs li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; border-top: 1px solid var(--divider); font-size: 13.5px; }
+  .docs li:first-child { border-top: 0; }
+  .docs { list-style: none; margin: 0; padding: 0; }
+  .events { list-style: none; margin: 0; padding: 0; }
+  .events li { display: grid; grid-template-columns: 20px 1fr auto; gap: 10px; padding: 7px 0; border-top: 1px solid var(--divider); font-size: 13px; }
+  .events li:first-child { border-top: 0; }
+  .events svg.lucide { width: 14px; height: 14px; color: var(--muted); margin-top: 2px; }
+  .events time { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  .plan { background: var(--primary-soft); border-color: transparent; }
+  .leg { background: var(--surface); border: 1px solid rgba(91,61,224,.14); border-radius: var(--r-md); padding: 12px 14px; margin-top: 10px; }
+  .leg-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .leg-top b { font-weight: 600; }
+  .leg-top .route { font-size: 12.5px; color: var(--muted); }
+  .leg-top .right { margin-left: auto; }
+  .pr { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--divider); }
+  .pr:first-of-type { border-top: 0; }
+  .pr .n { font-weight: 500; font-size: 13.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pr .x { font-size: 12px; color: var(--muted); }
+  .pr .c { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; white-space: nowrap; }
+  .pr.picked .n::after { content: "Suggested"; font-size: 11px; font-weight: 600; color: var(--primary); background: var(--primary-soft); border-radius: 4px; padding: 1px 5px; }
+  .build { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13.5px; }
+  .build td { padding: 6px 0; border-bottom: 1px solid var(--divider); }
+  .build td:last-child { text-align: right; }
+  .build tr.t td { font-weight: 600; border-bottom: 0; border-top: 1.5px solid var(--ink); padding-top: 9px; }
+  .risks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .risks li { display: grid; grid-template-columns: 16px 1fr; gap: 8px; font-size: 13px; }
+  .risks svg.lucide { width: 14px; height: 14px; margin-top: 2px; }
+  .risks .warning svg { color: var(--warning); } .risks .danger svg { color: var(--danger); } .risks .info svg { color: var(--info); }
+  .foot { flex: none; padding: 0 24px 16px; }
+  .foot-inner { max-width: 1176px; margin: 0 auto; }
+  .fld { display: flex; flex-direction: column; gap: 6px; }
+  .fld > span { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .ta { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; min-height: 84px; resize: vertical; line-height: 1.45; }
+  .ta:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="home" data-row="inbox">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><div class="title-wrap"><h1 class="num" id="rid">Request</h1><span class="caption" id="rtitle"></span><span id="rtag"></span><span id="rtimer"></span></div>
+        <div class="right" id="headRight"></div></header>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+      <div class="foot"><div class="foot-inner" id="actionBar"></div></div>
+    </main>
+  </div>
+</div>
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast, db, data: D } = LM;
+LM.mount();
+const id = new URLSearchParams(location.search).get('id');
+let r = Staff.request(id);   // only this tenant's requests
+const me = LM.account;
+
+// First look by staff moves a new request into review (the customer sees "Under review")
+if (r && r.status === 'new') { Staff.touch(id, s => { s.opened = true; s.openedAt = Date.now(); }); r = Staff.request(id); }
+
+function planFor() {
+  const plan = D.requestPlans[r.lane] || D.requestPlans['SUB-SHA'];
+  const bookings = (db.read().bookings || []).filter(b => b.request === id);
+  return plan.legs.map(l => {
+    const pick = l.partners.find(p => Staff.integ(p.org) === 'api') || l.partners.find(p => Staff.integ(p.org) !== 'offline') || l.partners[0];
+    const booked = bookings.find(b => b.service === l.service);
+    return { ...l, pick, booked };
+  });
+}
+function marginFor() {
+  const rules = db.settings().margins, org = D.orgs[r.org].name;
+  return (rules.find(m => m.kind === '%' && m.scope === org) || rules.find(m => m.kind === '%' && /ID → CN/.test(m.scope) && r.lane === 'SUB-SHA') || rules.find(m => m.scope === 'All lanes')).value;
+}
+
+function leftHTML() {
+  const sender = D.accounts.find(a => a.id === r.sender);
+  return `<section class="card">
+      <div class="card-head"><i data-lucide="message-square-quote"></i><h3>What the customer typed</h3></div>
+      <div class="typed"><span class="user-avatar" style="background:${LM.AVATAR_COLORS[sender ? sender.color : 0]}">${LM.initialsOf(sender ? sender.name : 'C')}</span>
+        <div><div class="who">${esc(sender ? sender.name : 'Customer')} · ${esc(D.orgs[r.org].name)} · via the ${esc(Staff.T.short)} portal</div><div class="bubble">${esc(r.prompt)}</div></div></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><i data-lucide="clipboard-list"></i><h3>Structured request</h3><div class="right"><span class="ai-label"><i data-lucide="sparkles"></i>AI-extracted</span></div></div>
+      <dl class="kv">
+        <dt>Shipment</dt><dd>${esc(r.title)}</dd>
+        <dt>Timing</dt><dd>${esc(r.when)}${r.window ? ` · departs ${esc(r.window)}` : ''}</dd>
+        ${r.incoterm ? `<dt>Incoterm</dt><dd>${esc(r.incoterm)}</dd>` : ''}
+        <dt>Option they picked</dt><dd>${esc(r.option)}</dd>
+        <dt>Estimate they saw</dt><dd class="num">${Staff.money(r.estimate[0])}–${Math.round(r.estimate[1]).toLocaleString('en-US')} ${tag('Estimate', 'neutral')}</dd>
+        ${r.notes && r.notes.length ? `<dt>Their notes</dt><dd>${r.notes.map(esc).join('<br>')}</dd>` : ''}
+      </dl>
+    </section>
+    <section class="card">
+      <div class="card-head"><i data-lucide="files"></i><h3>Customer’s documents so far</h3><span class="caption">${r.docs.filter(x => x[1] === 'ready').length} of ${r.docs.length} ready</span></div>
+      <ul class="docs">${r.docs.map(([n, st]) => `<li><span>${esc(n)}</span>${tag(...({ ready: ['Ready', 'success'], missing: ['Missing', 'warning'], fix: ['Needs fix', 'danger'], checking: ['Checking', 'info'] }[st] || ['—', 'neutral']))}</li>`).join('')}</ul>
+    </section>
+    <section class="card">
+      <div class="card-head"><i data-lucide="history"></i><h3>Timeline</h3></div>
+      <ul class="events">${[...r.events].reverse().map(([i, t, w]) => `<li><i data-lucide="${i}"></i><span>${esc(t)}</span><time>${esc(w || '')}</time></li>`).join('')}</ul>
+    </section>`;
+}
+
+function rightHTML() {
+  const legs = planFor();
+  const cost = legs.reduce((s, l) => s + l.pick.rate * l.qty, 0);
+  const m = marginFor(), fee = 85, sell = Math.round(cost * (1 + m / 100)) + fee;
+  const [lo, hi] = r.estimate;
+  const vsEst = sell < lo ? `${Staff.money(lo - sell)} below what they saw` : sell > hi ? `${Staff.money(sell - hi)} above what they saw` : 'Inside the estimate they saw';
+  const plan = D.requestPlans[r.lane] || D.requestPlans['SUB-SHA'];
+  const waitH = Staff.waitingHours(r), sla = db.settings().slaHours;
+  const risks = plan.risks.filter(x => !/Waiting/.test(x[1])).concat(waitH > sla && ['new', 'review'].includes(r.status) ? [['danger', `Waiting ${Math.floor(waitH)} hours: past your ${sla}-hour reply target.`]] : []);
+  return `<section class="card plan">
+      <div class="card-head"><span class="ai-label"><i data-lucide="sparkles"></i>AI suggested plan</span><h3>Legs to buy</h3>
+        <div class="right"><span class="caption">API partners book directly · others get an RFQ</span></div></div>
+      ${legs.map(l => `<div class="leg">
+        <div class="leg-top"><i data-lucide="${l.icon}" style="width:15px;height:15px;color:var(--muted)"></i><b>${l.service}</b><span class="route">${esc(l.route)} · ${l.qty} ${l.unit}${l.qty > 1 ? 's' : ''}</span>
+          <span class="right">${l.booked ? tag(`${l.booked.status === 'pending' ? 'Pending' : 'Booked'} · ${l.booked.ref}`, l.booked.status === 'pending' ? 'info' : 'success', 'zap')
+            : Staff.integ(l.pick.org) === 'api' ? `<button class="btn-secondary" data-book="${l.id}"><i data-lucide="zap"></i>Book directly</button>` : tag('Via RFQ', 'neutral', 'file-stack')}</span></div>
+        ${l.partners.map(p => `<div class="pr${p === l.pick ? ' picked' : ''}">${LM.orgAvatar(p.org)}
+          <div><div class="n">${esc(D.orgs[p.org].name)} ${Staff.integHTML(p.org)}</div><div class="x">${esc(p.note)}</div></div>
+          <div class="c">${Staff.money(p.rate)} / ${l.unit}<div class="x">${Staff.money(p.rate * l.qty)}</div></div></div>`).join('')}
+      </div>`).join('')}
+    </section>
+    <section class="card">
+      <div class="card-head"><i data-lucide="calculator"></i><h3>Cost build-up</h3><div class="right"><span class="internal" style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;background:var(--ink);color:#fff;font-size:11.5px"><i data-lucide="lock" style="width:11px;height:11px"></i>Internal only</span></div></div>
+      <table class="build">${legs.map(l => `<tr><td>${l.service} · ${esc(D.orgs[l.pick.org].name)}</td><td>${Staff.money(l.pick.rate * l.qty)}</td></tr>`).join('')}
+        <tr><td>Partner cost</td><td>${Staff.money(cost)}</td></tr>
+        <tr><td>Suggested margin ${m}% <span class="caption">(${esc(D.orgs[r.org].name)} rule, Settings)</span></td><td>${Staff.money(sell - fee - cost)}</td></tr>
+        <tr><td>Documentation fee</td><td>${Staff.money(fee)}</td></tr>
+        <tr class="t"><td>Customer price</td><td>${Staff.money(sell)}</td></tr></table>
+      <p class="caption" style="margin:10px 0 0">${vsEst} (${Staff.money(lo)}–${Math.round(hi).toLocaleString('en-US')}).</p>
+    </section>
+    <section class="card">
+      <div class="card-head"><i data-lucide="triangle-alert"></i><h3>Risks</h3></div>
+      <ul class="risks">${risks.map(([t, x]) => `<li class="${t}"><i data-lucide="${t === 'info' ? 'info' : 'triangle-alert'}"></i><span>${esc(x)}</span></li>`).join('')}</ul>
+    </section>`;
+}
+
+function barHTML() {
+  if (r.status === 'declined') return `<div class="action-bar"><div class="summary"><b>You declined this request</b><div class="caption">The customer sees your reason: “${esc(r.state.declineReason)}”</div></div></div>`;
+  if (r.status === 'booked') return `<div class="action-bar"><div class="summary"><b>Accepted by the customer · booked as ${r.decision.shipment}</b><div class="caption">The shipment is live on both sides.</div></div>
+    <a class="btn-primary" href="shipment.html?id=${r.decision.shipment}"><i data-lucide="container"></i>Open shipment</a></div>`;
+  if (r.status === 'lost') return `<div class="action-bar"><div class="summary"><b>Customer declined quote ${r.quote.id}</b><div class="caption">Their reason: “${esc(r.decision.reason)}”</div></div>
+    <a class="btn-secondary" href="quote.html?request=${id}"><i data-lucide="receipt"></i>Revise quote</a></div>`;
+  if (r.status === 'quoted') {
+    const q = r.quote, viewed = q.seeded ? r.viewedAt : q.viewedAt ? `Today, ${new Date(q.viewedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : null;
+    return `<div class="action-bar"><div class="summary"><b>Quote ${q.id} sent${viewed ? ` · viewed by customer ${viewed.replace(/^.*, /, '')}` : ' · not opened yet'}</b><div class="caption">Waiting for the customer to accept or decline.</div></div>
+      <a class="btn-secondary" href="${Staff.viewAsHref(r.org, 'quote.html?id=' + q.id)}"><i data-lucide="eye"></i>View as customer</a>
+      <a class="btn-primary" href="quote.html?request=${id}"><i data-lucide="receipt"></i>Open quote</a></div>`;
+  }
+  return `<div class="action-bar">
+    <div class="summary"><b>Reply to ${esc(D.orgs[r.org].name)}</b> ${Staff.timerHTML(r)}<div class="caption"><i data-lucide="shield-check"></i>Nothing reaches the customer or partners until you confirm.</div></div>
+    <button class="btn-secondary" data-act="decline"><i data-lucide="circle-x"></i>Decline</button>
+    <button class="btn-secondary" data-act="ask"><i data-lucide="help-circle"></i>Ask customer a question</button>
+    <button class="btn-secondary" data-act="rfq"><i data-lucide="send"></i>Send RFQs</button>
+    <button class="btn-secondary" data-act="book"><i data-lucide="zap"></i>Book directly</button>
+    <a class="btn-primary" href="quote.html?request=${id}"><i data-lucide="receipt"></i>Build quote</a>
+  </div>`;
+}
+
+function render() {
+  if (!r) { $('#wrap').innerHTML = `<div class="empty" style="height:auto;padding:64px"><div class="empty-tile"><i data-lucide="search-x"></i></div><h2 class="empty-title">Request not found</h2><p class="empty-body">It may belong to another logistics company or the link is out of date.</p><a class="btn-secondary" href="inbox.html">Back to Inbox</a></div>`; icons(); return; }
+  document.title = `${r.id} · LogiMind`;
+  $('#rid').textContent = r.id; $('#rtitle').textContent = `${D.orgs[r.org].name} · ${r.title}`;
+  $('#rtag').innerHTML = Staff.statusTag(r); $('#rtimer').innerHTML = Staff.timerHTML(r);
+  $('#headRight').innerHTML = `${Staff.lockBadge()}${Staff.viewAsLink(r.org, 'request.html?id=' + r.id)}`;
+  $('#wrap').innerHTML = `<div class="grid"><div class="col">${leftHTML()}</div><div class="col">${rightHTML()}</div></div>`;
+  $('#actionBar').innerHTML = barHTML();
+  icons();
+}
+render();
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-book], [data-act="book"]');
+  if (b) {
+    const legs = planFor(); const leg = b.dataset.book ? legs.find(l => l.id === b.dataset.book) : legs.find(l => Staff.integ(l.pick.org) === 'api' && !l.booked) || legs[0];
+    Staff.bookDirect({ org: leg.pick.org, service: leg.service, qty: leg.qty, route: leg.route, request: id, onDone: () => { r = Staff.request(id); render(); } });
+    return;
+  }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  if (a.dataset.act === 'rfq') { Staff.touch(id, s => { s.rfqAt = Date.now(); }); location.href = `rfq.html?request=${id}`; }
+  if (a.dataset.act === 'ask') {
+    const m = Staff.openModal(`<div class="modal-head"><i data-lucide="help-circle"></i><h2>Ask ${esc(D.orgs[r.org].name)} a question</h2><button class="icon-btn" data-close><i data-lucide="x"></i></button></div>
+      <div class="modal-body"><div class="chips">${['Can the cargo be ready 2 days earlier?', 'Is the consignee registered with GACC?', 'Do you want us to book the ocean freight under FOB?'].map(q => `<button class="pill" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+        <label class="fld"><span>Your question</span><textarea class="ta" id="qText"></textarea></label>${LM.visibility('You, ' + esc(D.orgs[r.org].name))}</div>
+      <div class="modal-foot"><button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" id="qSend" disabled><i data-lucide="send"></i>Send to portal</button></div>`);
+    const ta = m.querySelector('#qText'), go = m.querySelector('#qSend');
+    ta.addEventListener('input', () => { go.disabled = !ta.value.trim(); });
+    m.querySelectorAll('[data-q]').forEach(x => x.addEventListener('click', () => { ta.value = x.dataset.q; go.disabled = false; }));
+    go.addEventListener('click', () => {
+      Staff.touch(id, s => { (s.messages = s.messages || []).push({ from: 'staff', who: me.name, text: ta.value.trim(), time: Staff.when(Date.now()) }); });
+      Staff.closeModal(); r = Staff.request(id); render(); toast('Question sent to the customer’s portal', { note: 'Also sent to WhatsApp and email' });
+    });
+  }
+  if (a.dataset.act === 'decline') {
+    const m = Staff.openModal(`<div class="modal-head"><i data-lucide="circle-x"></i><h2>Decline ${id}?</h2><button class="icon-btn" data-close><i data-lucide="x"></i></button></div>
+      <div class="modal-body"><span class="caption">The customer sees this reason in their portal.</span>
+        <select class="select" id="dWhy" style="height:34px"><option value="">Choose a reason…</option><option>We don’t serve this lane</option><option>No capacity for these dates</option><option>The goods are restricted for this route</option><option>Other</option></select>
+        <label class="fld"><span>Message to the customer (required)</span><textarea class="ta" id="dText" placeholder="Explain briefly, and suggest an alternative if you can"></textarea></label></div>
+      <div class="modal-foot"><button class="btn-secondary" data-close>Back</button><button class="btn-primary" id="dGo" disabled>Decline request</button></div>`);
+    const upd = () => { m.querySelector('#dGo').disabled = !(m.querySelector('#dWhy').value && m.querySelector('#dText').value.trim()); };
+    m.querySelector('#dWhy').addEventListener('change', upd); m.querySelector('#dText').addEventListener('input', upd);
+    m.querySelector('#dGo').addEventListener('click', () => {
+      const reason = `${m.querySelector('#dWhy').value}. ${m.querySelector('#dText').value.trim()}`;
+      Staff.touch(id, s => { s.declined = true; s.declineReason = reason; s.declinedAt = Date.now(); });
+      Staff.closeModal(); r = Staff.request(id); render(); toast('Request declined. The customer can see your reason');
+    });
+  }
+});
+</script>
+</body>
+</html>

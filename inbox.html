@@ -52,8 +52,9 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
 <script>
-const { $, $$, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
+const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
 const INBOX = D.inbox;
@@ -66,15 +67,36 @@ const EMPTY = {
   cleared: ['Nothing cleared yet', 'Items you mark as done move here.', 'list-checks'],
 };
 
+// New customer requests (this tenant only) lead the Primary tab, with reply timers
+function customerRequestsHTML() {
+  const reqs = Staff.requests().filter(r => ['new', 'review'].includes(r.status))
+    .sort((a, b) => Staff.waitingHours(b) - Staff.waitingHours(a));
+  if (!reqs.length) return '';
+  return reqs.map(r => {
+    const who = D.accounts.find(a => a.id === r.sender);
+    return `<a class="inbox-item req" href="request.html?id=${r.id}">
+      ${orgAvatar(r.org)}
+      <div style="min-width:0">
+        <div class="title">New request from ${esc(D.orgs[r.org].name)} · ${esc(who ? who.name : 'customer')}</div>
+        <div class="meta">${Staff.statusTag(r)}<span class="ref">${r.id} · ${esc(r.title)}</span>${Staff.timerHTML(r)}<span class="visibility"><i data-lucide="lock"></i>Only visible to ${esc(Staff.T.short)}</span></div>
+      </div>
+      <span class="time">${r.live ? 'Just now' : 'Mon 9 Nov'}</span>
+      <div class="actions"><span class="btn-secondary"><i data-lucide="arrow-right"></i>Open</span></div>
+    </a>`;
+  }).join('');
+}
+
 function render() {
   const items = INBOX[current];
-  $$('.tab').forEach(t => { $('.count', t).textContent = INBOX[t.dataset.tab].length || ''; });
+  const reqCount = Staff.requests().filter(r => ['new', 'review'].includes(r.status)).length;
+  $$('.tab').forEach(t => { $('.count', t).textContent = (INBOX[t.dataset.tab].length + (t.dataset.tab === 'primary' ? reqCount : 0)) || ''; });
   const inboxRow = $('.sidebar .row.active .count');
   if (inboxRow) inboxRow.textContent = INBOX.primary.length || '';
   $('#clearAll').disabled = !items.length || current === 'cleared';
 
   const el = $('#inboxContent');
-  if (!items.length) {
+  const reqHTML = current === 'primary' ? customerRequestsHTML() : '';
+  if (!items.length && !reqHTML) {
     const [title, body, icon] = EMPTY[current];
     el.innerHTML = `<div class="empty">
       <div class="empty-tile"><i data-lucide="${icon}"></i></div>
@@ -82,7 +104,7 @@ function render() {
       <p class="empty-body">${body}</p>
     </div>`;
   } else {
-    el.innerHTML = `<div class="inbox-list">${items.map((it, i) => `
+    el.innerHTML = `<div class="inbox-list">${reqHTML}${items.map((it, i) => `
       <div class="inbox-item">
         ${orgAvatar(it.org)}
         <div style="min-width:0">

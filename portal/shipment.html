@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shipment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .title-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-head h1, .page-head .caption { white-space: nowrap; }
+  .ws { max-width: 1180px; margin: 0 auto; padding: 20px 32px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 12px 32px; padding: 14px 16px; }
+  .fact .k { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+  .fact .v { font-weight: 500; white-space: nowrap; }
+  .fact .was { font-size: 12px; color: var(--muted); text-decoration: line-through; margin-left: 6px; font-weight: 400; }
+  .map { padding: 18px 20px 20px; }
+  .map .here-label { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; font-size: 13.5px; }
+  .map .here-label b { font-weight: 600; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+  @media (max-width: 1240px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  .tl { list-style: none; margin: 0; padding: 0; }
+  .tl li { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px; padding: 0 0 16px; }
+  .tl li:not(:last-child)::before { content: ""; position: absolute; left: 10px; top: 22px; bottom: 0; width: 2px; background: var(--divider); }
+  .tl li.done:not(:last-child)::before { background: var(--primary); }
+  .tl .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); display: grid; place-items: center; position: relative; z-index: 1; }
+  .tl .dot svg.lucide { width: 12px; height: 12px; stroke-width: 2.6; }
+  .tl .done .dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .tl .next .dot { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+  .tl .next .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+  .tl .risk .dot { border-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
+  .tl .t { font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tl .todo .t { color: var(--text-secondary); }
+  .tl .note { font-size: 12.5px; color: var(--warning); margin-top: 2px; }
+  .tl .w { font-size: 12.5px; color: var(--muted); white-space: nowrap; text-align: right; }
+  .type { font-size: 11.5px; font-weight: 500; color: var(--muted); background: var(--nav-active); border-radius: var(--r-xs); padding: 1px 6px; display: inline-flex; align-items: center; gap: 4px; }
+  .type svg.lucide { width: 11px; height: 11px; }
+
+  .doc-group h4 { margin: 10px 0 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .doc-group h4:first-child { margin-top: 0; }
+  .doc-group h4 svg.lucide { width: 14px; height: 14px; }
+  .drow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 9px 0; border-top: 1px solid var(--divider); }
+  .drow .n { font-weight: 500; font-size: 13.5px; }
+  .drow .x { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; gap: 5px; }
+  .drow .x svg.lucide { width: 12px; height: 12px; margin-top: 2px; flex: none; }
+  .drow .x.fix { color: var(--danger); } .drow .x.ready { color: var(--success); } .drow .x.checking { color: var(--info); }
+  .drow .acts { display: flex; align-items: center; gap: 6px; }
+
+  .msgs { display: flex; flex-direction: column; gap: 14px; max-height: 420px; overflow-y: auto; padding: 4px 0 12px; }
+  .msg { display: grid; grid-template-columns: 28px 1fr; gap: 10px; }
+  .msg .user-avatar, .msg .ai-mark { width: 28px; height: 28px; font-size: 11px; }
+  .msg .who { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .msg .who time { font-weight: 400; color: var(--muted-soft); font-size: 12px; }
+  .msg .who .role { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .msg .body { font-size: 13.5px; color: var(--text-secondary); margin-top: 2px; }
+  .msg.me .body { color: var(--ink); }
+  .escalate { display: flex; align-items: center; gap: 8px; margin: 2px 0 0 38px; flex-wrap: wrap; }
+  .chat-compose .composer { min-height: 56px; padding: 10px 10px 8px 14px; border-radius: var(--r-lg); }
+  .switcher { display: flex; gap: 6px; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="shipments">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><div class="title-wrap"><h1 class="num" id="sid">Shipment</h1><span class="caption" id="stitle"></span><span id="stag"></span></div>
+        <div class="right switcher" id="switcher"></div></header>
+      <div class="content" id="scroll"><div class="ws" id="ws"></div></div>
+    </main>
+  </div>
+</div>
+<script src="../assets/data.js"></script>
+<script>
+  (function () {
+    const id = new URLSearchParams(location.search).get('id');
+    document.querySelector('.app').dataset.row = 'shp-' + (id || '');
+  })();
+</script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T;
+const qid = new URLSearchParams(location.search).get('id');
+const SHIPS = P.shipments();
+const sh = qid ? SHIPS.find(s => s.id === qid) : SHIPS[0];   // only this sender's shipments
+if (!qid && sh) { const r = $(`.sidebar a[href="shipment.html?id=${sh.id}"]`); if (r) r.classList.add('active'); }
+const AM = S.accountManager;
+const TYPE_ICON = { Trucking: 'truck', Ocean: 'ship', Customs: 'stamp', Fumigation: 'wind', Booking: 'calendar-check', Air: 'plane' };
+let escalated = false;
+
+function factsHTML() {
+  return `<section class="card facts">
+    <div class="fact"><div class="k">Lane</div><div class="v">${sh.lane[0]} → ${sh.lane[1]}</div></div>
+    <div class="fact"><div class="k">Cargo</div><div class="v">${esc(sh.cargo)}</div></div>
+    <div class="fact"><div class="k">Departure (ETD)</div><div class="v">${sh.etd}</div></div>
+    <div class="fact"><div class="k">Arrival (ETA)</div><div class="v">${sh.eta}${sh.etaWas ? `<span class="was">${sh.etaWas}</span>` : ''}</div></div>
+    <div class="fact"><div class="k">Handled by</div><div class="v">${esc(T.name)}</div></div>
+  </section>`;
+}
+
+function delayHTML() {
+  if (!sh.delayed) return '';
+  return `<div class="banner warning"><i data-lucide="clock-alert"></i><div class="text"><b>Delayed ${sh.delay.days} days. New ETA ${sh.eta} (was ${sh.etaWas}).</b> ${esc(sh.delay.reason)} There is no extra cost to you.</div>
+    <button class="btn-secondary" data-share-eta><i data-lucide="forward"></i>Share new ETA with my buyer</button></div>`;
+}
+
+function mapHTML() {
+  return `<section class="card map">
+    <div class="here-label"><span class="icon-tile tone-brand"><i data-lucide="navigation"></i></span><div><span class="caption">Current position</span><div><b>${esc(sh.location)}</b></div></div>
+      <span style="margin-left:auto">${tag(...sh.status)}</span></div>
+    ${P.routeLine(sh.route)}
+  </section>`;
+}
+
+function timelineHTML() {
+  const done = sh.milestones.filter(m => m.state === 'done').length;
+  return `<section class="card">
+    <div class="card-head"><i data-lucide="route"></i><h3>Milestones</h3><span class="caption">${done} of ${sh.milestones.length} done</span></div>
+    <ul class="tl">${sh.milestones.map(m => `<li class="${m.state}">
+      <span class="dot">${m.state === 'done' ? '<i data-lucide="check"></i>' : m.state === 'risk' ? '<i data-lucide="triangle-alert"></i>' : ''}</span>
+      <div><div class="t">${esc(m.t)}<span class="type"><i data-lucide="${TYPE_ICON[m.type] || 'circle'}"></i>${m.type}</span>${m.state === 'next' ? tag('Next', 'neutral') : ''}</div>
+        ${m.note ? `<div class="note">${esc(m.note)}</div>` : ''}</div>
+      <span class="w">${esc(m.when)}</span></li>`).join('')}</ul>
+  </section>`;
+}
+
+const XI = { ready: 'circle-check', fix: 'circle-x', missing: 'circle-alert', checking: 'loader-circle' };
+function docsHTML() {
+  const row = (d, i, mine) => `<div class="drow"><div><div class="n">${esc(d.name)}</div>
+      ${d.note ? `<div class="x ${d.status}"><i data-lucide="${XI[d.status] || 'info'}" ${d.status === 'checking' ? 'class="spin"' : ''}></i><span>${esc(d.note)}</span></div>` : ''}
+      ${d.due && d.status !== 'ready' ? `<div class="x" style="color:var(--warning)"><i data-lucide="clock"></i><span>Due ${d.due}</span></div>` : ''}</div>
+    <div class="acts">${P.docTag(d.status)}${mine && ['missing', 'fix'].includes(d.status) ? `<button class="btn-secondary" data-up="${i}"><i data-lucide="upload"></i>Upload</button>` : ''}</div></div>`;
+  const ready = sh.docsYou.filter(d => d.status === 'ready').length;
+  return `<section class="card" id="docsCard">
+    <div class="card-head"><i data-lucide="files"></i><h3>Documents</h3><span class="caption">${ready} of ${sh.docsYou.length} from you ready</span></div>
+    <div class="doc-group">
+      <h4><i data-lucide="user-round"></i>You prepare</h4>${sh.docsYou.map((d, i) => row(d, i, true)).join('')}
+      <h4><i data-lucide="building-2"></i>${esc(T.short)} handles</h4>${sh.docsThey.map((d, i) => row(d, i, false)).join('')}
+    </div>
+  </section>`;
+}
+
+function chatHTML() {
+  const colors = LM.AVATAR_COLORS;
+  return `<section class="card" id="chatCard">
+    <div class="card-head"><i data-lucide="messages-square"></i><h3>Conversation with ${esc(T.short)}</h3></div>
+    <div class="msgs" id="msgs">${sh.messages.map(m => m.ai
+      ? `<div class="msg"><span class="ai-mark"><i data-lucide="sparkles"></i></span><div><div class="who">${esc(T.short)} assistant <span class="role">AI</span><time>${m.time}</time></div><div class="body">${esc(m.text)}</div></div></div>`
+      : m.me ? `<div class="msg me"><span class="user-avatar" style="background:${colors[LM.effective.color]}">${LM.initialsOf(LM.effective.name)}</span><div><div class="who">You<time>${m.time}</time></div><div class="body">${esc(m.text)}</div></div></div>`
+      : `<div class="msg"><span class="user-avatar" style="background:${colors[AM.color]}">${AM.initials}</span><div><div class="who">${esc(m.who)} <span class="role">${esc(T.short)}</span><time>${m.time}</time></div><div class="body">${esc(m.text)}</div></div></div>`).join('')}
+      ${escalated === 'asked' ? '' : ''}
+    </div>
+    <div class="chat-compose"><form class="composer" data-composer>
+      <textarea rows="1" placeholder="Ask about this shipment, e.g. “When does it arrive?”" aria-label="Message"></textarea>
+      <div class="composer-actions"><div class="left">${LM.visibility('You, ' + esc(T.short))}</div>
+        <button type="submit" class="btn-primary send-btn neutral" title="Send" disabled><i data-lucide="arrow-up"></i></button></div>
+    </form></div>
+  </section>`;
+}
+
+function aiAnswer(text) {
+  const t = text.toLowerCase();
+  const nextDoc = sh.docsYou.find(d => d.status !== 'ready');
+  if (/arriv|eta|when|late|delay/.test(t)) return sh.delayed ? `It’s due in ${sh.lane[1]} on ${sh.eta}, ${sh.delay.days} days later than planned. ${sh.delay.reason}` : `It’s due in ${sh.lane[1]} on ${sh.eta}. It departs ${sh.etd}.`;
+  if (/doc|upload|certificate|paper/.test(t)) return nextDoc ? `You still need to upload the ${nextDoc.name.toLowerCase()}${nextDoc.due ? ` by ${nextDoc.due}` : ''}. Everything else from you is ready.` : 'Everything we need from you is ready. Nothing else to upload.';
+  if (/cost|price|invoice|pay/.test(t)) return `Your confirmed price is in your quote. Payment is due 30 days after the bill of lading date.`;
+  if (/where|location|now/.test(t)) return `Right now: ${sh.location}.`;
+  return `I’ve noted your question. ${AM.name.split(' ')[0]} can answer this best.`;
+}
+
+function render() {
+  if (!sh) { $('#ws').innerHTML = P.notFound('Shipment'); P.title('Shipment'); icons(); return; }
+  P.title(sh.id);
+  $('#sid').textContent = sh.id;
+  $('#stitle').textContent = `${sh.lane[0]} → ${sh.lane[1]} · ${sh.cargo}`;
+  $('#stag').innerHTML = tag(...sh.status);
+  $('#switcher').innerHTML = SHIPS.length > 1 ? SHIPS.map(s => `<a class="pill${s.id === sh.id ? ' selected' : ''}" href="shipment.html?id=${s.id}">${s.id}</a>`).join('') : '';
+  $('#ws').innerHTML = factsHTML() + delayHTML() + mapHTML() + `<div class="grid"><div class="col">${timelineHTML()}${docsHTML()}</div><div class="col">${chatHTML()}</div></div>`;
+  icons();
+  bindChat();
+  const m = $('#msgs'); if (m) m.scrollTop = m.scrollHeight;
+}
+
+function bindChat() {
+  LM.bindComposer($('[data-composer]'), text => {
+    sh.messages.push({ me: true, time: 'Now', text });
+    render();
+    const msgs = $('#msgs');
+    msgs.insertAdjacentHTML('beforeend', `<div class="msg" id="typing"><span class="ai-mark"><i data-lucide="sparkles"></i></span><div><div class="who">${esc(T.short)} assistant <span class="role">AI</span></div><div class="body"><i data-lucide="loader-circle" class="spin" style="width:14px;height:14px"></i></div></div></div>`);
+    icons(); msgs.scrollTop = msgs.scrollHeight;
+    setTimeout(() => {
+      sh.messages.push({ ai: true, time: 'Now', text: aiAnswer(text) });
+      render();
+      $('#msgs').insertAdjacentHTML('beforeend', `<div class="escalate"><span class="caption">Not what you needed?</span><button class="btn-secondary" data-escalate><i data-lucide="user-round"></i>Talk to your account manager</button></div>`);
+      icons(); $('#msgs').scrollTop = $('#msgs').scrollHeight;
+    }, 900);
+  });
+}
+
+document.addEventListener('click', e => {
+  const u = e.target.closest('[data-up]');
+  if (u) {
+    const d = sh.docsYou[+u.dataset.up];
+    const checks = { 'Phytosanitary certificate': [['ready', 'Issued certificate for 2 containers of green coffee. Matches your invoice.']] };
+    P.upload(d.name, checks, res => { d.status = res.status; d.note = res.note; if (res.status === 'ready') d.due = null; $('#docsCard').outerHTML = docsHTML(); icons();
+      if (res.status === 'ready') P.notify(`${d.name} received by ${T.short}`); });
+    return;
+  }
+  if (e.target.closest('[data-escalate]')) {
+    sh.messages.push({ who: AM.name, time: 'Now', text: `Hi ${LM.effective.name.split(' ')[0]}, I’ve seen your question and I’ll get back to you shortly.` });
+    render();
+    P.notify(`${AM.name} joined the conversation`);
+    return;
+  }
+  if (e.target.closest('[data-share-eta]')) toast(`A shareable ETA update for your buyer was copied: ${sh.id} arrives ${sh.eta}`);
+});
+render();
+</script>
+</body>
+</html>

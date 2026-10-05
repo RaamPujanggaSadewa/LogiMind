@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .home { max-width: 1160px; margin: 0 auto; padding: 28px 32px 24px; display: flex; flex-direction: column; gap: 22px; }
+  .hero { display: flex; flex-direction: column; gap: 10px; }
+  .hero h2 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: -0.1px; }
+  .hero .composer { min-height: 88px; }
+  .goes-to { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .goes-to .mini-logo { width: 18px; height: 18px; border-radius: var(--r-xs); background: var(--primary); color: #fff; font-size: 8px; font-weight: 700; display: grid; place-items: center; }
+  .goes-to b { color: var(--text-secondary); font-weight: 600; }
+  .hero-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+  @media (max-width: 1240px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .sec-head { display: flex; align-items: center; gap: 8px; }
+  .sec-head h3 { font-size: 14px; font-weight: 600; margin: 0; }
+  .sec-head .right { margin-left: auto; }
+
+  .ship { display: flex; flex-direction: column; gap: 14px; }
+  .ship-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ship-top .id { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ship-top .right { margin-left: auto; }
+  .lane { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .lane svg.lucide { width: 15px; height: 15px; color: var(--muted); }
+  .lane .cargo { font-size: 13px; font-weight: 400; color: var(--muted); }
+  .facts { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 12px; }
+  .facts .k { font-size: 12px; color: var(--muted); }
+  .facts .v { font-weight: 500; }
+  .facts .was { font-size: 12px; color: var(--muted); text-decoration: line-through; }
+  .next { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-md); background: var(--primary-soft); }
+  .next.calm { background: var(--row-hover); }
+  .next .k { font-size: 11.5px; font-weight: 600; color: var(--primary); }
+  .next.calm .k { color: var(--muted); }
+  .next .t { font-weight: 500; }
+  .next .d { font-size: 12.5px; color: var(--text-secondary); }
+  .next .grow { flex: 1; min-width: 0; }
+
+  .attn { list-style: none; margin: 0; padding: 0; }
+  .attn li { border-top: 1px solid var(--divider); }
+  .attn li:first-child { border-top: 0; }
+  .attn a { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 12px 16px; }
+  .attn a:hover { background: var(--row-hover); }
+  .attn .t { font-weight: 500; font-size: 13.5px; }
+  .attn .m { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+  .attn .ch { font-size: 11.5px; color: var(--muted-soft); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .attn .ch svg.lucide { width: 11px; height: 11px; }
+
+  .req-mini { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-top: 1px solid var(--divider); }
+  .req-mini:hover { background: var(--row-hover); }
+  .req-mini .grow { flex: 1; min-width: 0; }
+  .req-mini .t { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .req-mini .m { font-size: 12px; color: var(--muted); }
+
+  .welcome { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .welcome .card { display: flex; flex-direction: column; gap: 8px; }
+  .welcome h4 { margin: 0; font-size: 14px; font-weight: 600; }
+  .welcome p { margin: 0; font-size: 13px; color: var(--muted); }
+  .proto-switch { display: inline-flex; gap: 4px; }
+  .proto-switch a { font-size: 12px; color: var(--muted-soft); padding: 2px 6px; border-radius: var(--r-xs); }
+  .proto-switch a.on { color: var(--text-secondary); background: var(--nav-active); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="home" data-row="home">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <h1>Home</h1>
+        <span class="caption" id="today"></span>
+        <div class="right"><a class="btn-secondary" href="inbox.html"><i data-lucide="inbox"></i>Inbox</a></div>
+      </header>
+      <div class="content"><div class="home" id="home"></div></div>
+    </main>
+  </div>
+</div>
+
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast, data: D } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T;
+const SHIPS = P.shipments();
+P.title('Home');
+$('#today').textContent = D.today;
+const firstVisit = new URLSearchParams(location.search).get('state') === 'new';
+
+function heroHTML() {
+  const first = LM.effective.name.split(' ')[0];
+  return `<section class="hero" id="prompt">
+    <h2>${firstVisit ? `Welcome, ${esc(first)}. Where are you shipping first?` : 'Where are you shipping next?'}</h2>
+    <form class="composer" data-composer>
+      <textarea rows="2" placeholder="e.g. ${esc(S.firstVisitPrompt)}" aria-label="Describe your shipment"></textarea>
+      <div class="composer-actions">
+        <div class="left"><button type="button" class="attach-btn" title="Attach an invoice or packing list"><i data-lucide="paperclip"></i>Attach</button></div>
+        <button type="submit" class="btn-primary send-btn" title="Send" disabled><i data-lucide="arrow-up"></i></button>
+      </div>
+    </form>
+    <div class="hero-foot">
+      <span class="goes-to"><span class="mini-logo">${T.initials}</span><span>Your request goes to <b>${esc(T.short)}</b>. Your account manager confirms every price.</span></span>
+      ${firstVisit ? '' : `<div class="chips">${S.suggestions.slice(0, 2).map(([i, l, f]) => `<button class="pill" data-fill="${esc(f)}"><i data-lucide="${i}"></i>${l}</button>`).join('')}</div>`}
+    </div>
+    ${firstVisit ? `<div class="chips">${S.suggestions.map(([i, l, f]) => `<button class="pill" data-fill="${esc(f)}"><i data-lucide="${i}"></i>${l}</button>`).join('')}</div>` : ''}
+  </section>`;
+}
+
+function shipmentCard(sh) {
+  const n = sh.next;
+  return `<article class="card ship">
+    <div class="ship-top"><a class="id" href="shipment.html?id=${sh.id}">${sh.id}</a>${tag(...sh.status)}${sh.delayed ? tag(`Delayed ${sh.delay.days} days`, 'warning', 'clock-alert') : ''}
+      <a class="link-btn right" href="shipment.html?id=${sh.id}">Track<i data-lucide="arrow-right"></i></a></div>
+    <div class="lane"><i data-lucide="${sh.mode}"></i>${sh.lane[0]} → ${sh.lane[1]} <span class="cargo">· ${sh.cargo}</span></div>
+    ${P.routeLine(sh.route)}
+    <div class="facts">
+      <div><div class="k">Current location</div><div class="v">${esc(sh.location)}</div></div>
+      <div><div class="k">Departure</div><div class="v">${sh.etd}</div></div>
+      <div><div class="k">ETA</div><div class="v">${sh.eta}</div>${sh.etaWas ? `<div class="was">${sh.etaWas}</div>` : ''}</div>
+    </div>
+    <div class="next${n.href ? '' : ' calm'}">
+      <span class="icon-tile ${n.href ? 'tone-brand' : 'tone-neutral'}"><i data-lucide="${n.href ? 'hand' : 'check'}"></i></span>
+      <div class="grow"><div class="k">What I need to do next</div><div class="t">${esc(n.text)}</div>${n.due ? `<div class="d">By ${n.due}</div>` : ''}</div>
+      ${n.href ? `<a class="btn-secondary" href="${n.href}"><i data-lucide="upload"></i>Upload</a>` : ''}
+    </div>
+  </article>`;
+}
+
+function attentionHTML() {
+  const items = S.inbox.filter(n => n.attention);
+  return `<section class="card flush">
+    <div class="card-head"><i data-lucide="bell"></i><h3>Needs your attention</h3><span class="caption">${items.length}</span>
+      <div class="right"><a class="link-btn" href="inbox.html">Inbox<i data-lucide="arrow-right"></i></a></div></div>
+    <ul class="attn" style="margin-top:8px">${items.map(n => {
+      const [icon, tone] = P.NOTIF[n.type];
+      return `<li><a href="${n.href}"><span class="icon-tile tone-${tone}"><i data-lucide="${icon}"></i></span>
+        <div><div class="t">${esc(n.title)}</div><div class="m">${esc(n.meta)} · ${n.time}</div>
+        <div class="ch"><i data-lucide="message-circle"></i>${P.NOTE}</div></div></a></li>`;
+    }).join('')}</ul>
+  </section>`;
+}
+
+function requestsHTML() {
+  const open = P.requests().filter(r => ['sent', 'review', 'quote', 'expired'].includes(r.status)).slice(0, 4);
+  return `<section class="card flush">
+    <div class="card-head"><i data-lucide="file-text"></i><h3>My requests</h3>
+      <div class="right"><a class="link-btn" href="requests.html">All<i data-lucide="arrow-right"></i></a></div></div>
+    <div style="margin-top:8px">${open.map(r => `<a class="req-mini" href="request.html?id=${r.id}">
+      <div class="grow"><div class="t">${esc(r.title)}</div><div class="m"><span class="num">${r.id}</span> · ${esc(r.when)}</div></div>${P.statusTag(r)}</a>`).join('')}</div>
+  </section>`;
+}
+
+function firstVisitHTML() {
+  const am = S.accountManager;
+  return `<div class="welcome">
+    <div class="card"><span class="icon-tile tone-brand"><i data-lucide="sparkles"></i></span><h4>Describe a shipment</h4><p>Type it like a WhatsApp message. You’ll get route options and an estimate in seconds.</p></div>
+    <div class="card"><span class="icon-tile tone-brand"><i data-lucide="files"></i></span><h4>Get your documents right</h4><p>See what you prepare and what ${esc(T.short)} handles. Uploads are checked before anyone sees them.</p></div>
+    <div class="card"><span class="icon-tile tone-brand"><i data-lucide="user-round"></i></span><h4>${esc(am.name)} confirms every price</h4><p>Estimates become a confirmed quote from your account manager at ${esc(T.short)}.</p></div>
+  </div>`;
+}
+
+function render() {
+  const home = $('#home');
+  if (firstVisit) {
+    home.innerHTML = heroHTML() + firstVisitHTML();
+  } else {
+    home.innerHTML = heroHTML() + `<div class="grid">
+      <div class="col" id="shipments">
+        <div class="sec-head"><h3>My shipments</h3><span class="caption">${SHIPS.length} active</span></div>
+        ${SHIPS.map(shipmentCard).join('')}
+      </div>
+      <div class="col">${attentionHTML()}${requestsHTML()}</div>
+    </div>`;
+  }
+  home.insertAdjacentHTML('beforeend', `<div class="proto-note">Sample data · prototype state:
+    <span class="proto-switch"><a href="index.html" class="${firstVisit ? '' : 'on'}">Active sender</a><a href="index.html?state=new" class="${firstVisit ? 'on' : ''}">First visit</a></span></div>`);
+  icons();
+
+  const composer = LM.bindComposer($('[data-composer]'), text => { location.href = 'ask.html?q=' + encodeURIComponent(text); });
+  $$('[data-fill]').forEach(c => c.addEventListener('click', () => composer.fill(c.dataset.fill)));
+}
+render();
+
+// A notification arriving while the sender is here (once per session)
+let shown = false;
+try { shown = sessionStorage.getItem('lm.portal.toast') === LM.effective.id; } catch (e) {}
+if (!firstVisit && !shown) {
+  setTimeout(() => {
+    const n = S.inbox.find(x => x.type === 'quote') || S.inbox[0];
+    P.notify(n.title);
+    try { sessionStorage.setItem('lm.portal.toast', LM.effective.id); } catch (e) {}
+  }, 1400);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer portal settings · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 20px; }
+  .sec { scroll-margin-top: 16px; }
+  .sec > h2 { font-size: 15px; font-weight: 600; margin: 0 0 2px; display: flex; align-items: center; gap: 8px; }
+  .sec > h2 svg.lucide { width: 16px; height: 16px; color: var(--muted); }
+  .sec > p.lead { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 1200px) { .two { grid-template-columns: minmax(0, 1fr); } }
+  .fld { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .fld > span { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .in { height: 34px; border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 10px; background: var(--surface); width: 100%; }
+  .in:focus, .ta:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .ta { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; resize: vertical; min-height: 84px; line-height: 1.45; width: 100%; }
+  .suffix-in { display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+  .suffix-in input { border: 0; height: 34px; padding: 0 10px; flex: 1; min-width: 0; }
+  .suffix-in input:focus { outline: none; }
+  .suffix-in span { padding: 0 10px; font-size: 13px; color: var(--muted); background: var(--row-hover); height: 34px; display: flex; align-items: center; border-left: 1px solid var(--border); }
+  .logo-row { display: flex; align-items: center; gap: 12px; }
+  .logo-tile { width: 44px; height: 44px; border-radius: var(--r-md); color: #fff; font-weight: 700; display: grid; place-items: center; }
+  .swatches { display: flex; gap: 6px; }
+  .swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); }
+  .swatch.on { box-shadow: 0 0 0 2px var(--ink); }
+  /* live previews */
+  .pv { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--shell); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .pv .lbl { font-size: 11.5px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .pv-login { background: #fff; border-radius: 10px; padding: 16px; border-top: 4px solid var(--b); box-shadow: var(--shadow-lift); }
+  .pv-login .t { width: 30px; height: 30px; border-radius: 6px; background: var(--b); color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center; margin-bottom: 8px; }
+  .pv-login h4 { margin: 0 0 10px; font-size: 13.5px; }
+  .pv-login .f { height: 22px; border: 1px solid var(--border); border-radius: 5px; margin-bottom: 6px; }
+  .pv-login .b { height: 24px; border-radius: 5px; background: var(--b); color: #fff; font-size: 11px; display: grid; place-items: center; }
+  .pv-login .pw { font-size: 9.5px; color: var(--muted-soft); text-align: center; margin-top: 8px; }
+  .pv-home { display: grid; grid-template-columns: 34px 1fr; background: #fff; border-radius: 10px; overflow: hidden; height: 150px; box-shadow: var(--shadow-lift); }
+  .pv-home .rl { background: linear-gradient(180deg, var(--b), var(--bd)); display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 8px; }
+  .pv-home .rl span { width: 20px; height: 20px; border-radius: 5px; background: #fff; color: var(--b); font-size: 7px; font-weight: 700; display: grid; place-items: center; }
+  .pv-home .rl i { width: 14px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.5); }
+  .pv-home .mn { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .pv-home .mn b { font-size: 11.5px; }
+  .pv-home .comp { height: 26px; border: 1px solid var(--border); border-radius: 8px; }
+  .pv-home .goes { font-size: 9.5px; color: var(--muted); }
+  .pv-home .cardx { height: 34px; border: 1px solid var(--border); border-radius: 6px; }
+  /* switches + policy */
+  .rowset { display: flex; flex-direction: column; }
+  .opt-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--divider); }
+  .opt-row:first-child { border-top: 0; padding-top: 0; }
+  .opt-row .txt { flex: 1; }
+  .opt-row b { font-weight: 500; }
+  .opt-row .caption { display: block; }
+  .policy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+  .pol { text-align: left; border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .pol b { font-weight: 600; font-size: 13px; }
+  .pol span { font-size: 12px; color: var(--muted); }
+  .pol .ex { margin-top: 4px; }
+  .pol.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); background: var(--primary-soft); }
+  .rtable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .rtable th { text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--divider); }
+  .rtable td { padding: 6px 8px; border-bottom: 1px solid var(--divider); }
+  .rtable input, .rtable select { height: 28px; border: 1px solid var(--border); border-radius: 5px; padding: 0 6px; background: var(--surface); font-variant-numeric: tabular-nums; }
+  .rtable input.n { width: 80px; text-align: right; }
+  .calc { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+  .calc td { padding: 5px 0; border-bottom: 1px solid var(--divider); }
+  .calc td:last-child { text-align: right; }
+  .calc tr.t td { font-weight: 600; border-top: 1.5px solid var(--ink); border-bottom: 0; padding-top: 8px; }
+  .rule { display: grid; grid-template-columns: 32px 1fr; gap: 10px; padding: 12px 0; border-top: 1px solid var(--divider); }
+  .rule:first-child { border-top: 0; padding-top: 0; }
+  .rule b { font-weight: 600; font-size: 13.5px; }
+  .rule p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+  .rule q { display: block; margin-top: 6px; font-size: 12.5px; color: var(--text-secondary); background: var(--row-hover); border-radius: 6px; padding: 6px 8px; quotes: none; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="settings">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <h1>Customer portal</h1><span class="caption">What your customers see and how the AI answers them</span>
+        <div class="right"><span class="caption" id="saved"><i data-lucide="check" style="width:12px;height:12px"></i> Changes save automatically</span>
+          <a class="btn-primary" id="previewPortal" href="portal/ask.html?chat=0&viewas=rina" style="height:32px"><i data-lucide="eye"></i>Preview as a customer</a></div>
+      </header>
+      <div class="content" id="scroll"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast, db, data: D } = LM;
+LM.mount();
+const T = D.tenants[LM.account.tenant];
+let S = db.settings();
+const brand = { name: T.name, sub: T.portal.split('.')[0], color: T.brand };
+const COLORS = [['#0E6E5C', '#073F35'], ['#1D4F91', '#102D54'], ['#B45309', '#78350F'], ['#7C2D12', '#431407'], ['#1F2937', '#030712']];
+
+function save(patch, msg) {
+  db.update(d => { d.settings = Object.assign({}, d.settings || {}, patch); });
+  S = db.settings();
+  toast(msg || 'Saved · applies to your customers’ portal now');
+}
+
+function brandingHTML() {
+  const deep = (COLORS.find(c => c[0] === brand.color) || COLORS[0])[1];
+  const text = S.inviteText.replace('{name}', 'Rina').replace('{company}', T.short);
+  return `<section class="sec" id="branding"><h2><i data-lucide="palette"></i>Branding</h2><p class="lead">Customers see ${esc(T.short)}, not LogiMind. “Powered by LogiMind” appears only as small footer text.</p>
+    <div class="two"><div class="card">
+      <div class="fld"><span>Logo</span><div class="logo-row"><span class="logo-tile" style="background:${brand.color}">${T.initials}</span><button class="btn-secondary" data-soon="Logo upload"><i data-lucide="upload"></i>Upload logo</button><span class="caption">SVG or PNG, square</span></div></div>
+      <label class="fld"><span>Company name shown to customers</span><input class="in" id="bName" value="${esc(brand.name)}"></label>
+      <div class="fld"><span>Portal address</span><div class="suffix-in"><input id="bSub" value="${esc(brand.sub)}"><span>.${T.portal.split('.').slice(1).join('.')}</span></div></div>
+      <div class="fld"><span>Brand colour</span><div class="swatches">${COLORS.map(([c]) => `<button class="swatch${c === brand.color ? ' on' : ''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}</div></div>
+      <label class="fld"><span>Invitation message (email and WhatsApp) · use {name} and {company}</span><textarea class="ta" id="bInvite">${esc(S.inviteText)}</textarea></label>
+      <span class="caption">In this prototype the name, address and colour update the preview only. The invitation text is saved.</span>
+    </div>
+    <div class="pv" style="--b:${brand.color};--bd:${deep}">
+      <div class="lbl">Live preview <a class="link-btn" href="portal/login.html" target="_blank" style="font-size:11.5px"><i data-lucide="external-link"></i>Open sign-in</a></div>
+      <div class="two" style="gap:10px;grid-template-columns:1fr 1.3fr">
+        <div class="pv-login"><span class="t">${T.initials}</span><h4>Sign in to your ${esc(brand.name.replace(/^PT /, ''))} portal</h4><div class="f"></div><div class="f"></div><div class="b">Sign in</div><div class="pw">Powered by LogiMind</div></div>
+        <div class="pv-home"><div class="rl"><span>${T.initials}</span><i></i><i></i><i></i></div>
+          <div class="mn"><b>Where are you shipping next?</b><div class="comp"></div><div class="goes">Your request goes to ${esc(brand.name.replace(/^PT /, ''))}</div><div class="cardx"></div></div></div>
+      </div>
+      <div class="lbl">Invitation · ${esc(brand.sub)}.${T.portal.split('.').slice(1).join('.')}</div>
+      <div style="background:#fff;border-radius:8px;padding:10px 12px;font-size:12.5px;box-shadow:var(--shadow-lift)"><b style="color:${brand.color};font-weight:600">${esc(brand.name)}</b><br>${esc(text)}</div>
+    </div></div>
+  </section>`;
+}
+
+function visibilityHTML() {
+  const pol = [['instant', 'Show AI estimates instantly', 'Customers see route options with an estimate straight away.', tag('Estimate', 'neutral')],
+    ['pending', 'Show estimates, marked pending review', 'Estimates appear but are flagged until your team reviews them.', tag('Estimate · pending review', 'warning')],
+    ['confirmed', 'Only show confirmed quotes', 'No prices until your account manager sends a confirmed quote.', '<span class="caption">Price in your confirmed quote</span>']];
+  return `<section class="sec" id="visibility"><h2><i data-lucide="eye"></i>What customers see</h2><p class="lead">You decide how much your customers see. The AI follows these settings in every answer.</p>
+    <div class="card"><div class="rowset">
+      <div class="opt-row"><div class="txt"><b>Show carrier names</b><span class="caption">Off: “Ocean freight · 1 transshipment”. On: the shipping line is named on route options and quotes. Trucking, customs and other partners are never named.</span></div>
+        <label class="switch"><input type="checkbox" data-set="showCarriers" ${S.showCarriers ? 'checked' : ''}>${S.showCarriers ? 'On' : 'Off'}</label></div>
+      <div class="opt-row"><div class="txt"><b>Show transshipment ports</b><span class="caption">On: “Via Ho Chi Minh City”. Off: “1 transshipment”.</span></div>
+        <label class="switch"><input type="checkbox" data-set="showTransship" ${S.showTransship ? 'checked' : ''}>${S.showTransship ? 'On' : 'Off'}</label></div>
+      <div class="opt-row" style="flex-direction:column;align-items:stretch"><div class="txt"><b>Estimate policy</b><span class="caption">How prices appear before your account manager confirms a quote.</span></div>
+        <div class="policy">${pol.map(([k, t, d2, ex]) => `<button class="pol${S.estimatePolicy === k ? ' on' : ''}" data-policy="${k}"><b>${t}</b><span>${d2}</span><span class="ex">${ex}</span></button>`).join('')}</div></div>
+    </div></div>
+  </section>`;
+}
+
+function pricingHTML() {
+  const rates = S.rates, m = S.margins;
+  const rate = (svc) => (rates.find(r => r[1] === svc) || [0, 0, 0])[2];
+  const lines = [['Ocean FCL 40ft × 2', rate('Ocean FCL 40ft') * 2], ['Trucking 40ft × 2', rate('Trucking 40ft') * 2], ['Fumigation × 2', rate('Fumigation per container') * 2], ['Export customs', rate('Export customs (PEB + Form E)')]];
+  const cost = lines.reduce((a, l) => a + l[1], 0);
+  const rule = m.find(x => x.scope === 'PT Kopi Nusantara' && x.kind === '%') || m.find(x => /ID → CN/.test(x.scope)) || m.find(x => x.scope === 'All lanes');
+  const fee = (m.find(x => x.kind === 'fixed') || { value: 0 }).value;
+  const sell = Math.round(cost * (1 + rule.value / 100)) + fee;
+  return `<section class="sec" id="pricing"><h2><i data-lucide="receipt"></i>Pricing and margins</h2><p class="lead">Customer estimates use only your rate cards and margin rules. Never generic market data.</p>
+    <div class="card flush" style="margin-bottom:16px"><div class="card-head"><i data-lucide="table"></i><h3>Rate cards</h3><span class="caption">${rates.length} lines · USD</span>
+      <div class="right"><button class="btn-secondary" id="csv"><i data-lucide="file-up"></i>Upload CSV</button><button class="btn-secondary" id="addRate"><i data-lucide="plus"></i>Add line</button></div></div>
+      <table class="rtable" style="margin-top:8px"><thead><tr><th style="padding-left:16px">Lane</th><th>Service</th><th style="text-align:right">Rate</th><th>Valid until</th></tr></thead>
+        <tbody>${rates.map((r, i) => `<tr><td style="padding-left:16px">${esc(r[0])}</td><td>${esc(r[1])}</td><td style="text-align:right"><input class="n" type="number" value="${r[2]}" data-rate="${i}"></td><td class="caption">${esc(r[3])}</td></tr>`).join('')}</tbody></table></div>
+    <div class="two">
+      <div class="card flush"><div class="card-head"><i data-lucide="percent"></i><h3>Margin rules</h3><div class="right"><button class="btn-secondary" id="addRule"><i data-lucide="plus"></i>Add rule</button></div></div>
+        <table class="rtable" style="margin-top:8px"><thead><tr><th style="padding-left:16px">Applies to</th><th>Type</th><th style="text-align:right">Value</th></tr></thead>
+          <tbody>${m.map((r, i) => `<tr><td style="padding-left:16px">${esc(r.scope)}</td><td><select data-kind="${i}"><option value="%"${r.kind === '%' ? ' selected' : ''}>Percentage</option><option value="fixed"${r.kind === 'fixed' ? ' selected' : ''}>Fixed US$</option></select></td>
+            <td style="text-align:right"><input class="n" type="number" step="0.5" value="${r.value}" data-margin="${i}"></td></tr>`).join('')}</tbody></table>
+        <p class="caption" style="padding:10px 16px 14px;margin:0">The most specific rule wins: customer, then lane, then all lanes.</p></div>
+      <div class="card"><div class="card-head"><i data-lucide="calculator"></i><h3>Example: PT Kopi Nusantara, 2 × 40ft to Shanghai</h3></div>
+        <table class="calc">${lines.map(([l, a]) => `<tr><td>${l}</td><td>${Staff.money(a)}</td></tr>`).join('')}
+          <tr><td>Your cost</td><td>${Staff.money(cost)}</td></tr>
+          <tr><td>Margin ${rule.value}% <span class="caption">(${esc(rule.scope)})</span></td><td>${Staff.money(sell - fee - cost)}</td></tr>
+          <tr><td>Documentation fee</td><td>${Staff.money(fee)}</td></tr>
+          <tr class="t"><td>Estimate the customer sees</td><td>${Staff.money(sell * 0.97)}–${Math.round(sell * 1.03).toLocaleString('en-US')}</td></tr></table>
+        <p class="caption" style="margin:10px 0 0">Shown as a ±3% range. Change a rate or margin and the portal’s estimates follow.</p></div>
+    </div>
+  </section>`;
+}
+
+function lanesHTML() {
+  return `<section class="sec" id="lanes"><h2><i data-lucide="route"></i>Lanes served</h2><p class="lead">The AI offers routes on these lanes only. Anything else goes to your team.</p>
+    <div class="card flush"><table class="rtable"><thead><tr><th style="padding-left:16px">Origin</th><th>Destination</th><th>Mode</th><th></th></tr></thead>
+      <tbody>${S.lanes.map((l, i) => `<tr><td style="padding-left:16px">${esc(l[0])}</td><td>${esc(l[1])}</td><td>${esc(l[2])}</td><td style="text-align:right;padding-right:16px"><button class="icon-btn" title="Remove" data-rm-lane="${i}"><i data-lucide="x"></i></button></td></tr>`).join('')}
+        <tr><td style="padding-left:16px"><input id="lO" placeholder="Origin"></td><td><input id="lD" placeholder="Destination"></td><td><select id="lM"><option>Sea FCL</option><option>Sea LCL</option><option>Air</option><option>Trucking</option></select></td>
+          <td style="text-align:right;padding-right:16px"><button class="btn-secondary" id="addLane"><i data-lucide="plus"></i>Add</button></td></tr></tbody></table></div>
+  </section>`;
+}
+
+function guardrailsHTML() {
+  const rules = [
+    ['map-pin-off', 'Lanes you don’t serve', 'The AI doesn’t invent a route. It tells the customer your team will follow up and flags the request for you.', '“This route isn’t one we quote online. Your account manager will follow up today.”'],
+    ['octagon-alert', 'Restricted goods', 'For dangerous, sanctioned or controlled goods the AI stops and hands the request to your staff.', '“This cargo needs a specialist check. Arief will contact you before we quote.”'],
+    ['shield-check', 'Never recommends other logistics companies', 'Your customers only ever see your services. The AI never names or suggests another logistics company.', null],
+    ['circle-help', 'Unclear requests', 'If the prompt is missing volume, dates or destination, the AI asks follow-up questions instead of guessing.', '“How many containers, and when will the cargo be ready?”'],
+  ];
+  return `<section class="sec" id="guardrails"><h2><i data-lucide="shield-check"></i>AI guardrails</h2><p class="lead">Always on for every customer conversation. They can’t be switched off.</p>
+    <div class="card">${rules.map(([i, t, d2, ex]) => `<div class="rule"><span class="icon-tile tone-neutral"><i data-lucide="${i}"></i></span><div><b>${t}</b> <i data-lucide="lock" style="width:11px;height:11px;color:var(--muted-soft)"></i><p>${d2}</p>${ex ? `<q>${esc(ex)}</q>` : ''}</div></div>`).join('')}</div>
+  </section>`;
+}
+
+function slaHTML() {
+  const waiting = Staff.requests().filter(r => ['new', 'review'].includes(r.status));
+  return `<section class="sec" id="sla"><h2><i data-lucide="timer"></i>Response targets</h2><p class="lead">How fast new customer requests must be answered. This drives the timers in your Inbox and on each request.</p>
+    <div class="card"><div class="opt-row" style="padding-top:0"><div class="txt"><b>Reply to new requests within</b><span class="caption">A request turns red in the Inbox when it passes this target.</span></div>
+      <select class="select" id="sla" style="height:34px">${[4, 8, 24, 48].map(h => `<option value="${h}"${S.slaHours === h ? ' selected' : ''}>${h} hours</option>`).join('')}</select></div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">${waiting.map(r => `<div style="display:flex;align-items:center;gap:10px;font-size:13px"><span class="num" style="font-weight:500">${r.id}</span><span class="caption">${esc(D.orgs[r.org].name)}</span><span style="margin-left:auto">${Staff.timerHTML(r)}</span></div>`).join('') || '<span class="caption">No requests waiting right now.</span>'}</div></div>
+  </section>`;
+}
+
+function render() {
+  const y = $('#scroll').scrollTop;
+  $('#wrap').innerHTML = brandingHTML() + visibilityHTML() + pricingHTML() + lanesHTML() + guardrailsHTML() + slaHTML();
+  icons();
+  $('#scroll').scrollTop = y;
+}
+render();
+
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.set) { save({ [t.dataset.set]: t.checked }); render(); return; }
+  if (t.dataset.rate != null) { const rates = S.rates.map(r => [...r]); rates[+t.dataset.rate][2] = +t.value || 0; save({ rates }, 'Rate saved · estimates updated'); render(); return; }
+  if (t.dataset.margin != null) { const m = S.margins.map(r => ({ ...r })); m[+t.dataset.margin].value = +t.value || 0; save({ margins: m }, 'Margin rule saved · customer estimates updated'); render(); return; }
+  if (t.dataset.kind != null) { const m = S.margins.map(r => ({ ...r })); m[+t.dataset.kind].kind = t.value; save({ margins: m }); render(); return; }
+  if (t.id === 'sla') { save({ slaHours: +t.value }, `Target set to ${t.value} hours · Inbox timers updated`); render(); return; }
+  if (t.id === 'bInvite') { save({ inviteText: t.value }, 'Invitation text saved'); render(); }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'bName') { brand.name = e.target.value; const y = e.target.selectionStart; render(); $('#bName').focus(); $('#bName').setSelectionRange(y, y); }
+  if (e.target.id === 'bSub') { brand.sub = e.target.value.replace(/[^a-z0-9-]/gi, '').toLowerCase(); const y = e.target.selectionStart; render(); $('#bSub').focus(); $('#bSub').setSelectionRange(y, y); }
+});
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-color]'); if (c) { brand.color = c.dataset.color; render(); return; }
+  const p = e.target.closest('[data-policy]'); if (p) { save({ estimatePolicy: p.dataset.policy }); render(); return; }
+  if (e.target.closest('#csv')) { save({ rates: [...S.rates, ['Surabaya → Yokohama', 'Ocean FCL 40ft', 1840, 'Mon 30 Nov'], ['Semarang → Rotterdam', 'Ocean LCL per CBM', 68, 'Thu 31 Dec']] }, 'rates.csv imported: 2 lines added'); render(); return; }
+  if (e.target.closest('#addRate')) { save({ rates: [...S.rates, ['New lane', 'Service', 0, '—']] }, 'Line added'); render(); return; }
+  if (e.target.closest('#addRule')) { save({ margins: [...S.margins, { scope: 'PT Sinar Elektronik', kind: '%', value: 10 }] }, 'Rule added for PT Sinar Elektronik'); render(); return; }
+  const rl = e.target.closest('[data-rm-lane]'); if (rl) { const lanes = S.lanes.filter((_, i) => i !== +rl.dataset.rmLane); save({ lanes }, 'Lane removed'); render(); return; }
+  if (e.target.closest('#addLane')) { const o = $('#lO').value.trim(), d2 = $('#lD').value.trim(); if (!o || !d2) { toast('Enter an origin and destination'); return; } save({ lanes: [...S.lanes, [o, d2, $('#lM').value]] }, 'Lane added'); render(); }
+});
+</script>
+</body>
+</html>

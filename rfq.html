@@ -129,6 +129,7 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
 <script>
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
@@ -259,7 +260,7 @@ function offerHTML(l, o) {
   const org = D.orgs[o.org];
   const selected = state.pick[l.id] === o.org;
   const head = `<div class="offer-top">${orgAvatar(o.org)}
-    <div class="who"><b>${org.name}</b><div class="caption">${STATUS[o.status](o)}${org.linkOnly ? tag('Link only', 'neutral', 'link') : ''}${o.rec && replied(o) ? tag('AI pick', 'brand', 'sparkles') : ''}</div></div></div>`;
+    <div class="who"><b>${org.name}</b><div class="caption">${Staff.integHTML(o.org)}${STATUS[o.status](o)}${org.linkOnly ? tag('Link only', 'neutral', 'link') : ''}${o.rec && replied(o) ? tag('AI pick', 'brand', 'sparkles') : ''}</div></div></div>`;
 
   if (!replied(o)) {
     const canNudge = o.status === 'opened' && !state.awarded;
@@ -334,9 +335,20 @@ function renderActionBar() {
   icons();
 }
 
+// Opened from a customer request: API partners were booked directly, RFQs cover the rest
+function requestBannerHTML() {
+  const rid = new URLSearchParams(location.search).get('request');
+  const r = rid && Staff.request(rid);
+  if (!r) return '';
+  const booked = (LM.db.read().bookings || []).filter(b => b.request === rid);
+  return `<div class="banner info"><i data-lucide="inbox"></i><div class="text"><b>RFQs for ${rid} · ${esc(D.orgs[r.org].name)}.</b>
+    ${booked.length ? booked.map(b => `${esc(b.service)} is already booked directly with ${esc(D.orgs[b.org].name)} (${b.ref}).`).join(' ') + ' ' : ''}RFQs go to manual partners by email or WhatsApp link. Samudra Lines’ API is offline, so it gets an RFQ too.</div>
+    <a class="btn-secondary" href="request.html?id=${rid}"><i data-lucide="arrow-left"></i>Back to request</a></div>`;
+}
+
 function render() {
   renderHead();
-  $('#rfq').innerHTML = factsHTML() + bannerHTML() + recoHTML() + Q.legs.map(legHTML).join('')
+  $('#rfq').innerHTML = requestBannerHTML() + factsHTML() + bannerHTML() + recoHTML() + Q.legs.map(legHTML).join('')
     + `<div class="proto-note">Sample data · prototype state:
         <span class="proto-switch" style="display:inline-flex;gap:4px">
           <a href="rfq.html" style="padding:2px 6px;border-radius:4px;${expired ? '' : 'background:var(--nav-active);color:var(--text-secondary)'}">Replies in (partial)</a>

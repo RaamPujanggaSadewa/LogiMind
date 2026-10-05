@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partner workspace · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 32px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+  @media (max-width: 1200px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .lc { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .lc .space-avatar { width: 18px; height: 18px; }
+  .fleet .big { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .bar { display: flex; height: 10px; border-radius: 99px; overflow: hidden; background: var(--nav-active); margin: 10px 0 12px; }
+  .bar span { display: block; height: 100%; }
+  .alloc { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: start; padding: 8px 0; border-top: 1px solid var(--divider); font-size: 13px; }
+  .alloc .sw { width: 10px; height: 10px; border-radius: 3px; margin-top: 4px; }
+  .alloc b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .alloc .caption { display: block; }
+  .api { display: grid; grid-template-columns: 32px 1fr; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="jobs">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><h1 id="title">Jobs</h1><span class="caption" id="count"></span>
+      </header>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+<script src="../assets/data.js"></script>
+<script>
+  (function () { const lc = new URLSearchParams(location.search).get('lc'); document.querySelector('.app').dataset.row = lc || 'all'; })();
+</script>
+<script src="../assets/shell.js"></script>
+<script>
+const { $, esc, tag, icons, data: D } = LM;
+LM.mount();
+const P = D.partner[LM.account.id];
+const lc = new URLSearchParams(location.search).get('lc');
+const jobs = P.jobs.filter(j => !lc || j.tenant === lc);
+const COLORS = { nusantara: D.tenants.nusantara.brand, samudralog: D.tenants.samudralog.brand };
+$('#title').textContent = lc ? `Jobs · ${D.tenants[lc].short}` : 'Jobs';
+$('#count').textContent = `${jobs.length} jobs`;
+document.title = `Jobs · ${LM.account.company}`;
+
+const allocated = P.fleet.allocations.reduce((s, a) => s + a.trucks, 0);
+$('#wrap').innerHTML = `
+  <div class="banner info"><i data-lucide="construction"></i><div class="text"><b>Partner workspace, coming soon.</b> Today you can see the status of jobs assigned to you and your own fleet allocations. Accepting jobs, updating status and invoicing come next.</div></div>
+  <div class="grid">
+    <section class="card flush">
+      <div class="card-head"><i data-lucide="truck"></i><h3>Assigned jobs</h3><span class="caption">Read-only</span></div>
+      <table class="table" style="margin-top:8px">
+        <thead><tr><th>Job</th><th>Logistics company</th><th>Route</th><th>When</th><th>Status</th></tr></thead>
+        <tbody>${jobs.map(j => `<tr style="cursor:default">
+          <td><div class="primary-cell num">${j.id}</div><div class="sub">${esc(j.what)}</div></td>
+          <td><span class="lc"><span class="space-avatar" style="background:${COLORS[j.tenant]}">${D.tenants[j.tenant].initials[0]}</span>${esc(D.tenants[j.tenant].short)}</span></td>
+          <td>${esc(j.where)}</td><td class="sub" style="white-space:nowrap">${j.when}</td><td>${tag(...j.status)}</td></tr>`).join('')}</tbody>
+      </table>
+      <p class="caption" style="padding:10px 16px 14px;margin:0;display:flex;align-items:center;gap:6px"><i data-lucide="lock" style="width:12px;height:12px"></i>You see job status and your own allocations only. Shipper details and pricing stay with each logistics company.</p>
+    </section>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <section class="card fleet">
+        <div class="card-head"><i data-lucide="gauge"></i><h3>Fleet allocation</h3></div>
+        <div class="big">${allocated} of ${P.fleet.total} trucks allocated</div>
+        <div class="bar">${P.fleet.allocations.map(a => `<span style="width:${a.trucks / P.fleet.total * 100}%;background:${COLORS[a.tenant]}"></span>`).join('')}</div>
+        ${P.fleet.allocations.map(a => `<div class="alloc"><span class="sw" style="background:${COLORS[a.tenant]}"></span>
+          <div>${esc(D.tenants[a.tenant].short)}<span class="caption">Released ${a.until}</span></div><b>${a.trucks} trucks</b></div>`).join('')}
+        <div class="alloc"><span class="sw" style="background:var(--border)"></span><div>Available<span class="caption">Open for new bookings</span></div><b>${P.fleet.total - allocated} trucks</b></div>
+      </section>
+      <section class="card">
+        <div class="api"><span class="icon-tile tone-neutral"><i data-lucide="plug"></i></span>
+          <div><b style="font-weight:600;color:var(--ink)">Connect your own system</b><br>Partners connect their own systems via API to share availability and receive bookings.</div></div>
+      </section>
+    </div>
+  </div>`;
+icons();
+</script>
+</body>
+</html>

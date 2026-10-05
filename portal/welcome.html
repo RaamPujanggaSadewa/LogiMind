@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  body { overflow: auto; }
+  .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px; }
+  .brandbar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .logo { width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--primary); color: #fff; font-weight: 700; font-size: 12.5px; display: grid; place-items: center; }
+  .brandbar b { font-weight: 600; }
+  .brandbar .caption { display: block; }
+  .card.box { width: 100%; max-width: 560px; padding: 28px; border-radius: var(--r-lg); box-shadow: var(--shadow-lift); border-top: 4px solid var(--primary); }
+  .steps { display: flex; align-items: center; gap: 4px; margin-bottom: 22px; font-size: 12.5px; font-weight: 500; color: var(--muted-soft); flex-wrap: wrap; }
+  .steps .s { display: inline-flex; align-items: center; gap: 6px; }
+  .steps .d { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--disabled); display: grid; place-items: center; font-size: 10px; }
+  .steps .s.done { color: var(--text-secondary); } .steps .s.done .d { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .steps .s.done .d svg.lucide { width: 10px; height: 10px; stroke-width: 3; }
+  .steps .s.cur { color: var(--ink); } .steps .s.cur .d { border-color: var(--primary); color: var(--primary); }
+  .steps .sep { width: 14px; height: 1px; background: var(--border); }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 6px; }
+  .lead { color: var(--text-secondary); margin: 0 0 18px; }
+  .invite { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--r-md); background: var(--primary-soft); margin-bottom: 18px; }
+  .invite .user-avatar { width: 34px; height: 34px; font-size: 12px; }
+  .benefits { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .benefits li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; font-size: 13.5px; }
+  .benefits svg.lucide { width: 15px; height: 15px; color: var(--primary); margin-top: 2px; }
+  .fld { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .fld > span:not(.error) { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); }
+  .input { height: 38px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 12px; width: 100%; background: var(--surface); }
+  .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .input[readonly] { background: var(--row-hover); color: var(--muted); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .hint.bad { color: var(--danger); } .hint.good { color: var(--success); }
+  .chips-in { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chip { height: 26px; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px 0 10px; border-radius: var(--r-full); background: var(--nav-active); font-size: 12.5px; font-weight: 500; }
+  .chip button { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
+  .chip svg.lucide { width: 11px; height: 11px; }
+  .cons { display: flex; flex-direction: column; gap: 6px; }
+  .cons .c { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 13px; }
+  .cons .c .caption { margin-left: auto; }
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 8px; }
+  .done-ico { width: 52px; height: 52px; border-radius: 50%; background: var(--success-soft); color: var(--success); display: grid; place-items: center; margin-bottom: 14px; }
+  .done-ico svg.lucide { width: 26px; height: 26px; }
+  .back { margin-top: 18px; font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .back:hover { color: var(--ink); text-decoration: underline; }
+  .back svg.lucide { width: 13px; height: 13px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="brandbar"><span class="logo" id="logo"></span><div><b id="tname"></b><span class="caption">Customer portal</span></div></div>
+  <section class="card box" id="box"></section>
+  <p class="powered">Powered by LogiMind</p>
+  <a class="back" href="../login.html"><i data-lucide="arrow-left"></i>Back to demo accounts</a>
+</div>
+
+<script>window.LM_PUBLIC = true;</script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script>
+const { $, $$, esc, icons, toast, data: D } = LM;
+const key = new URLSearchParams(location.search).get('tenant');
+const T = D.tenants[key] || D.tenants.nusantara;
+// the invited sender for this logistics company (demo)
+const acc = D.accounts.find(a => a.persona === 'sender' && a.tenant === T.key);
+const S = D.senders[acc.id];
+const org = D.orgs[acc.org];
+
+const r = document.documentElement.style;
+r.setProperty('--primary', T.brand); r.setProperty('--primary-hover', T.brandDark); r.setProperty('--primary-pressed', T.brandDeep); r.setProperty('--primary-soft', T.brandSoft);
+document.title = `Welcome · ${T.short}`;
+$('#logo').textContent = T.initials; $('#tname').textContent = T.name;
+
+const form = {
+  company: acc.company, nib: '', npwp: '', address: acc.id === 'rina' ? 'Jl. Rungkut Industri III No. 12, Surabaya' : 'Jl. Hayam Wuruk No. 8, Pekalongan',
+  goods: acc.id === 'rina' ? ['Green coffee beans', 'Roasted coffee'] : ['Batik textiles'],
+  consignees: acc.id === 'rina' ? [['Shanghai Aroma Trading Co.', 'Shanghai, China'], ['Busan Coffee Co.', 'Busan, Korea']] : [['Al Noor Textiles LLC', 'Dubai, UAE']],
+};
+let step = 0;
+const STEPS = ['Invitation', 'Password', 'Company details', 'Done'];
+
+function stepsHTML() {
+  return `<div class="steps">${STEPS.map((s, i) => `${i ? '<span class="sep"></span>' : ''}<span class="s ${i < step ? 'done' : i === step ? 'cur' : ''}"><span class="d">${i < step ? '<i data-lucide="check"></i>' : i + 1}</span>${s}</span>`).join('')}</div>`;
+}
+
+function draw() {
+  const am = S.accountManager;
+  const views = [
+    () => `<h1>${esc(T.short)} invited you to their customer portal</h1>
+      <p class="lead">Request shipments, get confirmed quotes and track your cargo with ${esc(T.short)}, all in one place.</p>
+      <div class="invite"><span class="user-avatar" style="background:${LM.AVATAR_COLORS[am.color]}">${am.initials}</span>
+        <div><b style="font-weight:600">${esc(am.name)}</b> <span class="caption">your account manager</span><div style="font-size:13px">invited <b style="font-weight:500">${esc(acc.email)}</b> for ${esc(acc.company)}</div></div></div>
+      <ul class="benefits">
+        <li><i data-lucide="sparkles"></i><span>Describe a shipment in your own words and get route options and an estimate in seconds</span></li>
+        <li><i data-lucide="badge-check"></i><span>Every price is confirmed by ${esc(am.name)} before you accept it</span></li>
+        <li><i data-lucide="files"></i><span>Upload documents once; they’re checked before ${esc(T.short)} sees them</span></li>
+        <li><i data-lucide="bell"></i><span>Updates here, by WhatsApp and by email</span></li>
+      </ul>
+      <div class="actions"><span class="caption">This invitation is for ${esc(acc.email)} only.</span><button class="btn-primary" data-next><i data-lucide="check"></i>Accept invitation</button></div>`,
+    () => `<h1>Set your password</h1><p class="lead">You’ll sign in at ${T.portal} with ${esc(acc.email)}.</p>
+      <label class="fld"><span>Email</span><input class="input" value="${esc(acc.email)}" readonly></label>
+      <label class="fld"><span>Password</span><input class="input" id="pw1" type="password" placeholder="At least 8 characters"><span class="hint" id="pwHint">Use 8 or more characters.</span></label>
+      <label class="fld"><span>Confirm password</span><input class="input" id="pw2" type="password"><span class="hint" id="pw2Hint"></span></label>
+      <div class="actions"><button class="btn-secondary" data-back>Back</button><button class="btn-primary" data-next id="pwNext" disabled>Continue</button></div>`,
+    () => `<h1>Confirm your company details</h1><p class="lead">${esc(T.short)} filled in what they know. Check it and add the rest.</p>
+      <label class="fld"><span>Company name</span><input class="input" id="f-company" value="${esc(form.company)}"></label>
+      <div class="two">
+        <label class="fld"><span>NIB (business ID)</span><input class="input" id="f-nib" value="${esc(form.nib)}" placeholder="13 digits" inputmode="numeric"></label>
+        <label class="fld"><span>NPWP (tax ID)</span><input class="input" id="f-npwp" value="${esc(form.npwp)}" placeholder="15 or 16 digits" inputmode="numeric"></label>
+      </div>
+      <label class="fld"><span>Pickup address</span><input class="input" id="f-address" value="${esc(form.address)}"></label>
+      <div class="fld"><span>Goods you usually ship</span>
+        <div class="chips-in">${form.goods.map((g, i) => `<span class="chip">${esc(g)}<button data-rm-good="${i}" aria-label="Remove"><i data-lucide="x"></i></button></span>`).join('')}
+          <input class="input" id="f-good" placeholder="Add and press Enter" style="width:180px;height:26px;border-radius:99px;font-size:12.5px"></div></div>
+      <div class="fld"><span>Your usual consignees (buyers)</span>
+        <div class="cons">${form.consignees.map(([n, c]) => `<div class="c"><i data-lucide="building" style="width:14px;height:14px;color:var(--muted)"></i>${esc(n)}<span class="caption">${esc(c)}</span></div>`).join('')}</div>
+        <button class="link-btn" data-add-cons style="align-self:flex-start;margin-top:4px"><i data-lucide="plus"></i>Add consignee</button></div>
+      <div class="actions"><button class="btn-secondary" data-back>Back</button><button class="btn-primary" data-next id="coNext">Finish setup</button></div>`,
+    () => `<div class="done-ico"><i data-lucide="check"></i></div>
+      <h1>You’re all set, ${esc(acc.name.split(' ')[0])}</h1>
+      <p class="lead">Your portal with ${esc(T.short)} is ready. Your requests go only to ${esc(T.short)}, and ${esc(am.name)} is your contact for everything.</p>
+      <div class="actions"><span class="caption">${esc(form.company)} · ${form.consignees.length} consignee${form.consignees.length === 1 ? '' : 's'}</span><button class="btn-primary" id="go"><i data-lucide="arrow-right"></i>Go to your portal</button></div>`,
+  ];
+  $('#box').innerHTML = stepsHTML() + views[step]();
+  icons();
+  bind();
+}
+
+function bind() {
+  const pw1 = $('#pw1'), pw2 = $('#pw2');
+  if (pw1) {
+    const check = () => {
+      const ok1 = pw1.value.length >= 8, ok2 = ok1 && pw1.value === pw2.value;
+      $('#pwHint').className = 'hint ' + (pw1.value ? (ok1 ? 'good' : 'bad') : '');
+      $('#pwHint').textContent = !pw1.value ? 'Use 8 or more characters.' : ok1 ? 'Strong enough.' : `${8 - pw1.value.length} more character${8 - pw1.value.length === 1 ? '' : 's'} needed.`;
+      $('#pw2Hint').className = 'hint ' + (pw2.value ? (ok2 ? 'good' : 'bad') : '');
+      $('#pw2Hint').textContent = pw2.value ? (ok2 ? 'Passwords match.' : 'Passwords don’t match yet.') : '';
+      $('#pwNext').disabled = !ok2;
+    };
+    pw1.addEventListener('input', check); pw2.addEventListener('input', check);
+    pw1.focus();
+  }
+  ['company', 'nib', 'npwp', 'address'].forEach(k => { const el = $('#f-' + k); if (el) el.addEventListener('input', () => { form[k] = el.value; }); });
+  const good = $('#f-good');
+  if (good) good.addEventListener('keydown', e => { if (e.key === 'Enter' && good.value.trim()) { e.preventDefault(); form.goods.push(good.value.trim()); draw(); $('#f-good').focus(); } });
+  const go = $('#go');
+  if (go) go.addEventListener('click', () => { LM.signIn(acc.id); location.href = 'index.html?state=new'; });
+}
+
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-next]')) { step++; draw(); return; }
+  if (e.target.closest('[data-back]')) { step--; draw(); return; }
+  const rg = e.target.closest('[data-rm-good]'); if (rg) { form.goods.splice(+rg.dataset.rmGood, 1); draw(); return; }
+  if (e.target.closest('[data-add-cons]')) { form.consignees.push(['New consignee', 'Add details later']); draw(); toast('In the product you’d enter the buyer’s name and address'); }
+});
+draw();
+</script>
+</body>
+</html>

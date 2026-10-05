@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .crumbs { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .crumbs a:hover { color: var(--ink); text-decoration: underline; }
+  .crumbs svg.lucide { width: 13px; height: 13px; color: var(--muted-soft); }
+  .crumbs b { color: var(--ink); font-weight: 600; }
+  .pf { max-width: 1200px; margin: 0 auto; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .hero { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .hero .org-avatar { width: 52px; height: 52px; font-size: 18px; border-radius: var(--r-lg); }
+  .hero h1 { font-size: 18px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .hero .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .hero .acts { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); padding: 0; overflow: hidden; }
+  .stat { padding: 12px 16px; border-right: 1px solid var(--divider); }
+  .stat:last-child { border-right: 0; }
+  .stat .k { font-size: 12px; color: var(--muted); }
+  .stat .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+  @media (max-width: 1240px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .table td { font-size: 13.5px; }
+  .muted-empty { padding: 16px; text-align: center; color: var(--muted); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--r-md); background: var(--row-hover); margin: 8px 16px 16px; }
+  .person { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--divider); }
+  .person:first-of-type { border-top: 0; }
+  .person .user-avatar { width: 32px; height: 32px; font-size: 12px; }
+  .person b { font-weight: 500; display: block; }
+  .notes { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .notes li { font-size: 13px; padding: 8px 10px; background: var(--warning-soft); border-radius: var(--r-sm); color: var(--text-secondary); }
+  .notes li .caption { display: block; margin-top: 2px; }
+  .ta { width: 100%; border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; min-height: 64px; resize: vertical; line-height: 1.45; }
+  .ta:focus { outline: none; border-color: var(--primary); }
+  .docrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 16px; border-top: 1px solid var(--divider); font-size: 13.5px; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="customers">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><nav class="crumbs" id="crumbs"></nav></header>
+      <div class="content"><div class="pf" id="pf"></div></div>
+    </main>
+  </div>
+</div>
+<script src="assets/data.js"></script>
+<script>
+  (function () { document.querySelector('.app').dataset.row = 'c-' + (new URLSearchParams(location.search).get('id') || 'kopi'); })();
+</script>
+<script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast, orgAvatar, db, data: D } = LM;
+LM.mount();
+const id = new URLSearchParams(location.search).get('id') || 'kopi';
+const c = Staff.customer(id);     // own customers only
+const T = Staff.T;
+const PORTAL = { active: ['Portal active', 'success', 'circle-check'], invited: ['Invited', 'info', 'mail'], expired: ['Invite expired', 'warning', 'timer-off'], none: ['Not on the portal', 'neutral', 'message-circle'] };
+
+function render() {
+  if (!c) { $('#pf').innerHTML = `<div class="empty" style="height:auto;padding:64px"><div class="empty-tile"><i data-lucide="search-x"></i></div><h2 class="empty-title">Customer not found</h2><p class="empty-body">Only your own customers can be opened.</p><a class="btn-secondary" href="customers.html">Back to customers</a></div>`; icons(); return; }
+  const o = D.orgs[id], sender = Staff.senderOf(id), S = sender ? D.senders[sender.id] : null;
+  document.title = `${o.name} · LogiMind`;
+  $('#crumbs').innerHTML = `<a href="customers.html">Customers</a><i data-lucide="chevron-right"></i><b>${esc(o.name)}</b>`;
+  const reqs = Staff.requests().filter(r => r.org === id);
+  const dbd = db.read();
+  const issued = Object.values(dbd.issued || {}).filter(q => reqs.some(r => r.id === q.request));
+  const seededQuotes = S ? Object.entries(S.quotes).map(([qid, q]) => ({ id: qid, title: q.title, total: q.lines.reduce((a, l) => a + l[1], 0), status: (dbd.decisions || {})[qid] ? dbd.decisions[qid].status : q.status })) : [];
+  const quotes = [...issued.map(q => ({ id: q.id, title: q.title, total: q.lines.reduce((a, l) => a + l[1], 0), status: (dbd.decisions || {})[q.id] ? dbd.decisions[q.id].status : 'sent' })), ...seededQuotes,
+    ...D.ops.lost.filter(l => l.org === id).map(l => ({ id: l.quote, title: l.reason, total: l.value, status: 'declined' }))];
+  const ships = [...(dbd.shipments || []).filter(x => x.org === id).map(x => ({ id: x.id, lane: [x.route[0], x.route[x.route.length - 1]], cargo: x.title.split(' · ')[0], stage: ['Booked', 'neutral'], risk: ['New', 'success'] })),
+    ...D.shipments.filter(x => x.customer === o.name)];
+  const QS = { sent: ['Sent', 'info'], ready: ['Sent', 'info'], accepted: ['Accepted', 'success'], declined: ['Declined', 'warning'], expired: ['Expired', 'neutral'] };
+  const notes = [...(D.customerNotes[id] || []).map(t => [t, 'Arief Hidayat']), ...((dbd.notes || {})[id] || []).map(n => [n.text, n.who])];
+  const primary = c.portal === 'active'
+    ? `<a class="btn-primary" href="chat.html?customer=${id}"><i data-lucide="sparkles"></i>New request for them</a>`
+    : `<button class="btn-primary" data-invite><i data-lucide="user-plus"></i>${c.portal === 'none' ? 'Invite to portal' : 'Resend invitation'}</button>`;
+
+  $('#pf').innerHTML = `
+    <section class="hero">${orgAvatar(id)}
+      <div><h1>${esc(o.name)}${tag(...PORTAL[c.portal])}<span class="lock-badge"><i data-lucide="lock"></i>Your customer · Only visible to ${esc(T.short)}</span></h1>
+        <div class="sub">${esc(c.type || 'Customer')}${c.since ? ` · customer since ${c.since}` : ''}${c.note ? ` · ${esc(c.note)}` : ''}</div></div>
+      <div class="acts">${Staff.viewAsLink(id, 'index.html')}${c.portal !== 'active' ? `<a class="btn-secondary" href="chat.html?customer=${id}"><i data-lucide="sparkles"></i>Request on their behalf</a>` : ''}${primary}</div>
+    </section>
+    <section class="card stats">
+      <div class="stat"><div class="k">Active shipments</div><div class="v">${c.active + (dbd.shipments || []).filter(x => x.org === id).length}</div></div>
+      <div class="stat"><div class="k">Open requests</div><div class="v">${reqs.filter(r => ['new', 'review', 'quoted'].includes(r.status)).length}</div></div>
+      <div class="stat"><div class="k">Revenue this quarter <i data-lucide="lock" style="width:11px;height:11px"></i></div><div class="v">${c.revenueQ ? Staff.money(c.revenueQ) : '—'}</div></div>
+      <div class="stat"><div class="k">Quotes accepted</div><div class="v">${quotes.filter(q => q.status === 'accepted').length} of ${quotes.length || 0}</div></div>
+      <div class="stat"><div class="k">Last activity</div><div class="v" style="font-size:15px">${esc(c.last)}</div></div>
+    </section>
+    <div class="grid">
+      <div class="col">
+        <section class="card flush"><div class="card-head"><i data-lucide="inbox"></i><h3>Requests</h3><span class="caption">${reqs.length}</span></div>
+          ${reqs.length ? `<table class="table" style="margin-top:8px"><tbody>${reqs.map(r => `<tr data-href="request.html?id=${r.id}"><td class="primary-cell num" style="width:1%;white-space:nowrap">${r.id}</td><td>${esc(r.title)}</td><td>${Staff.timerHTML(r)}</td><td style="text-align:right">${Staff.statusTag(r)}</td></tr>`).join('')}</tbody></table>`
+            : `<div class="muted-empty">${c.portal === 'none' ? 'They still send requests by WhatsApp. Create one on their behalf.' : 'No requests yet.'}</div>`}</section>
+        <section class="card flush"><div class="card-head"><i data-lucide="receipt"></i><h3>Quotes</h3><span class="caption">${quotes.length}</span></div>
+          ${quotes.length ? `<table class="table" style="margin-top:8px"><tbody>${quotes.map(q => `<tr style="cursor:default"><td class="primary-cell num" style="width:1%;white-space:nowrap">${q.id}</td><td>${esc(q.title)}</td><td class="num" style="text-align:right">${Staff.money(q.total)}</td><td style="text-align:right">${tag(...(QS[q.status] || ['—', 'neutral']))}</td></tr>`).join('')}</tbody></table>` : '<div class="muted-empty">No quotes yet.</div>'}</section>
+        <section class="card flush"><div class="card-head"><i data-lucide="container"></i><h3>Shipments</h3><span class="caption">${ships.length}</span></div>
+          ${ships.length ? `<table class="table" style="margin-top:8px"><tbody>${ships.map(x => `<tr data-href="shipment.html?id=${x.id}"><td class="primary-cell num" style="width:1%;white-space:nowrap">${x.id}</td><td>${x.lane[0]} → ${x.lane[1]}<div class="sub">${esc(x.cargo)}</div></td><td>${tag(...x.stage)}</td><td style="text-align:right">${tag(...x.risk)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted-empty">No shipments yet.</div>'}</section>
+        <section class="card flush"><div class="card-head"><i data-lucide="files"></i><h3>Documents on file</h3>
+          <div class="right"><span class="caption">Company documents they uploaded</span></div></div>
+          <div style="margin-top:8px">${S ? S.companyDocs.map(d2 => `<div class="docrow"><span>${esc(d2.name)}</span>${tag(...({ ready: ['Ready', 'success'], fix: ['Needs fix', 'danger'] }[d2.status]))}</div>`).join('') : '<div class="muted-empty">Nothing on file. Documents arrive by WhatsApp until they join the portal.</div>'}</div></section>
+      </div>
+      <div class="col">
+        <section class="card"><div class="card-head"><i data-lucide="user-round-check"></i><h3>Account manager</h3></div>
+          <div class="person"><span class="user-avatar" style="background:var(--avatar-indigo)">${LM.initialsOf(c.manager)}</span><div><b>${esc(c.manager)}</b><span class="caption">${esc(T.short)}</span></div>
+            <select class="select" id="am" aria-label="Change account manager">${['Arief Hidayat', 'Putri Anggraini', 'Dewi Lestari'].map(n => `<option${n === c.manager ? ' selected' : ''}>${n}</option>`).join('')}</select></div></section>
+        <section class="card"><div class="card-head"><i data-lucide="contact"></i><h3>Contacts</h3></div>
+          <div class="person"><span class="user-avatar" style="background:var(--avatar-teal)">${LM.initialsOf(c.contact)}</span><div><b>${esc(c.contact)}</b><span class="caption">${esc(c.contactRole || '')}${sender ? ` · ${esc(sender.email)}` : ''}</span></div>${sender ? tag('Portal user', 'success') : tag('WhatsApp', 'neutral')}</div></section>
+        <section class="card"><div class="card-head"><i data-lucide="sticky-note"></i><h3>Notes</h3><div class="right"><span class="lock-badge"><i data-lucide="lock"></i>Internal only</span></div></div>
+          <ul class="notes">${notes.map(([t, w]) => `<li>${esc(t)}<span class="caption">${esc(w)}</span></li>`).join('') || '<li style="background:var(--row-hover)">No notes yet.</li>'}</ul>
+          <textarea class="ta" id="note" placeholder="Add a note for your team. The customer never sees it."></textarea>
+          <button class="btn-secondary" id="addNote" style="margin-top:8px"><i data-lucide="plus"></i>Add note</button></section>
+      </div>
+    </div>`;
+  icons();
+}
+render();
+
+document.addEventListener('click', e => {
+  const r = e.target.closest('tr[data-href]'); if (r) { location.href = r.dataset.href; return; }
+  if (e.target.closest('[data-invite]')) { location.href = `customers.html?invite=${id}`; return; }
+  if (e.target.closest('#addNote')) {
+    const t = $('#note').value.trim(); if (!t) return;
+    db.update(d => { d.notes = d.notes || {}; (d.notes[id] = d.notes[id] || []).push({ text: t, who: LM.account.name }); });
+    render(); toast('Note saved · internal only');
+  }
+});
+document.addEventListener('change', e => { if (e.target.id === 'am') toast(`${e.target.value} is now the account manager for ${D.orgs[id].name}`); });
+</script>
+</body>
+</html>

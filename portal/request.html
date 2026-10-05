@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head .title-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-head h1, .page-head .caption { white-space: nowrap; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+  @media (max-width: 1200px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .kv { display: grid; grid-template-columns: 160px 1fr; gap: 8px 16px; font-size: 13.5px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  .events { list-style: none; margin: 0; padding: 0; }
+  .events li { display: grid; grid-template-columns: 20px 1fr auto; gap: 10px; padding: 8px 0; border-top: 1px solid var(--divider); font-size: 13.5px; }
+  .events li:first-child { border-top: 0; }
+  .events svg.lucide { width: 15px; height: 15px; color: var(--muted); margin-top: 2px; }
+  .events time { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .next-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; }
+  .next-list li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; }
+  .next-list .n { width: 20px; height: 20px; border-radius: 50%; background: var(--nav-active); font-size: 11px; font-weight: 600; display: grid; place-items: center; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="app" data-rail="requests" data-row="requests">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><div class="title-wrap"><h1 class="num" id="rid">Request</h1><span class="caption" id="rtitle"></span><span id="rtag"></span></div>
+        <div class="right"><a class="link-btn" href="requests.html"><i data-lucide="arrow-left"></i>All requests</a></div></header>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T;
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+const r = P.requests().find(x => x.id === id);   // only this sender's requests
+const AM = S.accountManager.name;
+
+function banner() {
+  switch (r.status) {
+    case 'sent': return `<div class="banner success"><i data-lucide="send"></i><div class="text"><b>Sent to ${esc(T.short)} ${params.get('sent') ? 'just now' : esc(r.created.toLowerCase())}.</b> ${esc(AM)} will review it and send you a confirmed quote, usually within 1 business day.</div>
+      <button class="btn-secondary" data-contact="WhatsApp"><i data-lucide="message-circle"></i>Message ${esc(AM.split(' ')[0])}</button></div>`;
+    case 'review': return `<div class="banner info"><i data-lucide="hourglass"></i><div class="text"><b>Under review for ${r.reviewDays || 'less than 1'} day${r.reviewDays === 1 ? '' : 's'}.</b> Your account manager, ${esc(AM)}, has been notified and is checking space and rates.</div>
+      <button class="btn-secondary" data-contact="WhatsApp"><i data-lucide="message-circle"></i>Message ${esc(AM.split(' ')[0])}</button></div>`;
+    case 'quote': { const q = P.quote(r.quote); if (!q) return ''; return `<div class="banner success"><i data-lucide="receipt"></i><div class="text"><b>Your confirmed quote is ready.</b> ${P.money(q.lines.reduce((s, l) => s + l[1], 0))}, valid until ${q.expires}.</div>
+      <a class="btn-primary" href="quote.html?id=${r.quote}"><i data-lucide="receipt"></i>View quote</a></div>`; }
+    case 'accepted': return `<div class="banner success"><i data-lucide="check"></i><div class="text"><b>You accepted the quote.</b> ${esc(T.short)} is booking your shipment and will confirm the sailing.</div>
+      <a class="btn-secondary" href="quote.html?id=${r.quote}"><i data-lucide="receipt"></i>View quote</a></div>`;
+    case 'booked': return `<div class="banner success"><i data-lucide="container"></i><div class="text"><b>Booked as ${r.shipment}.</b> Track it and upload the documents it needs.</div>
+      <a class="btn-primary" href="shipment.html?id=${r.shipment}"><i data-lucide="navigation"></i>Track shipment</a></div>`;
+    case 'expired': { const q = P.quote(r.quote); return `<div class="banner warning"><i data-lucide="timer-off"></i><div class="text"><b>Quote expired on ${q.expiredOn}.</b> Rates and space change, so ${esc(T.short)} needs to confirm a new price.</div>
+      <button class="btn-primary" data-requote><i data-lucide="rotate-cw"></i>Ask for a new quote</button></div>`; }
+    case 'declined': return r.declinedBy === 'tenant'
+      ? `<div class="banner warning"><i data-lucide="circle-x"></i><div class="text"><b>${esc(T.short)} can’t take this request.</b> Their reason: “${esc(r.declineReason || '')}”</div>
+      <a class="btn-secondary" href="ask.html"><i data-lucide="sparkles"></i>Start a new request</a></div>`
+      : `<div class="banner info"><i data-lucide="x"></i><div class="text"><b>You declined this quote.</b> ${esc(T.short)} has been told${r.declineReason ? ` (“${esc(r.declineReason)}”)` : ''}.</div>
+      <a class="btn-secondary" href="ask.html"><i data-lucide="sparkles"></i>Start a new request</a></div>`;
+  }
+  return '';
+}
+
+function events() {
+  const ev = [['send', `You sent the request to ${T.short}`, r.created]];
+  if (['review', 'quote', 'accepted', 'booked', 'expired', 'declined'].includes(r.status)) ev.push(['eye', `${AM} started reviewing it`, r.status === 'review' ? 'Mon 9 Nov, 16:02' : 'Same day']);
+  if (r.quote) { const q = P.quote(r.quote); ev.push(['receipt', `Confirmed quote ${r.quote} issued`, q.issued]);
+    if (r.status === 'expired') ev.push(['timer-off', 'Quote expired without a decision', q.expiredOn]);
+    if (r.status === 'accepted' || r.status === 'booked') ev.push(['check', 'You accepted the quote', q.accepted || 'Just now']);
+    if (r.status === 'declined') ev.push(['x', 'You declined the quote', 'Just now']); }
+  if (r.status === 'booked') ev.push(['container', `Booked as ${r.shipment}`, 'Tue 10 Nov, 15:10']);
+  return ev.reverse();
+}
+
+function nextSteps() {
+  const map = {
+    sent: [`${AM} checks space and rates`, 'You get a confirmed quote to accept', 'Upload your documents while you wait'],
+    review: [`${AM} confirms space and rates`, 'You get a confirmed quote to accept', 'Upload your documents while you wait'],
+    quote: ['Review the confirmed quote', 'Accept it before it expires', `${T.short} books your shipment`],
+    accepted: [`${T.short} books the sailing`, 'You get a booking confirmation', 'Upload the documents listed for you'],
+    booked: ['Upload the documents listed for you', 'Track pickup, departure and arrival', 'Ask questions in the shipment chat'],
+    expired: ['Ask for a new quote', `${AM} re-checks space and rates`, 'Accept the new quote before it expires'],
+    declined: ['Start a new request whenever you’re ready'],
+  };
+  return map[r.status].map((t, i) => `<li><span class="n">${i + 1}</span><span>${esc(t)}</span></li>`).join('');
+}
+
+// Questions from the logistics company about this request (and the sender's replies)
+function messagesHTML() {
+  if (!r.messages || !r.messages.length) return '';
+  const C = LM.AVATAR_COLORS;
+  return `<section class="card" id="msgCard"><div class="card-head"><i data-lucide="messages-square"></i><h3>Messages with ${esc(T.short)}</h3></div>
+    <div style="display:flex;flex-direction:column;gap:12px">${r.messages.map(m => `<div style="display:grid;grid-template-columns:28px 1fr;gap:10px">
+      <span class="user-avatar" style="width:28px;height:28px;font-size:11px;background:${m.from === 'customer' ? C[LM.effective.color] : C[1]}">${LM.initialsOf(m.who)}</span>
+      <div><div style="font-size:13px;font-weight:600">${esc(m.from === 'customer' ? 'You' : m.who)} <span class="caption" style="font-weight:400">${esc(m.time)}</span></div><div style="font-size:13.5px;color:var(--text-secondary)">${esc(m.text)}</div></div></div>`).join('')}</div>
+    <form class="composer" data-composer id="replyForm" style="min-height:56px;padding:10px 10px 8px 14px;margin-top:12px">
+      <textarea rows="1" placeholder="Reply to ${esc(T.short)}" aria-label="Reply"></textarea>
+      <div class="composer-actions"><div class="left">${LM.visibility('You, ' + esc(T.short))}</div><button type="submit" class="btn-primary send-btn neutral" disabled><i data-lucide="arrow-up"></i></button></div>
+    </form></section>`;
+}
+
+function render() {
+  if (!r) { $('#wrap').innerHTML = P.notFound('Request'); $('#rid').textContent = 'Request'; P.title('Request'); icons(); return; }
+  P.title(r.id);
+  $('#rid').textContent = r.id;
+  $('#rtitle').textContent = r.title;
+  $('#rtag').innerHTML = P.statusTag(r);
+  $('#wrap').innerHTML = `${banner()}
+    <section class="card"><div class="card-head"><i data-lucide="list-checks"></i><h3>Progress</h3></div>${P.stepper(r)}</section>
+    <div class="grid">
+      <div class="col">
+        <section class="card">
+          <div class="card-head"><i data-lucide="clipboard-list"></i><h3>What you asked for</h3></div>
+          <dl class="kv">
+            <dt>Shipment</dt><dd>${esc(r.title)}</dd>
+            <dt>Timing</dt><dd>${esc(r.when)}${r.window ? ` · departs ${esc(r.window)}` : ''}</dd>
+            <dt>Route option</dt><dd>${esc(r.option)}</dd>
+            <dt>Estimate</dt><dd class="num">${P.estimateHTML(r.estimate)}</dd>
+            ${r.incoterm ? `<dt>Incoterm</dt><dd>${r.incoterm}</dd>` : ''}
+            ${r.docsTotal ? `<dt>Documents</dt><dd>${r.docsReady} of ${r.docsTotal} uploaded and checked</dd>` : ''}
+            ${r.notes && r.notes.length ? `<dt>Your notes</dt><dd>${r.notes.map(esc).join('<br>')}</dd>` : ''}
+          </dl>
+          <p class="estimate-note" style="margin:12px 0 0"><i data-lucide="info"></i>${esc(P.estimateNoteText())}</p>
+        </section>
+        ${messagesHTML()}
+        <section class="card">
+          <div class="card-head"><i data-lucide="history"></i><h3>Activity</h3></div>
+          <ul class="events">${events().map(([i, t, w]) => `<li><i data-lucide="${i}"></i><span>${esc(t)}</span><time>${esc(w)}</time></li>`).join('')}</ul>
+        </section>
+      </div>
+      <div class="col">
+        <section class="card"><div class="card-head"><i data-lucide="footprints"></i><h3>What happens next</h3></div><ol class="next-list">${nextSteps()}</ol></section>
+        <section class="card"><div class="card-head"><i data-lucide="eye"></i><h3>Who sees this request</h3></div>
+          <p style="margin:0;font-size:13px;color:var(--text-secondary)">Only you and ${esc(T.name)}. It is never shared with any other company.</p></section>
+      </div>
+    </div>`;
+  icons();
+  const rf = $('#replyForm');
+  if (rf) LM.bindComposer(rf, text => {
+    LM.db.update(d => { d.reqState = d.reqState || {}; const s = d.reqState[r.id] = d.reqState[r.id] || {}; (s.messages = s.messages || []).push({ from: 'customer', who: LM.effective.name, text, time: 'Just now' }); });
+    r.messages.push({ from: 'customer', who: LM.effective.name, text, time: 'Just now' });
+    render(); toast(`Sent to ${T.short}`);
+  });
+}
+render();
+if (r && params.get('sent')) setTimeout(() => P.notify(`${r.id} sent to ${T.short}`), 400);
+
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-requote]')) {
+    const id2 = P.nextRequestId();
+    P.addRequest({ ...r, id: id2, status: 'sent', created: 'Just now', quote: null, shipment: null, notes: [`New quote requested for ${r.id}`] });
+    location.href = `request.html?id=${encodeURIComponent(id2)}&sent=1`;
+  }
+});
+</script>
+</body>
+</html>

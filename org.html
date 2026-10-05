@@ -61,6 +61,14 @@
   .banner.warning > svg.lucide { color: var(--warning); }
   .banner .text { flex: 1; font-size: 13px; color: var(--text-secondary); }
   .banner .text b { color: var(--ink); font-weight: 600; }
+  .avail-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .avail-day { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 0; border-radius: var(--r-sm); background: var(--success-soft); font-size: 10.5px; color: var(--muted); border: 1px solid transparent; }
+  .avail-day:hover { border-color: var(--success); }
+  .avail-day b { font-size: 13px; color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .avail-day.low { background: var(--warning-soft); } .avail-day.low:hover { border-color: var(--warning); }
+  .avail-day.high { background: #CDEBDD; }
+  .alloc-box { display: grid; grid-template-columns: 16px 1fr; gap: 8px; padding: 10px 12px; border-radius: var(--r-md); background: var(--row-hover); border: 1px solid var(--divider); font-size: 13px; }
+  .alloc-box svg.lucide { width: 14px; height: 14px; margin-top: 2px; color: var(--muted); }
   .muted-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--r-md); background: var(--row-hover); }
 </style>
 </head>
@@ -83,6 +91,7 @@
   })();
 </script>
 <script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
 <script>
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
@@ -92,6 +101,8 @@ const N = D.network;
 const row = [...N.vendors, ...N.customers].find(r => r.org === id);
 const o = D.orgs[id];
 const isCustomer = N.customers.some(c => c.org === id);
+// Customers have their own profile page (Customers section)
+if (isCustomer) location.replace('customer.html?id=' + id);
 const full = N.profiles[id];
 const STATUS = { connected: ['Connected', 'success', 'link-2'], link: ['Link only', 'neutral', 'link'], pending: ['Invited', 'info', 'mail'], expired: ['Invite expired', 'warning', 'timer-off'] };
 
@@ -110,7 +121,7 @@ const CUSTOMER = {
 };
 
 document.title = `${o.name} · LogiMind`;
-$('#crumbs').innerHTML = `<a href="network.html">Network</a><i data-lucide="chevron-right"></i><a href="network.html?tab=${isCustomer ? 'customers' : 'vendors'}">${isCustomer ? 'Customers' : 'Vendors'}</a><i data-lucide="chevron-right"></i><b>${o.name}</b>`;
+$('#crumbs').innerHTML = `<a href="network.html">Partners</a><i data-lucide="chevron-right"></i><a href="network.html?tab=vendors">${esc(row ? row.type : 'Partner')}</a><i data-lucide="chevron-right"></i><b>${o.name}</b>`;
 
 function profileData() {
   if (full) return full;
@@ -132,6 +143,9 @@ function profileData() {
 }
 
 function bannerHTML() {
+  if (Staff.integ(id) === 'offline') return `<div class="banner danger"><i data-lucide="wifi-off"></i>
+    <div class="text"><b>API offline since ${D.availability[id].offlineSince}.</b> Live availability and direct booking are paused. Send RFQs by email or WhatsApp link until they reconnect.</div>
+    <a class="btn-secondary" href="rfq.html"><i data-lucide="send"></i>Send RFQ instead</a></div>`;
   if (row.status === 'link') return `<div class="banner info"><i data-lucide="link"></i>
     <div class="text"><b>Not on LogiMind yet.</b> They reply to your RFQs from a one-time WhatsApp or email link. Invite them to claim a free profile so you get ratings, documents and their full history.</div>
     <button class="btn-secondary" data-soon="Invite to claim profile"><i data-lucide="user-plus"></i>Invite to claim</button></div>`;
@@ -144,12 +158,30 @@ function bannerHTML() {
   return '';
 }
 
+/* Live availability + your allocation (API partners). Only YOUR allocation is shown:
+   what the partner allocated to other logistics companies is never visible here. */
+function availabilityHTML() {
+  const a = D.availability[id], k = Staff.integ(id);
+  if (k !== 'api' || !a || !a.days) return '';
+  const alloc = a.allocatedToYou;
+  const bookings = (LM.db.read().bookings || []).filter(b => b.org === id);
+  return `<section class="card">
+    <div class="card-head"><i data-lucide="radio"></i><h3>Live availability</h3><div class="right">${Staff.integHTML(id)}</div></div>
+    <div style="font-size:13.5px;margin-bottom:10px"><b style="font-weight:600">${Staff.dayLabel(id, 3)}:</b> ${a.days[3][0]} of ${a.total} ${a.unit} free${a.days[3][1] ? ` · 40ft trailers: ${a.days[3][1]}` : ''}</div>
+    <div class="avail-cal">${a.days.map((d2, i) => { const lvl = d2[0] / a.total; return `<button class="avail-day${lvl < 0.12 ? ' low' : lvl > 0.28 ? ' high' : ''}" data-book-day="${i}" title="${Staff.dayLabel(id, i)}: ${d2[0]} ${a.unit}${d2[1] ? `, ${d2[1]} × 40ft trailers` : ''}">
+      <span class="dw">${Staff.dayLabel(id, i).split(' ')[0]}</span><span class="dn">${Staff.dayLabel(id, i).split(' ')[1]}</span><b>${d2[0]}</b></button>`; }).join('')}</div>
+    <div class="caption" style="margin:6px 0 12px">${a.unit} free per day · click a day to book</div>
+    <div class="alloc-box"><i data-lucide="lock"></i><div><b style="font-weight:600">Allocated to you: ${alloc.trucks} ${alloc.unitLabel || 'trucks'} until ${alloc.until}</b><div class="caption">Reserved for ${esc(D.tenant.short)}. Other companies’ allocations are never shown.</div></div></div>
+    ${bookings.length ? `<div style="margin-top:12px"><div class="caption" style="font-weight:500;margin-bottom:6px">Your direct bookings</div>${bookings.map(b => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 0;border-top:1px solid var(--divider)"><span>${b.qty} × ${esc(b.service.toLowerCase())} · ${b.day}</span>${tag(`${b.ref} · ${b.status === 'pending' ? 'Pending' : 'Confirmed'}`, b.status === 'pending' ? 'info' : 'success')}</div>`).join('')}</div>` : ''}
+  </section>`;
+}
+
 function render() {
   const p = profileData();
   const [label, tone, icon] = STATUS[row.status];
-  const primary = isCustomer
-    ? `<a class="btn-primary" href="index.html#prompt"><i data-lucide="sparkles"></i>New request for them</a>`
-    : `<a class="btn-primary" href="index.html#prompt"><i data-lucide="send"></i>Send RFQ</a>`;
+  const primary = Staff.integ(id) === 'api'
+    ? `<button class="btn-primary" data-book-direct><i data-lucide="zap"></i>Book directly</button>`
+    : `<a class="btn-primary" href="rfq.html"><i data-lucide="send"></i>Send RFQ</a>`;
   $('#pf').innerHTML = `
     <section class="hero">
       ${orgAvatar(id)}
@@ -192,10 +224,12 @@ function render() {
       </div>
 
       <div class="col">
+        ${availabilityHTML()}
         <section class="card conn sees">
           <div class="card-head"><i data-lucide="shield-check"></i><h3>Connection and visibility</h3></div>
           <dl>
-            <dt>Role</dt><dd>${isCustomer ? 'Customer' : `Vendor · ${row.type}`}</dd>
+            <dt>Role</dt><dd>${isCustomer ? 'Customer' : `Partner · ${row.type}`}</dd>
+            <dt>Integration</dt><dd>${Staff.integHTML(id)}</dd>
             <dt>Access</dt><dd>${row.status === 'connected' ? (isCustomer ? 'Customer portal' : 'LogiMind account') : row.status === 'link' ? 'Magic links only' : 'Not yet'}</dd>
             ${isCustomer ? `<dt>Portal</dt><dd>${D.tenant.portal}</dd>` : ''}
           </dl>
@@ -217,8 +251,12 @@ function render() {
   icons();
 }
 
-document.addEventListener('click', e => { const r = e.target.closest('tr[data-href]'); if (r) location.href = r.dataset.href; });
-render();
+document.addEventListener('click', e => {
+  const r = e.target.closest('tr[data-href]'); if (r) { location.href = r.dataset.href; return; }
+  const bd = e.target.closest('[data-book-direct], [data-book-day]');
+  if (bd) Staff.bookDirect({ org: id, service: row.type === 'Warehouse' ? 'Warehousing' : 'Trucking', qty: 2, route: row.lanes[0], day: bd.dataset.bookDay != null ? +bd.dataset.bookDay : 3, onDone: () => render() });
+});
+if (!isCustomer) render();   // customers redirect to customer.html
 </script>
 </body>
 </html>

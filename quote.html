@@ -134,12 +134,41 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
 <script>
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
-const QD = D.quote;
-const T = D.tenant;
+// quote.html?request=REQ-… builds the quote for a customer request; without it, the QT-0891 demo draft
+const REQ_ID = new URLSearchParams(location.search).get('request');
+const REQ = REQ_ID ? Staff.request(REQ_ID) : null;
+const QD = REQ ? quoteFromRequest(REQ) : { ...D.quote, customer: 'PT Kopi Nusantara', org: 'kopi', title: '2 × 40ft coffee · SUB → SHA',
+  route: ['Surabaya', 'Tanjung Perak', 'Shanghai'], routeLabel: 'Ocean freight · direct', transit: '9 days', departure: 'Sat 14 Nov', cargo: '2 × 40ft green coffee', carrier: 'Samudra Lines Agency' };
+const T = Object.assign({}, D.tenant, D.tenants[LM.account.tenant]);
+
+function quoteFromRequest(r) {
+  const plan = D.requestPlans[r.lane] || D.requestPlans['SUB-SHA'];
+  const labels = { truck: (l) => `Origin trucking, ${l.route} (${l.qty} × ${l.unit === 'truck' ? (r.lane === 'SUB-BUS' ? '20ft' : '40ft') : l.unit})`, fumi: () => 'Container fumigation and certificate',
+    customs: () => r.lane === 'SUB-BUS' ? 'Export customs: PEB' : 'Export customs: PEB and Form E', ocean: (l) => `Ocean freight ${l.route}, all-in (${l.qty} × ${l.unit})` };
+  const rules = LM.db.settings().margins, org = D.orgs[r.org].name;
+  const m = (rules.find(x => x.kind === '%' && x.scope === org) || rules.find(x => x.scope === 'All lanes')).value;
+  const lines = plan.legs.map(l => {
+    const pick = l.partners.find(p => Staff.integ(p.org) === 'api') || l.partners.find(p => Staff.integ(p.org) !== 'offline') || l.partners[0];
+    return { id: l.id, label: labels[l.id](l), vendor: pick.org, cost: pick.rate * l.qty, margin: l.id === 'ocean' ? Math.max(8, m - 2) : m + 4,
+      ...(l.id === 'ocean' ? { optional: 'FOB: the buyer usually books ocean freight', on: true } : {}) };
+  });
+  lines.push({ id: 'docs', label: 'Documentation and shipment coordination', own: true, cost: 0, sell: 85 });
+  lines.push({ id: 'ins', label: 'Cargo insurance, 0.3% of cargo value', own: true, cost: 240, sell: 288, optional: 'Optional add-on', on: false });
+  const issued = (LM.db.read().issued || {})[r.id];
+  const n = Object.keys(LM.db.read().issued || {}).length;
+  const ocean = plan.legs.find(l => l.id === 'ocean');
+  const carrierPick = ocean && (ocean.partners.find(p => Staff.integ(p.org) !== 'offline') || ocean.partners[0]);
+  return { ...D.quote, id: issued ? issued.id : 'QT-0' + (910 + n), lines, contact: (D.accounts.find(a => a.id === r.sender) || {}).name || 'Customer',
+    customer: org, org: r.org, title: r.title, route: r.route || [r.title.split(' · ')[1].split(' → ')[0], r.title.split(' → ')[1]],
+    routeLabel: r.option && /Direct/.test(r.option) ? 'Ocean freight · direct' : 'Ocean freight · 1 transshipment', transit: r.transit ? `${r.transit} days` : (r.option || '').split(' · ')[1] || '',
+    departure: r.window || r.when, cargo: r.title.split(' · ')[0], carrier: carrierPick ? D.orgs[carrierPick.org].name : null,
+    note: '', validity: 'Fri 13 Nov', includes: D.quote.includes.filter(x => !/sailing/i.test(x)).concat([`Ocean freight to ${r.title.split(' → ')[1]}`]) };
+}
 const FX = { USD: ['US$', 1], IDR: ['Rp', 16300] };
 const state = {
   sent: false,
@@ -151,6 +180,10 @@ const state = {
   note: QD.note,
   attachPdf: true,
 };
+if (REQ && (LM.db.read().issued || {})[REQ_ID]) { state.sent = true; state.currency = LM.db.read().issued[REQ_ID].currency || 'USD'; }
+$('.page-head h1').textContent = QD.id;
+$('.page-head .caption').textContent = `${QD.title} · for ${QD.customer}`;
+document.title = `${QD.id} · LogiMind`;
 const usd = (n) => 'US$' + Math.round(n).toLocaleString('en-US');
 const cust = (n) => FX[state.currency][0] + Math.round(n * FX[state.currency][1]).toLocaleString('en-US');
 const sellOf = (l) => l.own ? l.sell : l.cost * (1 + l.margin / 100);
@@ -257,45 +290,35 @@ function termsHTML() {
   </section>`;
 }
 
-/* ---------------- customer preview ---------------- */
-function previewHTML() {
-  const t = totals();
+/* ---------------- customer preview ----------------
+   Same renderer as portal/quote.html (LM.quoteDocHTML), so what staff see here
+   is exactly what the customer gets. */
+function customerQuote() {
   const oceanOn = state.lines.find(l => l.id === 'ocean').on;
-  const includes = QD.includes.filter(x => oceanOn || !/sailing/i.test(x));
-  const excludes = oceanOn ? QD.excludes : ['Ocean freight (booked by your buyer under FOB)', ...QD.excludes];
-  const insOn = state.lines.find(l => l.id === 'ins').on;
+  const insOn = (state.lines.find(l => l.id === 'ins') || {}).on;
   const note = vendorMentions(state.note).reduce((txt, n) => txt.replace(new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '[partner]'), state.note);
-  const lines = state.display === 'allin'
-    ? `<tr><td>Export package, Surabaya ${oceanOn ? '→ Shanghai' : 'to FOB Tanjung Perak'} (2 × 40ft)${insOn ? '<br><span class="muted" style="font-size:12px">incl. cargo insurance</span>' : ''}</td><td>${cust(t.sell)}</td></tr>`
-    : active().map(l => `<tr><td>${esc(l.label)}</td><td>${cust(sellOf(l))}</td></tr>`).join('');
+  const dest = QD.route[QD.route.length - 1];
+  return {
+    id: QD.id, issued: 'Tue 10 Nov', mode: 'sea', cargo: QD.cargo,
+    route: oceanOn ? QD.route : [QD.route[0], 'Tanjung Perak (FOB)'], routeLabel: oceanOn ? QD.routeLabel : 'Export services · FOB Tanjung Perak',
+    transit: oceanOn ? QD.transit : '—', departure: QD.departure, carrier: oceanOn ? QD.carrier : null,
+    lines: active().map(l => [l.label, sellOf(l)]), display: state.display,
+    allinLabel: `Export package, ${QD.route[0]} ${oceanOn ? '→ ' + dest : 'to FOB Tanjung Perak'}${insOn ? ', incl. cargo insurance' : ''}`,
+    includes: QD.includes.filter(x => oceanOn || !/sailing|Ocean freight/i.test(x)),
+    excludes: oceanOn ? QD.excludes : ['Ocean freight (booked by your buyer under FOB)', ...QD.excludes],
+    note, expires: state.validity, terms: `Payment: ${state.payment}.`,
+  };
+}
+function previewHTML() {
+  const vh = state.sent && REQ ? Staff.viewAsHref(QD.org, 'quote.html?id=' + QD.id) : null;
   return `<div class="sticky">
     <div class="preview-head">
-      <h3><i data-lucide="eye"></i>What PT Kopi Nusantara sees</h3>
-      <span class="caption">Customer portal</span>
+      <h3><i data-lucide="eye"></i>What ${esc(QD.customer)} sees</h3>
+      ${vh ? `<a class="link-btn" href="${vh}"><i data-lucide="external-link"></i>View as customer</a>` : '<span class="caption">Customer portal</span>'}
     </div>
-    <div class="doc" style="--brand:${T.brand}">
-      <div class="doc-top">
-        <span class="doc-logo">${T.initial}</span>
-        <div><div class="name">${T.name}</div><div class="url">${T.portal}</div></div>
-        <div class="qno"><b class="num">Quotation ${QD.id}</b>10 Nov 2026</div>
-      </div>
-      <div class="doc-body">
-        <div class="doc-route"><i data-lucide="ship"></i>Surabaya <i data-lucide="arrow-right"></i> ${oceanOn ? 'Shanghai' : 'Tanjung Perak (FOB)'}</div>
-        <div class="doc-meta">2 × 40ft dry · green coffee beans · ~38.4 t · FOB Tanjung Perak</div>
-        <table class="doc-lines">
-          ${lines}
-          <tr class="total"><td>Total</td><td>${cust(t.sell)}</td></tr>
-        </table>
-        <div><h4>Included</h4><ul>${includes.map(x => `<li>${x}</li>`).join('')}</ul></div>
-        <div><h4>Not included</h4><ul>${excludes.map(x => `<li>${x}</li>`).join('')}</ul></div>
-        ${note ? `<div class="terms">${esc(note)}</div>` : ''}
-        <div class="terms">Valid until ${esc(state.validity)} · Payment: ${state.payment}</div>
-        <div class="doc-actions"><span class="brand-btn"><i data-lucide="check"></i>Accept quote</span><span class="brand-btn ghost"><i data-lucide="message-circle"></i>Ask a question</span></div>
-      </div>
-      <div class="doc-foot">Powered by LogiMind</div>
-    </div>
-    <div class="scrubbed"><i data-lucide="shield-check"></i>Vendor names, costs and your margin are never shown.</div>
-    <div style="margin-top:6px">${visibility('You, PT Kopi Nusantara')}</div>
+    ${LM.quoteDocHTML(customerQuote(), T, { money: cust })}
+    <div class="scrubbed"><i data-lucide="shield-check"></i>Vendor names, costs and your margin are never shown.${LM.db.settings().showCarriers ? ' Carrier names are on (Settings).' : ''}</div>
+    <div style="margin-top:6px">${visibility('You, ' + esc(QD.customer))}</div>
   </div>`;
 }
 
@@ -304,11 +327,17 @@ function renderActionBar() {
   const t = totals();
   const bar = $('#actionBar');
   if (state.sent) {
+    const is = REQ ? (LM.db.read().issued || {})[REQ_ID] : null;
+    const dec = is ? (LM.db.read().decisions || {})[is.id] : null;
+    const step = (on, label, icon) => `<span class="tag ${on ? 'success' : 'neutral'}" style="${on ? '' : 'opacity:.6'}"><i data-lucide="${icon}"></i>${label}</span>`;
+    const tracker = REQ ? `<span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap">${step(true, 'Sent', 'send')}<i data-lucide="chevron-right" style="width:12px;height:12px;color:var(--muted-soft)"></i>
+      ${step(is && is.viewedAt, is && is.viewedAt ? `Viewed ${new Date(is.viewedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : 'Viewed', 'eye')}<i data-lucide="chevron-right" style="width:12px;height:12px;color:var(--muted-soft)"></i>
+      ${dec ? step(true, dec.status === 'accepted' ? `Accepted · ${dec.shipment}` : `Declined: “${dec.reason}”`, dec.status === 'accepted' ? 'badge-check' : 'x').replace('tag success', dec.status === 'accepted' ? 'tag success' : 'tag warning') : step(false, 'Accepted / Declined', 'circle-dashed')}</span>` : '';
     bar.innerHTML = `<div class="action-bar fade-in">
       <span class="ai-mark" style="background:var(--success-soft);color:var(--success)"><i data-lucide="send"></i></span>
-      <div class="summary"><b>Sent to ${QD.contact}, PT Kopi Nusantara</b>
-        <div class="caption">${usd(t.sell)} · valid until ${esc(state.validity)}. I’ll tell you when they open it, accept it or ask a question.</div></div>
-      <button class="btn-secondary" data-soon="Customer portal (Phase 2)"><i data-lucide="external-link"></i>View in customer portal</button>
+      <div class="summary"><b>Sent to ${esc(QD.contact)}, ${esc(QD.customer)}</b> ${tracker}
+        <div class="caption">${usd(t.sell)} · valid until ${esc(state.validity)}. This updates when they open, accept or decline it.</div></div>
+      ${dec && dec.status === 'accepted' ? `<a class="btn-primary" href="shipment.html?id=${dec.shipment}"><i data-lucide="container"></i>Open shipment</a>` : REQ ? `<a class="btn-secondary" href="request.html?id=${REQ_ID}"><i data-lucide="arrow-left"></i>Back to request</a>` : ''}
     </div>`;
   } else {
     const low = t.pct < QD.floor;
@@ -331,7 +360,7 @@ function render() {
   const oceanOn = state.lines.find(l => l.id === 'ocean').on;
   $('#qb').innerHTML = `
     <div class="col">
-      ${oceanOn && !state.sent ? `<div class="notice warning"><i data-lucide="triangle-alert"></i><span>Ocean freight is included, but the Incoterm is <b>FOB</b>. Keep it only if PT Kopi Nusantara asked you to book the sea leg. Otherwise switch it off, and the quote becomes FOB Tanjung Perak.</span></div>` : ''}
+      ${oceanOn && !state.sent ? `<div class="notice warning"><i data-lucide="triangle-alert"></i><span>Ocean freight is included, but the Incoterm is <b>FOB</b>. Keep it only if ${esc(QD.customer)} asked you to book the sea leg. Otherwise switch it off, and the quote becomes FOB Tanjung Perak.</span></div>` : ''}
       ${pricingHTML()}
       ${termsHTML()}
     </div>
@@ -365,16 +394,16 @@ function sendModal() {
   const t = totals();
   const mentions = vendorMentions(state.note);
   openModal(`
-    <div class="modal-head"><i data-lucide="send"></i><h2>Send ${QD.id} to PT Kopi Nusantara?</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
+    <div class="modal-head"><i data-lucide="send"></i><h2>Send ${QD.id} to ${esc(QD.customer)}?</h2><button class="icon-btn" data-close title="Close"><i data-lucide="x"></i></button></div>
     <div class="modal-body">
       <div class="recipient"><span class="user-avatar" style="background:var(--avatar-teal)">S</span>
-        <div style="flex:1"><b style="font-weight:500">${QD.contact}</b><div class="caption">PT Kopi Nusantara · customer portal + email notification</div></div></div>
+        <div style="flex:1"><b style="font-weight:500">${QD.contact}</b><div class="caption">${esc(QD.customer)} · customer portal + email notification</div></div></div>
       <div class="form-field"><span>Message</span>
-        <textarea class="textarea" id="msg" rows="3">Hi ${QD.contact.split(' ')[0]}, here is our quote for the 2 × 40ft coffee shipment to Shanghai on the 14 Nov sailing. It is valid until ${state.validity}.</textarea></div>
+        <textarea class="textarea" id="msg" rows="3">Hi ${QD.contact.split(' ')[0]}, here is our quote for ${esc(QD.title)}. It is valid until ${state.validity}.</textarea></div>
       <label class="check-row"><input type="checkbox" class="check" id="pdf" ${state.attachPdf ? 'checked' : ''}>Attach a PDF copy</label>
       ${mentions.length ? `<div class="notice warning"><i data-lucide="shield-alert"></i><span>Your note mentions ${esc(mentions.join(', '))}. It will be replaced with “[partner]” in what the customer sees.</span></div>` : ''}
       <div class="notice warning" style="background:var(--row-hover)"><i data-lucide="lock" style="color:var(--muted)"></i><span>Only the customer price (${cust(t.sell)}) and the lines on the right are shared. Vendor names, costs and margin stay internal.</span></div>
-      ${visibility('You, PT Kopi Nusantara')}
+      ${visibility('You, ' + esc(QD.customer))}
     </div>
     <div class="modal-foot">
       <button class="btn-secondary" data-close>Back</button>
@@ -384,8 +413,14 @@ function sendModal() {
     state.attachPdf = $('#pdf').checked;
     closeModal();
     state.sent = true;
+    if (REQ) {
+      // Publish to the customer's portal: portal/quote.html renders this same object
+      const q = customerQuote();
+      LM.db.update(d => { (d.issued = d.issued || {})[REQ_ID] = { ...q, lines: q.lines, request: REQ_ID, sender: REQ.sender, title: QD.title, issued: 'Tue 10 Nov', sentAt: Date.now(), currency: state.currency, status: 'ready' }; });
+      Staff.touch(REQ_ID, s2 => { s2.quoteSent = true; });
+    }
     render();
-    toast(`${QD.id} sent to ${QD.contact}`);
+    toast(`${QD.id} sent to ${QD.contact}`, { note: 'Shows as “Quote ready” in their portal · also sent to WhatsApp and email' });
   });
 }
 
@@ -429,6 +464,7 @@ document.addEventListener('click', e => {
 });
 
 render();
+if (REQ) setInterval(() => { if (state.sent) renderActionBar(); }, 3000);
 // Re-measure label heights once web fonts load and on resize
 document.fonts?.ready.then(autosize);
 addEventListener('resize', autosize);

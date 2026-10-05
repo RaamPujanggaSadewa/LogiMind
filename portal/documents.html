@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 20px 32px 32px; display: flex; flex-direction: column; gap: 18px; }
+  .sec h2 { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+  .sec > .caption { display: block; margin-bottom: 10px; }
+  .group-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--divider); background: var(--row-hover); }
+  .group-head b { font-weight: 600; }
+  .group-head a { margin-left: auto; }
+  .drow { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--divider); align-items: start; }
+  .drow:first-of-type { border-top: 0; }
+  .drow .n { font-weight: 500; }
+  .drow .x { font-size: 12.5px; color: var(--muted); margin-top: 2px; display: flex; gap: 6px; }
+  .drow .x svg.lucide { width: 13px; height: 13px; margin-top: 2px; flex: none; }
+  .drow .x.fix { color: var(--danger); } .drow .x.ready { color: var(--success); } .drow .x.checking { color: var(--info); }
+  .drow .due { font-size: 12px; color: var(--warning); margin-top: 3px; }
+  .drow .acts { display: flex; align-items: center; gap: 6px; }
+  .reason { margin-top: 8px; padding: 8px 10px; border-radius: var(--r-sm); background: var(--danger-soft); font-size: 12.5px; color: var(--text-secondary); }
+  .reason b { color: var(--danger); font-weight: 600; }
+  .summary { display: flex; gap: 12px; }
+  .summary .card { flex: 1; display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .summary b { font-size: 18px; font-weight: 600; display: block; line-height: 1.2; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="documents">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head"><h1>Documents</h1><span class="caption">Checked by AI before <span id="tn"></span> sees them</span></header>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast } = LM;
+LM.mount();
+const P = Portal, S = P.S, T = P.T;
+P.title('Documents');
+$('#tn').textContent = T.short;
+
+const XI = { ready: 'circle-check', fix: 'circle-x', missing: 'circle-alert', checking: 'loader-circle', progress: 'loader', later: 'clock', todo: 'calendar' };
+const TILE = { ready: 'success', fix: 'danger', missing: 'warning', checking: 'info', progress: 'info', later: 'neutral', todo: 'neutral' };
+const company = S.companyDocs.map(d => ({ ...d }));
+const SHIPS = P.shipments();
+
+function row(d, key, canUpload) {
+  return `<div class="drow">
+    <span class="icon-tile tone-${TILE[d.status]}"><i data-lucide="file-text"></i></span>
+    <div><div class="n">${esc(d.name)}</div>
+      ${d.status === 'fix' ? `<div class="reason"><b>Why it was rejected:</b> ${esc(d.note)}</div>`
+        : d.note ? `<div class="x ${d.status}"><i data-lucide="${XI[d.status]}" ${d.status === 'checking' ? 'class="spin"' : ''}></i><span>${esc(d.note)}</span></div>` : ''}
+      ${d.due && d.status !== 'ready' ? `<div class="due">Due ${d.due}</div>` : ''}
+      ${d.updated ? `<div class="x">Updated ${d.updated}</div>` : ''}</div>
+    <div class="acts">${P.docTag(d.status)}${canUpload && ['missing', 'fix'].includes(d.status) ? `<button class="btn-secondary" data-up="${key}"><i data-lucide="upload"></i>${d.status === 'fix' ? 'Upload again' : 'Upload'}</button>`
+      : canUpload && d.status === 'ready' ? `<button class="icon-btn" title="Replace" data-up="${key}"><i data-lucide="refresh-cw"></i></button>` : ''}</div>
+  </div>`;
+}
+
+function render() {
+  const need = [...SHIPS.flatMap(s => s.docsYou), ...company].filter(d => ['missing', 'fix'].includes(d.status)).length;
+  const ready = [...SHIPS.flatMap(s => s.docsYou), ...company].filter(d => d.status === 'ready').length;
+  $('#wrap').innerHTML = `
+    <div class="summary">
+      <div class="card"><span class="icon-tile tone-${need ? 'warning' : 'success'}"><i data-lucide="${need ? 'circle-alert' : 'circle-check'}"></i></span><div><b>${need}</b><span class="caption">need your attention</span></div></div>
+      <div class="card"><span class="icon-tile tone-success"><i data-lucide="circle-check"></i></span><div><b>${ready}</b><span class="caption">checked and ready</span></div></div>
+      <div class="card"><span class="icon-tile tone-brand"><i data-lucide="sparkles"></i></span><div><span class="caption">Every upload is pre-checked against your shipment. Rejections always say why.</span></div></div>
+    </div>
+    <section class="sec">
+      <h2>For your shipments</h2><span class="caption">What you prepare for each shipment. ${esc(T.short)} handles the rest.</span>
+      ${SHIPS.map((sh, si) => `<div class="card flush" style="margin-bottom:12px">
+        <div class="group-head"><i data-lucide="container" style="width:15px;height:15px;color:var(--muted)"></i><b class="num">${sh.id}</b><span class="caption">${sh.lane[0]} → ${sh.lane[1]} · ${esc(sh.cargo)}</span>
+          <a class="link-btn" href="shipment.html?id=${sh.id}">Open shipment<i data-lucide="arrow-right"></i></a></div>
+        ${sh.docsYou.map((d, i) => row(d, `s${si}-${i}`, true)).join('')}
+      </div>`).join('')}
+    </section>
+    <section class="sec">
+      <h2>Company documents</h2><span class="caption">Reused on every shipment, so you only upload them once. ${esc(T.short)} is reminded before they expire.</span>
+      <div class="card flush">${company.map((d, i) => row(d, `c${i}`, true)).join('')}</div>
+    </section>`;
+  icons();
+}
+
+const CHECKS = {
+  'NIB (business identification number)': [['ready', 'Readable. NIB 9120301234567 matches your company name and NPWP.']],
+  'Phytosanitary certificate': [['ready', 'Issued certificate for 2 containers of green coffee. Matches your invoice.']],
+};
+document.addEventListener('click', e => {
+  const u = e.target.closest('[data-up]'); if (!u) return;
+  const k = u.dataset.up;
+  const d = k[0] === 'c' ? company[+k.slice(1)] : SHIPS[+k.slice(1).split('-')[0]].docsYou[+k.split('-')[1]];
+  P.upload(d.name, CHECKS, res => {
+    d.status = res.status; d.note = res.note; if (res.status === 'ready') { d.due = null; d.updated = res.status === 'ready' ? 'just now' : d.updated; }
+    render();
+    if (res.status === 'ready') P.notify(`${d.name} accepted`);
+  });
+});
+render();
+</script>
+</body>
+</html>

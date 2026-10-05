@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  body { overflow: auto; }
+  .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; align-self: stretch; max-width: 1040px; width: 100%; margin: 0 auto 40px; }
+  .brand img { width: 28px; height: 28px; }
+  .brand b { font-size: 16px; font-weight: 600; }
+  .brand .tag { margin-left: 4px; }
+  .layout { width: 100%; max-width: 1040px; display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 24px; align-items: start; margin: auto; }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); max-width: 480px; } }
+
+  .signin { padding: 28px; border-radius: var(--r-lg); box-shadow: var(--shadow-lift); }
+  .signin h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  .signin .sub { color: var(--muted); margin: 0 0 20px; }
+  .fld { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .fld > span:not(.error) { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
+  .input { height: 40px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 12px; background: var(--surface); width: 100%; }
+  .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .input.invalid { border-color: var(--danger); }
+  .error { display: none; align-items: center; gap: 6px; font-size: 12.5px; color: var(--danger); }
+  .error.show { display: flex; }
+  .error svg.lucide { width: 13px; height: 13px; }
+  .forgot { font-size: 12.5px; color: var(--primary); font-weight: 500; }
+  .forgot:hover { text-decoration: underline; }
+  .signin .btn-primary { width: 100%; margin-top: 6px; }
+  .signed { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); background: var(--row-hover); border: 1px solid var(--divider); margin-bottom: 18px; font-size: 13px; }
+  .signed .user-avatar { width: 26px; height: 26px; font-size: 10.5px; }
+  .signed .grow { flex: 1; min-width: 0; }
+  .signed a { color: var(--primary); font-weight: 500; white-space: nowrap; }
+  .alt { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--divider); display: flex; flex-direction: column; gap: 8px; }
+  .alt a { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .alt a:hover { color: var(--ink); text-decoration: underline; }
+  .alt svg.lucide { width: 14px; height: 14px; color: var(--muted); }
+
+  .demo h2 { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .demo .intro { color: var(--muted); font-size: 13px; margin: 4px 0 14px; }
+  .demo .intro code { font-size: 12px; background: var(--nav-active); padding: 1px 5px; border-radius: 4px; color: var(--text-secondary); }
+  .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .accounts { grid-template-columns: 1fr; } }
+  .acct { display: flex; flex-direction: column; gap: 8px; padding: 14px; }
+  .acct .top { display: flex; align-items: center; gap: 10px; }
+  .acct .top .logo { width: 32px; height: 32px; border-radius: var(--r-sm); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex: none; }
+  .acct .persona { font-size: 11.5px; font-weight: 600; letter-spacing: .01em; }
+  .acct .name { font-weight: 600; }
+  .acct .company { font-size: 12.5px; color: var(--muted); }
+  .acct p { margin: 0; font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .acct .email { font-size: 12px; color: var(--muted); font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+  .acct .btn-secondary { align-self: flex-start; }
+  .acct.picked { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+  .rule { margin-top: 14px; display: grid; grid-template-columns: 16px 1fr; gap: 8px; padding: 10px 12px; border-radius: var(--r-md); background: var(--info-soft); font-size: 12.5px; color: var(--text-secondary); }
+  .rule svg.lucide { width: 14px; height: 14px; color: var(--info); margin-top: 1px; }
+  .reset { margin-top: 12px; font-size: 12px; color: var(--muted); }
+  .reset button { color: var(--muted); text-decoration: underline; font-size: 12px; }
+  .reset button:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="brand"><img src="assets/logo.svg" alt=""><b>LogiMind</b><span class="tag neutral">Prototype</span></div>
+
+  <div class="layout">
+    <section class="card signin">
+      <h1>Sign in</h1>
+      <p class="sub">Use one of the demo accounts to see LogiMind as each persona.</p>
+      <div id="signedIn"></div>
+      <form id="form" novalidate>
+        <label class="fld"><span>Email</span><input class="input" id="email" type="email" autocomplete="username" placeholder="name@company.co.id"></label>
+        <label class="fld"><span>Password <a href="#" class="forgot" id="forgot">Forgot password?</a></span>
+          <input class="input" id="password" type="password" autocomplete="current-password" placeholder="••••••••">
+          <span class="error" id="error" role="alert"><i data-lucide="circle-alert"></i><span>Email or password is incorrect.</span></span>
+        </label>
+        <button class="btn-primary" type="submit"><i data-lucide="log-in"></i>Sign in</button>
+      </form>
+      <div class="alt">
+        <a href="portal/login.html"><i data-lucide="palette"></i>See the sender’s branded sign-in</a>
+        <a href="portal/welcome.html"><i data-lucide="mail-open"></i>See a sender accepting an invitation</a>
+      </div>
+    </section>
+
+    <section class="demo">
+      <h2><i data-lucide="users" style="width:16px;height:16px;color:var(--muted)"></i>Demo accounts</h2>
+      <p class="intro">Password for every account: <code>demo1234</code>. Pick a card to fill the form.</p>
+      <div class="accounts" id="accounts"></div>
+      <div class="rule"><i data-lucide="shield-check"></i><span><b style="font-weight:600">One logistics company per sender.</b> Rina sees only Nusantara Cargo and Sinta sees only Samudra Logistik. Neither can see, search for or contact any other logistics company, partner names or costs.</span></div>
+      <p class="reset">Clicked around a lot? <button id="reset">Reset demo data</button> (requests, quotes, bookings and settings).</p>
+    </section>
+  </div>
+</div>
+
+<script>window.LM_PUBLIC = true;</script>
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+const { $, $$, esc, icons, toast, data: D } = LM;
+const COLORS = LM.AVATAR_COLORS;
+
+// ?next= is where the visitor was going. Only same-site relative pages inside
+// the signed-in account's own area are allowed; anything else goes home.
+const NEXT = new URLSearchParams(location.search).get('next');
+function destinationFor(a) {
+  const n = NEXT;
+  const ok = n && /^[a-z0-9_\-\/]+\.html([?#][\w=&%\-.#]*)?$/i.test(n) && !n.includes('..') && !n.startsWith('/')
+    && !/^(portal\/)?(login|welcome)\.html/.test(n)
+    && (a.persona === 'sender' ? n.startsWith('portal/') : a.persona === 'partner' ? n.startsWith('partner/') : !/^(portal|partner)\//.test(n));
+  return ok ? n : a.home;
+}
+
+// Demo shortcut for shareable links: login.html?as=rina&next=portal/ask.html
+(function () {
+  const a = D.accounts.find(x => x.id === new URLSearchParams(location.search).get('as'));
+  if (!a) return;
+  LM.signIn(a.id);
+  location.replace(destinationFor(a));
+})();
+
+function logoFor(a) {
+  if (a.persona === 'sender') return { bg: D.tenants[a.tenant].brand, text: D.orgs[a.org].initials };
+  if (a.persona === 'tenant') return { bg: 'var(--primary)', text: D.tenants[a.tenant].initials };
+  return { bg: 'var(--text-secondary)', text: D.orgs[a.org].initials };
+}
+const PERSONA_COLOR = { sender: 'var(--info)', tenant: 'var(--primary)', partner: 'var(--text-secondary)' };
+
+$('#accounts').innerHTML = D.accounts.map(a => {
+  const l = logoFor(a);
+  return `<article class="card acct" data-acct="${a.id}">
+    <div class="top"><span class="logo" style="background:${l.bg}">${l.text}</span>
+      <div><div class="persona" style="color:${PERSONA_COLOR[a.persona]}">${a.persona === 'sender' && a.id === 'sinta' ? 'Sender at another logistics company' : a.personaLabel}</div>
+        <div class="name">${esc(a.name)}</div></div></div>
+    <div class="company">${esc(a.company)}${a.persona !== 'tenant' ? '' : ` · ${esc(a.role)}`}</div>
+    <p>${esc(a.desc)}</p>
+    <span class="email">${esc(a.email)}</span>
+    <button class="btn-secondary" data-use="${a.id}"><i data-lucide="arrow-right-to-line"></i>Use this account</button>
+  </article>`;
+}).join('');
+
+// Already signed in?
+const current = LM.currentAccount();
+if (current) {
+  $('#signedIn').innerHTML = `<div class="signed"><span class="user-avatar" style="background:${COLORS[current.color || 0]}">${LM.initialsOf(current.name)}</span>
+    <span class="grow">Signed in as <b style="font-weight:600">${esc(current.name)}</b> · ${esc(current.personaLabel)}</span>
+    <a href="${current.home}">Continue</a></div>`;
+}
+
+function fill(id) {
+  const a = D.accounts.find(x => x.id === id);
+  $('#email').value = a.email;
+  $('#password').value = D.demoPassword;
+  $$('.acct').forEach(c => c.classList.toggle('picked', c.dataset.acct === id));
+  clearError();
+  $('#password').focus();
+}
+function clearError() { $('#error').classList.remove('show'); $$('.input').forEach(i => i.classList.remove('invalid')); }
+
+document.addEventListener('click', e => {
+  const u = e.target.closest('[data-use]'); if (u) { fill(u.dataset.use); return; }
+  if (e.target.closest('#forgot')) { e.preventDefault(); toast('In the product, a reset link is emailed to you. For the demo, the password is demo1234.'); return; }
+  if (e.target.closest('#reset')) {
+    D.accounts.forEach(a => ['requests', 'decisions'].forEach(k => LM.store.remove(`lm.portal.${a.id}.${k}`)));
+    LM.db.reset();
+    try { sessionStorage.removeItem('lm.chip.hidden'); } catch (e2) {}
+    toast('Demo data reset');
+  }
+});
+$$('.input').forEach(i => i.addEventListener('input', clearError));
+
+$('#form').addEventListener('submit', e => {
+  e.preventDefault();
+  const email = $('#email').value.trim().toLowerCase();
+  const a = D.accounts.find(x => x.email === email);
+  if (!a || $('#password').value !== D.demoPassword) {
+    $('#error').classList.add('show');
+    $('#password').classList.add('invalid');
+    if (!a) $('#email').classList.add('invalid');
+    return;
+  }
+  LM.signIn(a.id);
+  location.href = destinationFor(a);
+});
+icons();
+</script>
+</body>
+</html>

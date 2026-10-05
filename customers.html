@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customers · LogiMind</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  .page-head h1 { white-space: nowrap; }
+  .search { position: relative; }
+  .search svg.lucide { position: absolute; left: 9px; top: 50%; margin-top: -7px; width: 14px; height: 14px; color: var(--muted-soft); }
+  .search input { height: var(--control-sm); width: 220px; border: 1px solid var(--border); border-radius: var(--r-full); padding: 0 12px 0 28px; font-size: 13px; background: var(--surface); }
+  .search input:focus { outline: none; border-color: var(--primary); }
+  .wrap { padding: 8px 24px 24px; display: flex; flex-direction: column; gap: 18px; }
+  .org-cell { display: flex; align-items: center; gap: 10px; }
+  .org-cell b { font-weight: 500; display: block; white-space: nowrap; }
+  .table td { font-size: 13.5px; }
+  .num-cell { font-variant-numeric: tabular-nums; }
+  .none { color: var(--muted-soft); }
+  .inv { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--divider); }
+  .inv:first-of-type { border-top: 0; }
+  .inv .t { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .inv .s { font-size: 12.5px; color: var(--muted); }
+  /* invite modal */
+  .fld { display: flex; flex-direction: column; gap: 6px; }
+  .fld > span { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .in { height: 36px; border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 10px; width: 100%; background: var(--surface); }
+  .in:focus, .ta:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,61,224,.10); }
+  .ta { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; resize: vertical; min-height: 90px; line-height: 1.45; width: 100%; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+  .full { grid-column: 1 / -1; }
+  .wa { background: #ECE5DD; border-radius: var(--r-lg); padding: 14px; }
+  .wa .bubble { background: #fff; border-radius: 8px; border-top-left-radius: 2px; padding: 10px 12px; font-size: 13px; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+  .wa .from { font-weight: 600; font-size: 12.5px; margin-bottom: 4px; }
+  .wa .link { display: block; margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: #F4F4F5; color: var(--info); font-size: 12.5px; }
+  .mail { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; font-size: 13px; }
+  .mail .top { padding: 10px 12px; border-bottom: 1px solid var(--divider); font-size: 12px; color: var(--muted); }
+  .mail .top b { color: var(--ink); font-weight: 600; }
+  .mail .body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .mail .cta { align-self: flex-start; height: 32px; padding: 0 12px; border-radius: 6px; color: #fff; font-weight: 500; display: inline-flex; align-items: center; font-size: 12.5px; }
+  .mail .logo { width: 28px; height: 28px; border-radius: 6px; color: #fff; font-weight: 700; font-size: 10px; display: grid; place-items: center; }
+</style>
+</head>
+<body>
+<div class="app" data-rail="customers">
+  <div class="workspace">
+    <main class="main">
+      <header class="page-head">
+        <h1>Customers</h1><span class="caption" id="count"></span><span id="lock"></span>
+        <div class="right">
+          <span class="search"><i data-lucide="search"></i><input id="q" placeholder="Search your customers" aria-label="Search your customers"></span>
+          <button class="btn-primary" data-action="invite-customer" id="headInvite" style="height:32px"><i data-lucide="user-plus"></i>Invite customer</button>
+        </div>
+      </header>
+      <div class="content"><div class="wrap" id="wrap"></div></div>
+    </main>
+  </div>
+</div>
+<script src="assets/data.js"></script>
+<script>
+  (function () { const p = new URLSearchParams(location.search).get('portal'); document.querySelector('.app').dataset.row = p || 'all'; })();
+</script>
+<script src="assets/shell.js"></script>
+<script src="assets/staff.js"></script>
+<script>
+const { $, $$, esc, tag, icons, toast, orgAvatar, db, data: D } = LM;
+LM.mount();
+const params = new URLSearchParams(location.search);
+const T = Object.assign({}, D.tenant, D.tenants[LM.account.tenant]);
+const state = { q: '', filter: params.get('portal') || 'all', empty: params.get('state') === 'empty' };
+$('#lock').innerHTML = Staff.lockBadge();
+
+const PORTAL = { active: ['Active', 'success', 'circle-check'], invited: ['Invited', 'info', 'mail'], expired: ['Invite expired', 'warning', 'timer-off'], none: ['Not yet invited', 'neutral', 'message-circle'] };
+const all = () => Staff.customers();
+function openRequests(org) { return Staff.requests().filter(r => r.org === org && ['new', 'review', 'quoted'].includes(r.status)).length; }
+
+function tableHTML() {
+  const list = all().filter(c => (state.filter === 'all' || c.portal === state.filter || (state.filter === 'invited' && c.portal === 'expired'))
+    && (!state.q || D.orgs[c.org].name.toLowerCase().includes(state.q.toLowerCase()) || c.contact.toLowerCase().includes(state.q.toLowerCase())));
+  if (!list.length) return `<div class="empty" style="height:auto;padding:48px"><div class="empty-tile"><i data-lucide="search-x"></i></div><h2 class="empty-title">No matches</h2><p class="empty-body">Search only covers your own customers.</p></div>`;
+  return `<div class="card flush"><table class="table">
+    <thead><tr><th>Company</th><th>Main contact</th><th>Lanes</th><th style="text-align:right">Active shipments</th><th style="text-align:right">Open requests</th><th style="text-align:right">Revenue this quarter</th><th>Last activity</th><th>Portal</th></tr></thead>
+    <tbody>${list.map(c => {
+      const o = D.orgs[c.org], p = PORTAL[c.portal], open = openRequests(c.org) || c.openRequests || 0;
+      return `<tr data-href="customer.html?id=${c.org}">
+        <td><div class="org-cell">${orgAvatar(c.org)}<div><b>${esc(o.name)}</b><span class="sub">${esc(c.type || 'Customer')}</span></div></div></td>
+        <td>${esc(c.contact)}<div class="sub">${esc(c.contactRole || '')}</div></td>
+        <td>${c.lanes.join(', ')}</td>
+        <td class="num-cell" style="text-align:right">${c.active || '<span class="none">0</span>'}</td>
+        <td class="num-cell" style="text-align:right">${open ? `<b style="font-weight:600">${open}</b>` : '<span class="none">0</span>'}</td>
+        <td class="num-cell" style="text-align:right">${c.revenueQ ? Staff.money(c.revenueQ) : '<span class="none">—</span>'}</td>
+        <td class="sub">${esc(c.last)}</td>
+        <td>${tag(p[0], p[1], p[2])}${c.portal === 'none' ? `<button class="link-btn" data-invite="${c.org}" style="margin-left:8px">Invite</button>` : c.portal === 'expired' ? `<button class="link-btn" data-resend="${c.org}" style="margin-left:8px">Resend</button>` : ''}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+function invitesHTML() {
+  const invites = [...(db.read().customerInvites || []), ...D.customerInvites];
+  return `<section class="card flush">
+    <div class="card-head"><i data-lucide="mail"></i><h3>Customer invitations</h3><span class="caption">${invites.length}</span>
+      <div class="right"><span class="caption">Links expire after 14 days</span></div></div>
+    <div style="margin-top:8px">${invites.map(i => `<div class="inv">${orgAvatar(i.org)}
+      <div><div class="t">${esc(D.orgs[i.org].name)} ${tag(...{ sent: ['Sent', 'info', 'mail'], accepted: ['Accepted', 'success', 'check'], expired: ['Expired', 'warning', 'timer-off'] }[i.status])}</div>
+        <div class="s">To ${esc(i.to)} by ${esc(i.via)} · ${esc(i.when)}</div></div>
+      <div>${i.status === 'expired' ? `<button class="btn-secondary" data-resend="${i.org}"><i data-lucide="rotate-cw"></i>Resend</button>` : i.status === 'sent' ? `<button class="btn-secondary" data-soon="Copy invite link"><i data-lucide="copy"></i>Copy link</button>` : ''}</div>
+    </div>`).join('')}</div>
+  </section>`;
+}
+
+function render() {
+  const n = all().length;
+  $('#count').textContent = state.empty ? '' : `${n}`;
+  $('.search').style.display = state.empty ? 'none' : '';
+  $('#headInvite').style.display = state.empty ? 'none' : '';
+  if (state.empty) {
+    $('#wrap').innerHTML = `<div class="empty" style="height:auto;padding:72px 24px">
+      <div class="empty-tile"><i data-lucide="building-2"></i></div>
+      <h2 class="empty-title">No customers yet</h2>
+      <p class="empty-body" style="max-width:460px">Invite your first customer. They get a portal in ${esc(T.short)}’s branding to request shipments, accept quotes and track cargo. Only ${esc(T.short)} can see them.</p>
+      <button class="btn-primary" data-action="invite-customer"><i data-lucide="user-plus"></i>Invite your first customer</button>
+      <a class="link-btn" style="margin-top:12px" href="chat.html"><i data-lucide="sparkles"></i>Or create a request for a customer who uses WhatsApp</a></div>`;
+  } else {
+    $('#wrap').innerHTML = tableHTML() + invitesHTML() + `<p class="caption" style="display:flex;align-items:center;gap:6px;margin:0"><i data-lucide="lock" style="width:12px;height:12px"></i>Customers belong to ${esc(T.short)} only. They are never listed in the marketplace, and other logistics companies can’t search for them.</p>`;
+  }
+  icons();
+}
+
+/* ---------------- invite customer (email or WhatsApp, branded preview) ---------------- */
+let inv;
+window.openInviteCustomer = function (org) {
+  const c = org ? Staff.customer(org) : null;
+  inv = { step: 0, company: c ? D.orgs[org].name : '', contact: c ? c.contact : '', via: 'whatsapp', address: '', org: org || null };
+  draw();
+};
+function draw() {
+  const set = db.settings();
+  const text = set.inviteText.replace('{name}', inv.contact.split(' ')[0] || 'there').replace('{company}', T.short);
+  const link = `${T.portal}/welcome/K8q2`;
+  const body = inv.step === 0 ? `
+      <div class="grid2">
+        <label class="fld full"><span>Company</span><input class="in" id="iCompany" value="${esc(inv.company)}" placeholder="e.g. PT Sumber Rempah Abadi"></label>
+        <label class="fld"><span>Contact person</span><input class="in" id="iContact" value="${esc(inv.contact)}" placeholder="Full name"></label>
+        <div class="fld"><span>Send by</span><div class="segmented">
+          <button class="pill${inv.via === 'whatsapp' ? ' selected' : ''}" data-via="whatsapp"><i data-lucide="message-circle"></i>WhatsApp</button>
+          <button class="pill${inv.via === 'email' ? ' selected' : ''}" data-via="email"><i data-lucide="mail"></i>Email</button></div></div>
+        <label class="fld full"><span>${inv.via === 'email' ? 'Email address' : 'WhatsApp number'}</span><input class="in" id="iAddr" value="${esc(inv.address)}" placeholder="${inv.via === 'email' ? 'name@company.co.id' : '+62 812 …'}"></label>
+      </div>
+      <div class="caption" style="display:flex;gap:6px;align-items:center"><i data-lucide="lock" style="width:12px;height:12px"></i>They become ${esc(T.short)}’s customer only. Nobody else on LogiMind can see or contact them.</div>`
+    : `
+      <span class="caption" style="font-weight:500">Preview · ${inv.via === 'email' ? 'email' : 'WhatsApp'} to ${esc(inv.address)}</span>
+      ${inv.via === 'email'
+        ? `<div class="mail"><div class="top" style="border-top:4px solid ${T.brand}"><b>${esc(T.name)}</b> &lt;portal@${T.portal.replace(/^portal\./, '')}&gt;<br>Subject: Your ${esc(T.short)} customer portal</div>
+            <div class="body"><span class="logo" style="background:${T.brand}">${T.initials}</span><span>${esc(text)}</span><span class="cta" style="background:${T.brand}">Open your portal</span><span class="caption">Link expires in 14 days · Powered by LogiMind</span></div></div>`
+        : `<div class="wa"><div class="bubble"><div class="from" style="color:${T.brand}">${esc(T.name)}</div>${esc(text)}<span class="link">${link}</span></div>
+            <div class="caption" style="margin-top:8px">From ${esc(T.short)}’s WhatsApp Business number · link expires in 14 days</div></div>`}
+      <span class="caption">Edit this text in Settings → Customer portal → Branding.</span>`;
+  const m = Staff.openModal(`
+    <div class="modal-head"><i data-lucide="user-plus"></i><h2>Invite a customer</h2><button class="icon-btn" data-close><i data-lucide="x"></i></button></div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot">${inv.step ? '<button class="btn-secondary" data-step="0">Back</button>' : '<button class="btn-secondary" data-close>Cancel</button>'}
+      <button class="btn-primary" id="iNext" ${inv.step === 0 && !(inv.company.trim() && inv.contact.trim() && inv.address.trim().length > 5) ? 'disabled' : ''}>${inv.step ? '<i data-lucide="send"></i>Send invitation' : 'Preview invitation'}</button></div>`, true);
+  const sync = () => { const b = m.querySelector('#iNext'); if (inv.step === 0) b.disabled = !(inv.company.trim() && inv.contact.trim() && inv.address.trim().length > 5); };
+  [['iCompany', 'company'], ['iContact', 'contact'], ['iAddr', 'address']].forEach(([id, k]) => { const el = m.querySelector('#' + id); if (el) el.addEventListener('input', () => { inv[k] = el.value; sync(); }); });
+  m.querySelectorAll('[data-via]').forEach(b => b.addEventListener('click', () => { inv.via = b.dataset.via; inv.address = ''; draw(); }));
+  const back = m.querySelector('[data-step]'); if (back) back.addEventListener('click', () => { inv.step = 0; draw(); });
+  m.querySelector('#iNext').addEventListener('click', () => { if (inv.step === 0) { inv.step = 1; draw(); } else send(); });
+}
+function send() {
+  const key = inv.org || 'c' + Date.now();
+  const initials = inv.company.replace(/^(PT|CV)\s+/i, '').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  db.update(d => {
+    if (!inv.org) (d.customers = d.customers || []).push({ org: key, orgInfo: { name: inv.company.trim(), initials, role: 'customer', type: 'Customer' }, type: 'Customer',
+      contact: inv.contact.trim(), contactRole: '', lanes: ['—'], active: 0, openRequests: 0, revenueQ: 0, last: 'Invited just now', portal: 'invited', manager: LM.account.name });
+    (d.customerInvites = d.customerInvites || []).unshift({ org: key, to: inv.contact.trim(), via: inv.via === 'email' ? 'Email' : 'WhatsApp', when: 'Sent just now', status: 'sent' });
+    if (inv.org) { const c = (d.customerOverrides = d.customerOverrides || {}); c[inv.org] = 'invited'; }
+  });
+  if (!D.orgs[key]) D.orgs[key] = { name: inv.company.trim(), initials, role: 'customer', type: 'Customer' };
+  Staff.closeModal();
+  state.empty = false; render();
+  toast(`Invitation sent to ${inv.contact} by ${inv.via === 'email' ? 'email' : 'WhatsApp'}`);
+}
+
+document.addEventListener('click', e => {
+  const r = e.target.closest('tr[data-href]'); if (r && !e.target.closest('button')) { location.href = r.dataset.href; return; }
+  const i = e.target.closest('[data-invite]'); if (i) { window.openInviteCustomer(i.dataset.invite); return; }
+  const rs = e.target.closest('[data-resend]'); if (rs) {
+    db.update(d => { (d.customerInvites = d.customerInvites || []).unshift({ org: rs.dataset.resend, to: Staff.customer(rs.dataset.resend).contact, via: 'WhatsApp', when: 'Resent just now', status: 'sent' }); });
+    toast(`Invitation resent to ${Staff.customer(rs.dataset.resend).contact}`); render();
+  }
+});
+$('#q').addEventListener('input', e => { state.q = e.target.value; render(); });
+render();
+if (params.get('invite')) window.openInviteCustomer(params.get('invite') !== '1' && Staff.customer(params.get('invite')) ? params.get('invite') : undefined);
+</script>
+</body>
+</html>
