@@ -42,7 +42,10 @@
 <script src="../assets/data.js"></script>
 <script src="../assets/shell.js"></script>
 <script src="../assets/portal.js"></script>
+<script src="../assets/asco.js"></script>
+<script src="../assets/asco-portal.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, icons, toast } = LM;
 LM.mount();
 const P = Portal, S = P.S, T = P.T;
@@ -165,6 +168,7 @@ document.addEventListener('click', e => {
     location.href = `request.html?id=${encodeURIComponent(id2)}&sent=1`;
   }
 });
+}
 </script>
 </body>
 </html>

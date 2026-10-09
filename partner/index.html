@@ -41,7 +41,10 @@
   (function () { const lc = new URLSearchParams(location.search).get('lc'); document.querySelector('.app').dataset.row = lc || 'all'; })();
 </script>
 <script src="../assets/shell.js"></script>
+<script src="../assets/asco.js"></script>
+<script src="../assets/asco-partner.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, esc, tag, icons, data: D } = LM;
 LM.mount();
 const P = D.partner[LM.account.id];
@@ -83,6 +86,7 @@ $('#wrap').innerHTML = `
     </div>
   </div>`;
 icons();
+}
 </script>
 </body>
 </html>

@@ -95,7 +95,10 @@
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, icons, toast, db, data: D } = LM;
 LM.mount();
 const T = D.tenants[LM.account.tenant];
@@ -240,6 +243,7 @@ document.addEventListener('click', e => {
   const rl = e.target.closest('[data-rm-lane]'); if (rl) { const lanes = S.lanes.filter((_, i) => i !== +rl.dataset.rmLane); save({ lanes }, 'Lane removed'); render(); return; }
   if (e.target.closest('#addLane')) { const o = $('#lO').value.trim(), d2 = $('#lD').value.trim(); if (!o || !d2) { toast('Enter an origin and destination'); return; } save({ lanes: [...S.lanes, [o, d2, $('#lM').value]] }, 'Lane added'); render(); }
 });
+}
 </script>
 </body>
 </html>

@@ -159,7 +159,10 @@
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
@@ -468,6 +471,7 @@ if (OTHER_ID && OTHER_ID !== S.id) {
 } else {
   render();
   if (location.hash === '#docs') setTimeout(() => $('#docs').scrollIntoView({ block: 'start' }), 50);
+}
 }
 </script>
 </body>

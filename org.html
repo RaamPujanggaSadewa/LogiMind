@@ -92,7 +92,10 @@
 </script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
@@ -257,6 +260,7 @@ document.addEventListener('click', e => {
   if (bd) Staff.bookDirect({ org: id, service: row.type === 'Warehouse' ? 'Warehousing' : 'Trucking', qty: 2, route: row.lanes[0], day: bd.dataset.bookDay != null ? +bd.dataset.bookDay : 3, onDone: () => render() });
 });
 if (!isCustomer) render();   // customers redirect to customer.html
+}
 </script>
 </body>
 </html>

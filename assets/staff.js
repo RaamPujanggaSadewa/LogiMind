@@ -33,7 +33,7 @@ window.Staff = (() => {
       estimate: r.estimate, route: r.route, transit: r.transit, window: r.window, incoterm: r.incoterm, created: r.createdAt, live: true,
       docs: r.docs || [], notes: r.notes || [], status: 'new', events: [['send', `${senderName(r.sender)} sent the request from the portal`, when(r.createdAt)]],
     }));
-    const seeded = (D.staffRequests || []).map(r => ({ ...r, created: new Date(r.createdAt).getTime(), live: false, events: [...r.events] }));
+    const seeded = (TENANT === 'nusantara' ? D.staffRequests || [] : []).map(r => ({ ...r, created: new Date(r.createdAt).getTime(), live: false, events: [...r.events] }));
     return [...fromPortal, ...seeded].map(r => {
       const s = st[r.id] || {};
       const q = issued[r.id] || (r.quote ? { id: r.quote, seeded: true } : null);

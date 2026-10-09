@@ -46,6 +46,11 @@
   .demo h2 { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
   .demo .intro { color: var(--muted); font-size: 13px; margin: 4px 0 14px; }
   .demo .intro code { font-size: 12px; background: var(--nav-active); padding: 1px 5px; border-radius: 4px; color: var(--text-secondary); }
+  .group-head { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+  .group-head:first-child { margin-top: 0; }
+  .group-head .caption { font-weight: 400; }
+  .magic { display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 12px; }
+  .magic p { margin: 0; flex: 1; font-size: 13px; color: var(--text-secondary); }
   .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 640px) { .accounts { grid-template-columns: 1fr; } }
   .acct { display: flex; flex-direction: column; gap: 8px; padding: 14px; }
@@ -91,9 +96,9 @@
     <section class="demo">
       <h2><i data-lucide="users" style="width:16px;height:16px;color:var(--muted)"></i>Demo accounts</h2>
       <p class="intro">Password for every account: <code>demo1234</code>. Pick a card to fill the form.</p>
-      <div class="accounts" id="accounts"></div>
-      <div class="rule"><i data-lucide="shield-check"></i><span><b style="font-weight:600">One logistics company per sender.</b> Rina sees only Nusantara Cargo and Sinta sees only Samudra Logistik. Neither can see, search for or contact any other logistics company, partner names or costs.</span></div>
-      <p class="reset">Clicked around a lot? <button id="reset">Reset demo data</button> (requests, quotes, bookings and settings).</p>
+      <div id="accounts"></div>
+      <div class="rule"><i data-lucide="shield-check"></i><span><b style="font-weight:600">One logistics company per shipper.</b> Lina sees only ASCO, Rina only Nusantara Cargo and Sinta only Samudra Logistik. None of them can see another logistics company, partner names, partner costs or margins. Partners see only their own leg.</span></div>
+      <p class="reset">Clicked around a lot? <button id="reset">Reset demo data</button> (the ASCO flow, requests, quotes, bookings and settings).</p>
     </section>
   </div>
 </div>
@@ -131,7 +136,7 @@ function logoFor(a) {
 }
 const PERSONA_COLOR = { sender: 'var(--info)', tenant: 'var(--primary)', partner: 'var(--text-secondary)' };
 
-$('#accounts').innerHTML = D.accounts.map(a => {
+const card = (a) => {
   const l = logoFor(a);
   return `<article class="card acct" data-acct="${a.id}">
     <div class="top"><span class="logo" style="background:${l.bg}">${l.text}</span>
@@ -142,7 +147,15 @@ $('#accounts').innerHTML = D.accounts.map(a => {
     <span class="email">${esc(a.email)}</span>
     <button class="btn-secondary" data-use="${a.id}"><i data-lucide="arrow-right-to-line"></i>Use this account</button>
   </article>`;
-}).join('');
+};
+$('#accounts').innerHTML = `
+  <div class="group-head"><span class="tag info">Main demo</span>ASCO import scenario <span class="caption">Shanghai → Jakarta → Bandung</span></div>
+  <div class="accounts">${D.accounts.filter(a => a.group === 'main').map(card).join('')}
+    <article class="card acct"><div class="top"><span class="logo" style="background:var(--text-secondary)">PL</span><div><div class="persona" style="color:var(--text-secondary)">Core partner · no account</div><div class="name">Pudong Link Logistics</div></div></div>
+      <div class="company">Shanghai origin agent</div><p>Works only through magic links: RFQ reply, job steps, B/L upload and invoice. Links work once Andi sends the RFQ.</p>
+      <a class="btn-secondary" href="partner/rfq-reply.html?token=rfq-pudong"><i data-lucide="link"></i>Open the RFQ magic link</a></article></div>
+  <div class="group-head">Second scenario <span class="caption">Nusantara Cargo coffee export</span></div>
+  <div class="accounts">${D.accounts.filter(a => a.group !== 'main').map(card).join('')}</div>`;
 
 // Already signed in?
 const current = LM.currentAccount();

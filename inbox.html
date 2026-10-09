@@ -53,7 +53,10 @@
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
@@ -141,6 +144,7 @@ $('#clearAll').addEventListener('click', () => {
 });
 
 render();
+}
 </script>
 </body>
 </html>

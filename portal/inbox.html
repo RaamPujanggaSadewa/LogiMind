@@ -43,7 +43,10 @@
 <script src="../assets/data.js"></script>
 <script src="../assets/shell.js"></script>
 <script src="../assets/portal.js"></script>
+<script src="../assets/asco.js"></script>
+<script src="../assets/asco-portal.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, icons, toast } = LM;
 LM.mount();
 const P = Portal, S = P.S, T = P.T;
@@ -67,6 +70,7 @@ function render() {
 $$('.tab').forEach(t => t.addEventListener('click', () => { $$('.tab').forEach(x => x.classList.toggle('active', x === t)); tab = t.dataset.tab; render(); }));
 $$('[data-ch]').forEach(b => b.addEventListener('click', () => { b.classList.toggle('selected'); toast(`${b.textContent} notifications ${b.classList.contains('selected') ? 'on' : 'off'}`); }));
 render();
+}
 </script>
 </body>
 </html>

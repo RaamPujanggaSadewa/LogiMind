@@ -87,7 +87,10 @@
 <script src="../assets/data.js"></script>
 <script src="../assets/shell.js"></script>
 <script src="../assets/portal.js"></script>
+<script src="../assets/asco.js"></script>
+<script src="../assets/asco-portal.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, icons, toast, data: D } = LM;
 LM.mount();
 const P = Portal, S = P.S, T = P.T;
@@ -199,6 +202,7 @@ if (!firstVisit && !shown) {
     P.notify(n.title);
     try { sessionStorage.setItem('lm.portal.toast', LM.effective.id); } catch (e) {}
   }, 1400);
+}
 }
 </script>
 </body>

@@ -58,7 +58,10 @@
 </script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, icons, toast, orgAvatar, db, data: D } = LM;
 LM.mount();
 const id = new URLSearchParams(location.search).get('id') || 'kopi';
@@ -137,6 +140,7 @@ document.addEventListener('click', e => {
   }
 });
 document.addEventListener('change', e => { if (e.target.id === 'am') toast(`${e.target.value} is now the account manager for ${D.orgs[id].name}`); });
+}
 </script>
 </body>
 </html>

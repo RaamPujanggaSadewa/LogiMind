@@ -115,7 +115,10 @@
 </script>
 <script src="../assets/shell.js"></script>
 <script src="../assets/portal.js"></script>
+<script src="../assets/asco.js"></script>
+<script src="../assets/asco-portal.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, icons, toast, data: D } = LM;
 LM.mount();
 const P = Portal, S = P.S, T = P.T, SC = S.scenario;
@@ -437,6 +440,7 @@ function submit() {
 if (q) startThread(q, false);
 else if (saved) startThread(SC.prompt, true);
 else startScreen();
+}
 </script>
 </body>
 </html>

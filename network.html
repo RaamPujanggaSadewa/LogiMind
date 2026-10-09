@@ -121,7 +121,10 @@
 </script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
@@ -458,6 +461,7 @@ function sendInvite() {
 
 render();
 if (params.get('invite')) { window.openInvite(params.get('role')); history.replaceState(null, '', location.pathname + (state.tab !== 'vendors' ? `?tab=${state.tab}` : '')); }
+}
 </script>
 </body>
 </html>

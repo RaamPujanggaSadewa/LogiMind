@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/logimind.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<div class="app" data-rail="invoices"><div class="workspace"><main class="main"></main></div></div>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/portal.js"></script>
+<script src="../assets/asco.js"></script>
+<script src="../assets/asco-portal.js"></script>
+<script>
+// Invoices are part of the ASCO scenario; other senders go Home
+if (!Asco.takeover() && !LM.redirecting()) location.replace('index.html');
+</script>
+</body>
+</html>

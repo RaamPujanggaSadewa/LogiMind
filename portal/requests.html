@@ -33,7 +33,10 @@
 <script src="../assets/data.js"></script>
 <script src="../assets/shell.js"></script>
 <script src="../assets/portal.js"></script>
+<script src="../assets/asco.js"></script>
+<script src="../assets/asco-portal.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, icons } = LM;
 LM.mount();
 const P = Portal, S = P.S, T = P.T;
@@ -77,6 +80,7 @@ document.addEventListener('click', e => {
   const r = e.target.closest('tr[data-href]'); if (r) location.href = r.dataset.href;
 });
 render();
+}
 </script>
 </body>
 </html>

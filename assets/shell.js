@@ -166,7 +166,7 @@ window.LM = (() => {
   function awaitingRequests() {
     if (!account || account.persona !== 'tenant') return 0;
     const d = db.read(); const st = d.reqState || {};
-    const mine = (D.staffRequests || []).filter(r => r.status === 'review' && !(st[r.id] && (st[r.id].quoteSent || st[r.id].declined)));
+    const mine = (account.tenant === 'nusantara' ? D.staffRequests || [] : []).filter(r => r.status === 'review' && !(st[r.id] && (st[r.id].quoteSent || st[r.id].declined)));
     const fromPortal = (d.requests || []).filter(r => r.tenant === account.tenant && !(st[r.id] && (st[r.id].quoteSent || st[r.id].declined)));
     return mine.length + fromPortal.length;
   }
@@ -653,7 +653,7 @@ window.LM = (() => {
      LogiMind violet, and shows only customer prices. */
   function quoteDocHTML(q, T, opts = {}) {
     const money = opts.money || ((n) => 'US$' + Math.round(n).toLocaleString('en-US'));
-    const set = db.settings();
+    const set = opts.settings || db.settings();
     const total = q.lines.reduce((s2, l) => s2 + l[1], 0);
     const nodes = set.showTransship ? q.route : [q.route[0], ...(q.route.length > 2 ? ['1 transshipment'] : []), q.route[q.route.length - 1]];
     const lines = q.display === 'allin'
@@ -669,7 +669,7 @@ window.LM = (() => {
           <div><span>Transit</span> <b>${esc(q.transit)}</b></div><div><span>Departure</span> <b>${esc(q.departure)}</b></div>
           ${set.showCarriers && q.carrier ? `<div><span>Carrier</span> <b>${esc(q.carrier)}</b></div>` : ''}</div>
         <div class="qdoc-path">${nodes.map((n, i) => `${i ? '<i data-lucide="arrow-right"></i>' : ''}<span>${esc(n)}</span>`).join('')}</div>
-        <table class="qdoc-lines">${lines}<tr class="total"><td>Total <span class="tag success"><i data-lucide="badge-check"></i>Confirmed</span></td><td>${money(total)}</td></tr></table>
+        <table class="qdoc-lines">${lines}<tr class="total"><td>Total ${opts.badge != null ? opts.badge : '<span class="tag success"><i data-lucide="badge-check"></i>Confirmed</span>'}</td><td>${money(total)}</td></tr></table>
         <div class="qdoc-inc">
           <div><h4>Included</h4><ul class="y">${q.includes.map(x => `<li><i data-lucide="check"></i>${esc(x)}</li>`).join('')}</ul></div>
           <div><h4>Not included</h4><ul class="n">${q.excludes.map(x => `<li><i data-lucide="minus"></i>${esc(x)}</li>`).join('')}</ul></div>
@@ -719,7 +719,10 @@ window.LM = (() => {
     const app = $('.app');
     const workspace = $('.workspace', app);
     let rail, sidebar;
-    if (PAGE_PERSONA === 'sender') { applyTenantTheme(); rail = senderRailHTML; sidebar = senderSidebarHTML; }
+    // ASCO scenario pages bring their own rail and sidebar (assets/asco.js)
+    const X = window.Asco && Asco.shell && Asco.shell();
+    if (X) { if (PAGE_PERSONA === 'sender') applyTenantTheme(); rail = X.rail; sidebar = X.sidebar; }
+    else if (PAGE_PERSONA === 'sender') { applyTenantTheme(); rail = senderRailHTML; sidebar = senderSidebarHTML; }
     else if (PAGE_PERSONA === 'partner') { rail = partnerRailHTML; sidebar = partnerSidebarHTML; }
     else { rail = railHTML; sidebar = { rfqs: rfqSidebarHTML, shipments: shipmentsSidebarHTML, network: networkSidebarHTML, customers: customersSidebarHTML, settings: settingsSidebarHTML }[app.dataset.rail] || sidebarHTML; }
     workspace.insertAdjacentHTML('beforebegin', rail(app.dataset.rail));
@@ -790,5 +793,5 @@ window.LM = (() => {
 
   return { $, $$, esc, icons, tag, visibility, orgAvatar, toast, soon, bindComposer, stepperHTML, mount, data: D,
     account, tenant, sender, base: BASE, persona: PAGE_PERSONA, store, signIn, signOut, currentAccount, initialsOf, AVATAR_COLORS,
-    db, viewAs, effective, quoteDocHTML, awaitingRequests };
+    db, viewAs, effective, quoteDocHTML, awaitingRequests, railAvatarHTML, applyTenantTheme, redirecting: () => redirecting };
 })();

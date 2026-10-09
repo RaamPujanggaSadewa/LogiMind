@@ -989,3 +989,125 @@ window.LMData.partner = {
   const quotedCost = { 'SHP-2402': 5480, 'SHP-2386': 1450 };
   D.ops.delays.forEach(d => { d.slip = slip[d.id]; d.chain = chain[d.id]; d.quotedCost = quotedCost[d.id]; });
 })(window.LMData);
+
+/* ==========================================================================
+   v0.8 — ASCO import scenario (main demo) — ILLUSTRATIVE SAMPLE DATA
+   Shanghai → Tanjung Priok → Bandung. Prices come from core-partner costing
+   collected by RFQ. Company names are generic and invented.
+   ========================================================================== */
+(function (D) {
+  D.tenants.asco = {
+    key: 'asco', name: 'PT ASCO Logistik Indonesia', short: 'ASCO', initials: 'AS', city: 'Jakarta',
+    brand: '#B4461B', brandDark: '#963915', brandDeep: '#6E2A10', brandSoft: '#FBEDE6',
+    portal: 'portal.ascologistik.co.id', email: 'ops@asco.co.id',
+  };
+  Object.assign(D.orgs, {
+    abc:     { name: 'ABC Electronics Co., Ltd.', initials: 'AE', role: 'customer', type: 'Electronics manufacturer · Shanghai' },
+    chan:    { name: 'PT Chan Electronics', initials: 'CE', role: 'consignee', type: 'Electronics distributor · Bandung' },
+    pudong:  { name: 'Pudong Link Logistics', initials: 'PL', role: 'vendor', type: 'Core partner · Shanghai' },
+    huangpu: { name: 'Huangpu Freight Agency', initials: 'HF', role: 'vendor', type: 'Core partner · Shanghai' },
+    jaya:    { name: 'Jaya Cargo Agency', initials: 'JC', role: 'vendor', type: 'Core partner · Jakarta' },
+    priok:   { name: 'Priok Express Agent', initials: 'PE', role: 'vendor', type: 'Core partner · Jakarta' },
+  });
+
+  // ASCO accounts go first on the login page (group: main)
+  D.accounts.forEach(a => { a.group = 'second'; });
+  D.accounts.unshift(
+    { id: 'andi', persona: 'tenant', personaLabel: 'Logistics company (LSP)', email: 'pic@asco.co.id', name: 'Andi Pratama', role: 'PIC',
+      company: 'PT ASCO Logistik Indonesia', tenant: 'asco', home: 'index.html', color: 2, group: 'main',
+      desc: 'The LSP staff member in charge of the job: plans, sends RFQs, quotes, approves and follows execution.' },
+    { id: 'lina', persona: 'sender', personaLabel: 'Shipper', email: 'lina@abcelectronics.cn', name: 'Lina Zhou', role: 'Logistics manager',
+      company: 'ABC Electronics Co., Ltd.', org: 'abc', tenant: 'asco', home: 'portal/index.html', color: 0, group: 'main',
+      desc: 'Overseas shipper in Shanghai, a customer of ASCO. Requests, accepts quotes, uploads documents, tracks.' },
+    { id: 'jaya', persona: 'partner', personaLabel: 'Core partner', email: 'ops@jayacargo.co.id', name: 'Operations desk', role: 'Destination core partner',
+      company: 'Jaya Cargo Agency', org: 'jaya', home: 'partner/index.html', color: 1, group: 'main',
+      desc: 'Jakarta import agent. Replies to RFQs, executes its own leg and its driver captures the POD.' },
+  );
+
+  // Minimal portal profile for Lina (the ASCO pages read the flow from LM.db)
+  D.senders.lina = {
+    accountManager: { name: 'Andi Pratama', role: 'Your PIC at ASCO', initials: 'AP', color: 2, hours: 'Replies within 2 business hours (GMT+7)' },
+    staff: [{ name: 'Andi Pratama', role: 'PIC', color: 2, online: true }],
+    chats: [], shipments: [], requests: [], quotes: {}, inbox: [], companyDocs: [],
+  };
+
+  D.asco = {
+    requestId: 'REQ-A-1042', quoteNo: 'QT-ASCO-0418', fixedDsid: 'DSID-7F3K-9Q2M-ASCO',
+    customer: {
+      org: 'abc', name: 'ABC Electronics Co., Ltd.', contact: 'Lina Zhou', role: 'Logistics manager',
+      address: 'No. 88 Jinqiao Road, Pudong New District, Shanghai 201206', country: 'China',
+      phone: '+86 21 5032 8810', whatsapp: '+86 138 1762 4409', email: 'lina@abcelectronics.cn',
+      brn: 'USCC 91310115MA1K4Q7X2R', since: 'August 2025', terms: { afterPod: false, downPayment: 30 },
+    },
+    consignee: { name: 'PT Chan Electronics', address: 'Jl. Soekarno-Hatta No. 455, Bandung 40266, West Java', country: 'Indonesia', contact: 'Receiving dock · Mr. Hendra' },
+    cargo: { goods: 'Consumer electronics (LED TVs and monitors)', cbm: 200, containers: '3 × 40ft HC', value: 480000, currency: 'USD', hs: '8528.72', packages: 1840, weight: 38650, incoterm: 'FOB Shanghai' },
+    lane: { pol: 'Shanghai (CNSHA)', pod: 'Tanjung Priok, Jakarta (IDTPP)', final: 'Bandung', nodes: ['Shanghai', 'Tanjung Priok', 'Bandung'] },
+    example: '200 CBM electronics from Shanghai to Bandung via Jakarta, value USD 480k, ship early November',
+    // FX for comparison only
+    fx: { USD: 1, CNY: 7.10, IDR: 16250 }, fxNote: 'Illustrative FX rate: US$1 = CNY 7.10 = IDR 16,250. Not a live rate.',
+    partners: {
+      pudong:  { leg: 'origin', city: 'Shanghai', country: 'China', brn: 'USCC 91310000MA1FL5T21K', contact: 'Wei Chen', email: 'ops@pudonglink.example.cn', whatsapp: '+86 139 1622 0451', stars: 4, onTime: 92, currency: 'CNY', mode: 'link' },
+      huangpu: { leg: 'origin', city: 'Shanghai', country: 'China', brn: 'USCC 91310101MA1G0B3P8D', contact: 'Zhang Min', email: 'rfq@huangpufreight.example.cn', whatsapp: '+86 137 0172 8834', stars: 3, onTime: 81, currency: 'USD', mode: 'link' },
+      jaya:    { leg: 'dest', city: 'Jakarta', country: 'Indonesia', brn: 'NIB 9120305711842', contact: 'Rudi Hartono', email: 'ops@jayacargo.co.id', whatsapp: '+62 812 8890 1123', stars: 5, onTime: 95, currency: 'IDR', mode: 'account' },
+      priok:   { leg: 'dest', city: 'Jakarta', country: 'Indonesia', brn: 'NIB 8120112094471', contact: 'Sari Dewanti', email: 'quote@priokexpress.example.id', whatsapp: '+62 813 1004 7720', stars: 4, onTime: 88, currency: 'IDR', mode: 'link' },
+    },
+    legs: {
+      origin: { label: 'Origin leg', city: 'Shanghai', country: 'China', steps: [1, 2, 3], split: [0.14, 0.08, 0.78] },
+      dest: { label: 'Destination leg', city: 'Jakarta', country: 'Indonesia', steps: [4, 5, 6], split: [0.48, 0.52] },
+    },
+    steps: {
+      1: { t: 'Collect from shipper’s warehouse', short: 'Pickup', cust: 'Picked up from your warehouse', icon: 'warehouse', leg: 'origin', due: '2026-10-29T10:00', loc: 'Jinqiao, Pudong, Shanghai' },
+      2: { t: 'Export customs (China)', short: 'Export customs', cust: 'Export customs cleared', icon: 'stamp', leg: 'origin', due: '2026-10-30T17:00', loc: 'Waigaoqiao customs, Shanghai' },
+      3: { t: 'Carrier booking & ocean loading', short: 'Ocean loading', cust: 'Loaded on the vessel', icon: 'ship', leg: 'origin', due: '2026-11-02T18:00', loc: 'Yangshan Deep-Water Port, Shanghai' },
+      4: { t: 'Import customs (Indonesia)', short: 'Import customs', cust: 'Import customs cleared', icon: 'stamp', leg: 'dest', due: '2026-11-11T16:00', loc: 'Tanjung Priok, Jakarta' },
+      5: { t: 'Inland delivery Jakarta → Bandung', short: 'Inland delivery', cust: 'On the way to the consignee', icon: 'truck', leg: 'dest', due: '2026-11-12T12:00', loc: 'Tol Cipularang, West Java' },
+      6: { t: 'Consignee confirmation', short: 'Consignee confirmation', cust: 'Received by the consignee', icon: 'clipboard-check', leg: 'dest', due: '2026-11-12T17:00', loc: 'PT Chan Electronics, Bandung' },
+      7: { t: 'POD generation', short: 'POD', cust: 'Proof of delivery issued', icon: 'qr-code', leg: 'system', due: '2026-11-12T17:30', loc: 'LogiMind' },
+    },
+    eta: '2026-11-10T08:00', etd: '2026-11-02T18:00',
+    // what each partner replies when the demo fills replies (amount in its own currency)
+    replies: {
+      pudong:  { amount: 31200, currency: 'CNY', validity: '2026-11-20', transit: 9, notes: 'Includes trucking from Jinqiao, export declaration and 3 × 40HC on a direct sailing. Excludes inspection fees if selected by customs.' },
+      huangpu: { amount: 4180, currency: 'USD', validity: '2026-11-13', transit: 11, notes: 'Via Ningbo feeder. Space on 2 Nov is not guaranteed.' },
+      jaya:    { amount: 68500000, currency: 'IDR', validity: '2026-11-30', transit: 3, notes: 'Import clearance (PIB), port charges, 3 trucks to Bandung and unloading supervision.' },
+      priok:   { amount: 64900000, currency: 'IDR', validity: '2026-11-15', transit: 4, notes: 'Trucks to Bandung on next-day basis. Port storage charged separately after 3 days.' },
+    },
+    ai: {
+      origin: 'Pudong Link: US$214 more than the cheapest, but 11 points better on time and 2 days faster to Jakarta.',
+      dest: 'Jaya Cargo: 5★ and 95% on time. Worth US$221 more for import clearance of high-value electronics.',
+    },
+    // AI Document Agent results per upload attempt
+    docChecks: {
+      pl: [['fix', 'Volume mismatch: the packing list says 210 CBM, but the confirmed request says 200 CBM.', 'packing_list_ABC-0918.pdf'],
+           ['ready', '1,840 cartons, 38,650 kg gross, 200 CBM. Matches the confirmed request and the invoice.', 'packing_list_ABC-0918_v2.pdf']],
+      ci: [['fix', 'Currency mismatch: the invoice is in CNY (CNY 3,408,000), but the confirmed request is in USD (US$480,000).', 'commercial_invoice_ABC-0918.pdf'],
+           ['ready', 'US$480,000, HS 8528.72, FOB Shanghai. Matches the confirmed request.', 'commercial_invoice_ABC-0918_v2.pdf']],
+      coo: [['ready', 'Form E (ASEAN–China). Can lower import duty in Indonesia.', 'form_e_ABC-0918.pdf']],
+      msds: [['ready', 'Safety data sheet accepted.', 'msds_ABC.pdf']],
+    },
+    si: { shipper: 'ABC Electronics Co., Ltd., No. 88 Jinqiao Road, Pudong, Shanghai', consignee: 'PT Chan Electronics, Jl. Soekarno-Hatta No. 455, Bandung', notify: 'Same as consignee',
+      pol: 'Shanghai (CNSHA)', pod: 'Tanjung Priok (IDTPP)', desc: 'LED televisions and computer monitors', hs: '8528.72', packages: '1,840 cartons', gross: '38,650 kg', volume: '200 CBM',
+      marks: 'ABC / CHAN BDG / 1–1840', incoterm: 'FOB Shanghai', dg: 'No' },
+    po: { origin: 'PO-ASCO-000123', dest: 'PO-ASCO-000124' },
+    invoices: { dp: 'INV-ASCO-2026-0311', bal: 'INV-ASCO-2026-0347' },
+    // demo clock: when each event happens in the story (the prototype does not use real time here)
+    clock: {
+      request: '2026-10-19T09:12', plan: '2026-10-19T09:40', rfq: '2026-10-19T10:05', reply_pudong: '2026-10-19T15:20', reply_huangpu: '2026-10-19T17:02',
+      reply_jaya: '2026-10-20T08:45', reply_priok: '2026-10-20T11:30', quote1: '2026-10-21T11:00', negotiate: '2026-10-21T16:30', quote2: '2026-10-22T09:15',
+      accept: '2026-10-22T13:40', si: '2026-10-23T10:20', upload1: '2026-10-23T10:35', upload2: '2026-10-24T09:10', submit: '2026-10-24T09:30',
+      approve: '2026-10-26T10:00', bl1: '2026-11-07T09:00', bl2: '2026-11-08T09:00', bl3: '2026-11-09T09:00', blReceived: '2026-11-09T14:20',
+      pod: '2026-11-12T15:40', balance: '2026-11-12T18:00', invRequest: '2026-11-12T17:35', inv_pudong: '2026-11-13T10:10', inv_jaya: '2026-11-14T15:45', closed: '2026-11-12T18:00',
+    },
+    stepDone: {
+      1: ['2026-10-29T09:40', 'Jinqiao, Pudong, Shanghai', 'Good', '1,840 cartons collected, 3 × 40HC sealed.'],
+      2: ['2026-10-30T15:10', 'Waigaoqiao customs, Shanghai', 'Good', 'Export declaration released.'],
+      3: ['2026-11-02T17:20', 'Yangshan Deep-Water Port, Shanghai', 'Good', 'Loaded on MV Pacific Aurora V.118E. ETA Tanjung Priok Tue 10 Nov.'],
+      4: ['2026-11-11T14:30', 'Tanjung Priok, Jakarta', 'Minor damage', '2 cartons dented during the customs inspection (red lane). Photos taken; contents not yet checked.'],
+      5: ['2026-11-12T11:50', 'Tol Cipularang, West Java', 'Good', '3 trucks arrived in Bandung.'],
+    },
+    coordinator: { name: 'Andi Pratama', role: 'PIC, ASCO', phone: '+62 811 1900 4521', email: 'pic@asco.co.id' },
+    partnerInvoices: { pudong: { no: 'PLL-INV-26-0877', amount: 31200 }, jaya: { no: 'JCA/INV/XI/2026/0213', amount: 69150000, note: '1 extra day of port storage (IDR 650,000)' } },
+    stages: ['Request', 'Plan', 'Partner costing', 'Quotation', 'Documents', 'Approval', 'Execution', 'Pre-arrival docs', 'Delivery & POD', 'Invoicing', 'Closed'],
+    stagesCustomer: ['Request sent', 'Planning', 'Pricing', 'Quotation', 'Documents', 'Final check', 'Shipping', 'Arrival paperwork', 'Delivery', 'Invoicing', 'Completed'],
+  };
+})(window.LMData);

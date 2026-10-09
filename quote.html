@@ -135,7 +135,10 @@
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, visibility, orgAvatar, toast, icons, data: D } = LM;
 LM.mount();
 
@@ -468,6 +471,7 @@ if (REQ) setInterval(() => { if (state.sent) renderActionBar(); }, 3000);
 // Re-measure label heights once web fonts load and on resize
 document.fonts?.ready.then(autosize);
 addEventListener('resize', autosize);
+}
 </script>
 </body>
 </html>

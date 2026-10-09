@@ -112,7 +112,10 @@
 <script src="assets/data.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/staff.js"></script>
+<script src="assets/asco.js"></script>
+<script src="assets/asco-staff.js"></script>
 <script>
+if (!Asco.takeover()) {
 const { $, $$, esc, tag, orgAvatar, toast, icons, db, data: D } = LM;
 LM.mount();
 const O = D.ops, T = Staff.T;
@@ -287,6 +290,7 @@ $$('[data-scope]').forEach(b => b.addEventListener('click', () => {
   $$('[data-scope]').forEach(x => x.classList.toggle('selected', x === b));
   toast(b.dataset.scope === 'team' ? 'Showing the whole team’s work' : 'Showing items assigned to you');
 }));
+}
 </script>
 </body>
 </html>
